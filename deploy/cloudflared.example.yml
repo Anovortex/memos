@@ -1,0 +1,7 @@
+tunnel: replace-with-tunnel-id
+credentials-file: /etc/cloudflared/credentials.json
+
+ingress:
+  - hostname: notes.example.com
+    service: http://memos:5230
+  - service: http_status:404

@@ -53,9 +53,11 @@ services:
       - memos_data:/var/opt/memos
     networks:
       - backend
+      - edge
 
 networks:
   backend: {}
+  edge: {}
 
 volumes:
   postgres_data:

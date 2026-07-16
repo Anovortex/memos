@@ -24,6 +24,37 @@ docker compose up -d
 docker compose ps
 ```
 
+## Cloudflare Tunnel
+
+Create a dedicated tunnel and DNS route, then copy
+`cloudflared.example.yml` to the ignored `cloudflared.yml` and fill in the
+tunnel ID and hostname. Store its credential JSON at
+`secrets/cloudflared_credentials.json`.
+
+Start the public tunnel with:
+
+```bash
+docker compose -f compose.yaml -f compose.cloudflare.yaml config
+docker compose -f compose.yaml -f compose.cloudflare.yaml pull
+docker compose -f compose.yaml -f compose.cloudflare.yaml up -d
+docker compose -f compose.yaml -f compose.cloudflare.yaml ps
+```
+
+The Memos port remains bound to server loopback; only the Cloudflare Tunnel
+publishes it.
+
+After changing `cloudflared.yml` or its credential JSON, force the initializer
+and tunnel to consume the new files:
+
+```bash
+docker compose -f compose.yaml -f compose.cloudflare.yaml up -d \
+  --force-recreate cloudflared-secret-init cloudflared
+```
+
+When permanently retiring the tunnel, remove the
+`memos-production_cloudflared_config` volume after stopping the Compose project
+so the copied credential does not remain at rest.
+
 The persistent volumes are:
 
 - `memos-production_postgres_data` for PostgreSQL.

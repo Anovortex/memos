@@ -1,0 +1,43 @@
+services:
+  cloudflared-secret-init:
+    image: alpine:3.21
+    restart: "no"
+    command:
+      - /bin/sh
+      - -ec
+      - |
+        install -m 0400 -o 65532 -g 65532 /source/config.yml /target/config.yml
+        install -m 0400 -o 65532 -g 65532 /run/secrets/cloudflared_credentials /target/credentials.json
+    volumes:
+      - ./cloudflared.yml:/source/config.yml:ro
+      - cloudflared_config:/target
+    secrets:
+      - cloudflared_credentials
+    networks:
+      - edge
+
+  cloudflared:
+    image: cloudflare/cloudflared:2026.7.2@sha256:4f6655284ab3d252b7f28fedb19fe6c8fc82ee5b1295c20ac74d475e5398a52d
+    restart: unless-stopped
+    command:
+      - tunnel
+      - --no-autoupdate
+      - --config
+      - /etc/cloudflared/config.yml
+      - run
+    depends_on:
+      memos:
+        condition: service_started
+      cloudflared-secret-init:
+        condition: service_completed_successfully
+    volumes:
+      - cloudflared_config:/etc/cloudflared:ro
+    networks:
+      - edge
+
+secrets:
+  cloudflared_credentials:
+    file: ./secrets/cloudflared_credentials.json
+
+volumes:
+  cloudflared_config:
