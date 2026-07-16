@@ -1,5 +1,18 @@
 # Changelog
 
+## [0.30.0](https://github.com/usememos/memos/compare/v0.30.0-rc.1...v0.30.0) (2026-07-16)
+
+
+### Features
+
+* **web:** redesign memo detail sidebar as property rail ([d4b5a16](https://github.com/usememos/memos/commit/d4b5a1695b9acf4da3ef72f600789a4a0f90e4d5))
+* **web:** restore scroll position across navigation ([e497895](https://github.com/usememos/memos/commit/e497895bf3b72cdae92e5bab6cd5b691c8eedc15))
+
+
+### Bug Fixes
+
+* **web:** position tooltip arrows outside content ([773e56e](https://github.com/usememos/memos/commit/773e56e537657508af4e357f9c8845af4d4f15e8)), closes [#6095](https://github.com/usememos/memos/issues/6095)
+
 ## [0.30.0-rc.1](https://github.com/usememos/memos/compare/v0.29.1...v0.30.0-rc.1) (2026-07-14)
 
 
