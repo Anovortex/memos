@@ -20,6 +20,7 @@ import { ROUTES } from "@/router/routes";
 import { User_Role, UserSchema } from "@/types/proto/api/v1/user_service_pb";
 import { AUTH_REDIRECT_PARAM, appendSearchParams, getSafeRedirectPath } from "@/utils/auth-redirect";
 import { useTranslate } from "@/utils/i18n";
+import { getSignupUsernameErrorKey } from "@/utils/signup";
 
 const SignUp = () => {
   const t = useTranslate();
@@ -46,6 +47,12 @@ const SignUp = () => {
     e.preventDefault();
 
     if (username === "" || password === "") {
+      return;
+    }
+
+    const usernameErrorKey = getSignupUsernameErrorKey(username);
+    if (usernameErrorKey) {
+      toast.error(t(usernameErrorKey));
       return;
     }
 

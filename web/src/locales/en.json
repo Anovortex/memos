@@ -31,6 +31,7 @@
     "signups-closed-description": "New accounts are disabled on this instance. Contact your administrator if you need access.",
     "signups-closed-title": "Sign-ups are closed",
     "sso-signup-tip": "Sign in with a provider below to create your account.",
+    "username-email-not-allowed": "Only a username is accepted here. Email addresses cannot be used.",
     "welcome-back": "Welcome back."
   },
   "demo": {
