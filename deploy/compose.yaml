@@ -1,0 +1,68 @@
+name: memos-production
+
+services:
+  postgres:
+    image: postgres:18-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-memos}
+      POSTGRES_USER: ${POSTGRES_USER:-memos}
+      POSTGRES_PASSWORD_FILE: /run/secrets/postgres_password
+    secrets:
+      - postgres_password
+    volumes:
+      - postgres_data:/var/lib/postgresql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U \"$${POSTGRES_USER}\" -d \"$${POSTGRES_DB}\""]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 20s
+    networks:
+      - backend
+
+  memos-secret-init:
+    image: alpine:3.21
+    restart: "no"
+    command:
+      - /bin/sh
+      - -ec
+      - install -m 0400 -o 10001 -g 10001 /run/secrets/memos_dsn /var/opt/memos/.memos_dsn
+    secrets:
+      - memos_dsn
+    volumes:
+      - memos_data:/var/opt/memos
+    networks:
+      - backend
+
+  memos:
+    image: ${MEMOS_IMAGE:?set MEMOS_IMAGE to an immutable image tag or digest}
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+      memos-secret-init:
+        condition: service_completed_successfully
+    environment:
+      MEMOS_DRIVER: postgres
+      MEMOS_DSN_FILE: /var/opt/memos/.memos_dsn
+      MEMOS_PORT: "5230"
+    ports:
+      - "127.0.0.1:${MEMOS_HOST_PORT:-5230}:5230"
+    volumes:
+      - memos_data:/var/opt/memos
+    networks:
+      - backend
+
+networks:
+  backend: {}
+
+volumes:
+  postgres_data:
+  memos_data:
+
+secrets:
+  postgres_password:
+    file: ./secrets/postgres_password
+  memos_dsn:
+    file: ./secrets/memos_dsn
