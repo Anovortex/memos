@@ -251,6 +251,25 @@ OAuth failure recovery, PAT permissions, cookie `Secure`/`SameSite` behavior
 behind the chosen proxy, and rate limiting. Keep password login enabled until a
 tested administrative recovery route exists. TLS is mandatory.
 
+### Future improvement: organization-only access
+
+Restrict regular users to approved organization email domains through the
+existing OAuth2 identity-provider flow:
+
+- Configure the organization's Google Workspace, Microsoft Entra ID, or other
+  OAuth2 provider.
+- Enforce the approved email domain with the identity provider's identifier
+  filter; do not rely only on a client-side email check.
+- Test account creation, login, logout, token refresh, rejection of personal
+  email addresses, and removal of access when an organization account is
+  suspended.
+- Disable regular-user password authentication only after SSO and an
+  administrator recovery path have been verified.
+- Optionally enforce the same domain in Cloudflare Access in front of
+  `notes.noviledger.com` as defense in depth.
+- Review existing users before enforcement because a new domain rule must not
+  silently leave unauthorized legacy accounts active.
+
 ## Backup requirements
 
 Backups must be server-side, encrypted, monitored, and regularly restored in a
@@ -288,8 +307,9 @@ copying a live database file naively can yield an inconsistent backup.
    responsive-navigation issues. Add only minimal non-data service-worker
    behavior if installation quality requires it.
 4. **Privacy and security hardening:** default to private access, audit ACLs and
-   external URLs, validate authentication recovery and session behavior, add
-   rate limits/security headers, and document operational access.
+   external URLs, add organization-domain SSO and optional Cloudflare Access,
+   validate authentication recovery and session behavior, add rate
+   limits/security headers, and document operational access.
 5. **Core product fit:** refine quick capture and longer-document editing while
    preserving tags, search, attachments, dark mode, and existing features.
    Establish browser and mobile regression tests before visual changes.
