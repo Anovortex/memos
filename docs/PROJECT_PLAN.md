@@ -108,11 +108,13 @@ unless a release workflow explicitly requires them.
 | `cd web && pnpm lint` | Passed, including TypeScript checking and Biome. |
 | `cd web && pnpm test` | Passed: 214 tests. |
 | `cd web && pnpm build` | Passed. Vite emitted non-fatal large/chunk-size warnings. |
-| `go test ./...` | Passed. Container-backed MySQL and PostgreSQL cases were skipped because the Docker daemon was unavailable. |
+| `go test ./...` | Passed. |
+| `go test -v ./store/...` | Passed after Docker access was enabled, including the shared SQLite, MySQL 8, and PostgreSQL 18 store matrix and containerized migration tests. Three separate `store/db/postgres` tests self-skipped because they require an explicit `POSTGRES_DSN`; equivalent shared-store PostgreSQL coverage ran successfully through Testcontainers. |
 | `golangci-lint run` with v2.11.3 | Failed on seven existing epoch-naming issues; these predate and are unrelated to this docs-only change. |
-| `buf lint` / generation checks | Not run because `buf` was unavailable. |
+| `cd proto && buf lint` | Passed with Buf 1.71.0 installed in a temporary tool directory. |
+| `cd proto && buf format -d` | Passed with no formatting diff. |
 | `docker compose -f scripts/compose.yaml config` | Parsed successfully. |
-| Docker runtime test | Not run because the Docker daemon was not running. |
+| Docker runtime test | Docker Desktop 29.4.1 was reachable during follow-up verification; Testcontainers successfully ran MySQL, PostgreSQL, stable-Memos, and migration containers. |
 | Backend and frontend startup | Both started successfully and returned HTTP 200. |
 
 The repository does not provide `golangci-lint` locally, so v2.11.3 was
@@ -140,18 +142,24 @@ store/test/memo_filter_test.go:636:2: epoch-naming: var now should have one of t
 These findings predate and are unrelated to this documentation-only change;
 address them separately rather than mixing cleanup into the baseline plan.
 
-The missing Buf dependency was reported as:
+During the initial audit, before Buf was installed, the missing dependency was
+reported as:
 
 ```text
 zsh:1: command not found: buf
 ```
 
-The Docker client and Compose plugin were installed, but the daemon check
-failed with:
+During the initial audit, the Docker client and Compose plugin were installed,
+but the daemon was not running:
 
 ```text
 Cannot connect to the Docker daemon at unix:///Users/asifkhan/.docker/run/docker.sock. Is the docker daemon running?
 ```
+
+After Docker was started and sandbox access to its socket was granted, Docker
+Desktop 29.4.1 was reachable and the verbose store matrix passed. Buf 1.71.0
+was installed under `/tmp/memos-bin`; no tool binary or cache was added to the
+repository.
 
 ## Production deployment architecture
 
