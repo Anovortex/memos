@@ -2988,6 +2988,11 @@ components:
                 localStorageBytes:
                     type: string
                     description: Recursive size of the data directory in bytes. -1 if unavailable.
+                userUsage:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/InstanceStats_UserUsage'
+                    description: Per-user content usage. Admin only, like the containing resource.
                 generatedTime:
                     type: string
                     description: Server-side timestamp when the snapshot was generated.
@@ -3003,6 +3008,24 @@ components:
                     type: string
                     description: size_bytes is the database size in bytes; -1 if unavailable.
             description: Database size statistics.
+        InstanceStats_UserUsage:
+            type: object
+            properties:
+                name:
+                    type: string
+                    description: 'User resource name. Format: users/{user}.'
+                memoCount:
+                    type: integer
+                    format: int32
+                attachmentCount:
+                    type: integer
+                    format: int32
+                attachmentBytes:
+                    type: string
+                lastActivityTime:
+                    type: string
+                    description: Most recent memo update; absent when the user has no memos.
+                    format: date-time
         LinkMetadata:
             type: object
             properties:

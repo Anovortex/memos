@@ -783,6 +783,8 @@ type InstanceStats struct {
 	Database *InstanceStats_DatabaseStats `protobuf:"bytes,1,opt,name=database,proto3" json:"database,omitempty"`
 	// Recursive size of the data directory in bytes. -1 if unavailable.
 	LocalStorageBytes int64 `protobuf:"varint,2,opt,name=local_storage_bytes,json=localStorageBytes,proto3" json:"local_storage_bytes,omitempty"`
+	// Per-user content usage. Admin only, like the containing resource.
+	UserUsage []*InstanceStats_UserUsage `protobuf:"bytes,3,rep,name=user_usage,json=userUsage,proto3" json:"user_usage,omitempty"`
 	// Server-side timestamp when the snapshot was generated.
 	GeneratedTime *timestamppb.Timestamp `protobuf:"bytes,4,opt,name=generated_time,json=generatedTime,proto3" json:"generated_time,omitempty"`
 	unknownFields protoimpl.UnknownFields
@@ -831,6 +833,13 @@ func (x *InstanceStats) GetLocalStorageBytes() int64 {
 		return x.LocalStorageBytes
 	}
 	return 0
+}
+
+func (x *InstanceStats) GetUserUsage() []*InstanceStats_UserUsage {
+	if x != nil {
+		return x.UserUsage
+	}
+	return nil
 }
 
 func (x *InstanceStats) GetGeneratedTime() *timestamppb.Timestamp {
@@ -1800,6 +1809,84 @@ func (x *InstanceStats_DatabaseStats) GetSizeBytes() int64 {
 	return 0
 }
 
+type InstanceStats_UserUsage struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// User resource name. Format: users/{user}.
+	Name            string `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
+	MemoCount       int32  `protobuf:"varint,2,opt,name=memo_count,json=memoCount,proto3" json:"memo_count,omitempty"`
+	AttachmentCount int32  `protobuf:"varint,3,opt,name=attachment_count,json=attachmentCount,proto3" json:"attachment_count,omitempty"`
+	AttachmentBytes int64  `protobuf:"varint,4,opt,name=attachment_bytes,json=attachmentBytes,proto3" json:"attachment_bytes,omitempty"`
+	// Most recent memo update; absent when the user has no memos.
+	LastActivityTime *timestamppb.Timestamp `protobuf:"bytes,5,opt,name=last_activity_time,json=lastActivityTime,proto3" json:"last_activity_time,omitempty"`
+	unknownFields    protoimpl.UnknownFields
+	sizeCache        protoimpl.SizeCache
+}
+
+func (x *InstanceStats_UserUsage) Reset() {
+	*x = InstanceStats_UserUsage{}
+	mi := &file_api_v1_instance_service_proto_msgTypes[24]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *InstanceStats_UserUsage) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*InstanceStats_UserUsage) ProtoMessage() {}
+
+func (x *InstanceStats_UserUsage) ProtoReflect() protoreflect.Message {
+	mi := &file_api_v1_instance_service_proto_msgTypes[24]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use InstanceStats_UserUsage.ProtoReflect.Descriptor instead.
+func (*InstanceStats_UserUsage) Descriptor() ([]byte, []int) {
+	return file_api_v1_instance_service_proto_rawDescGZIP(), []int{9, 1}
+}
+
+func (x *InstanceStats_UserUsage) GetName() string {
+	if x != nil {
+		return x.Name
+	}
+	return ""
+}
+
+func (x *InstanceStats_UserUsage) GetMemoCount() int32 {
+	if x != nil {
+		return x.MemoCount
+	}
+	return 0
+}
+
+func (x *InstanceStats_UserUsage) GetAttachmentCount() int32 {
+	if x != nil {
+		return x.AttachmentCount
+	}
+	return 0
+}
+
+func (x *InstanceStats_UserUsage) GetAttachmentBytes() int64 {
+	if x != nil {
+		return x.AttachmentBytes
+	}
+	return 0
+}
+
+func (x *InstanceStats_UserUsage) GetLastActivityTime() *timestamppb.Timestamp {
+	if x != nil {
+		return x.LastActivityTime
+	}
+	return nil
+}
+
 var File_api_v1_instance_service_proto protoreflect.FileDescriptor
 
 const file_api_v1_instance_service_proto_rawDesc = "" +
@@ -1930,15 +2017,24 @@ const file_api_v1_instance_service_proto_rawDesc = "" +
 	"\x1fTestInstanceEmailSettingRequest\x12Y\n" +
 	"\x05email\x18\x01 \x01(\v2>.memos.api.v1.InstanceSetting.NotificationSetting.EmailSettingB\x03\xe0A\x01R\x05email\x12,\n" +
 	"\x0frecipient_email\x18\x02 \x01(\tB\x03\xe0A\x01R\x0erecipientEmail\"\x19\n" +
-	"\x17GetInstanceStatsRequest\"\x91\x02\n" +
+	"\x17GetInstanceStatsRequest\"\xb8\x04\n" +
 	"\rInstanceStats\x12E\n" +
 	"\bdatabase\x18\x01 \x01(\v2).memos.api.v1.InstanceStats.DatabaseStatsR\bdatabase\x12.\n" +
-	"\x13local_storage_bytes\x18\x02 \x01(\x03R\x11localStorageBytes\x12A\n" +
+	"\x13local_storage_bytes\x18\x02 \x01(\x03R\x11localStorageBytes\x12D\n" +
+	"\n" +
+	"user_usage\x18\x03 \x03(\v2%.memos.api.v1.InstanceStats.UserUsageR\tuserUsage\x12A\n" +
 	"\x0egenerated_time\x18\x04 \x01(\v2\x1a.google.protobuf.TimestampR\rgeneratedTime\x1aF\n" +
 	"\rDatabaseStats\x12\x16\n" +
 	"\x06driver\x18\x01 \x01(\tR\x06driver\x12\x1d\n" +
 	"\n" +
-	"size_bytes\x18\x02 \x01(\x03R\tsizeBytes2\x9f\a\n" +
+	"size_bytes\x18\x02 \x01(\x03R\tsizeBytes\x1a\xde\x01\n" +
+	"\tUserUsage\x12\x12\n" +
+	"\x04name\x18\x01 \x01(\tR\x04name\x12\x1d\n" +
+	"\n" +
+	"memo_count\x18\x02 \x01(\x05R\tmemoCount\x12)\n" +
+	"\x10attachment_count\x18\x03 \x01(\x05R\x0fattachmentCount\x12)\n" +
+	"\x10attachment_bytes\x18\x04 \x01(\x03R\x0fattachmentBytes\x12H\n" +
+	"\x12last_activity_time\x18\x05 \x01(\v2\x1a.google.protobuf.TimestampR\x10lastActivityTime2\x9f\a\n" +
 	"\x0fInstanceService\x12~\n" +
 	"\x12GetInstanceProfile\x12'.memos.api.v1.GetInstanceProfileRequest\x1a\x1d.memos.api.v1.InstanceProfile\" \x82\xd3\xe4\x93\x02\x1a\x12\x18/api/v1/instance/profile\x12\x8f\x01\n" +
 	"\x12GetInstanceSetting\x12'.memos.api.v1.GetInstanceSettingRequest\x1a\x1d.memos.api.v1.InstanceSetting\"1\xdaA\x04name\x82\xd3\xe4\x93\x02$\x12\"/api/v1/{name=instance/settings/*}\x12\xa8\x01\n" +
@@ -1961,7 +2057,7 @@ func file_api_v1_instance_service_proto_rawDescGZIP() []byte {
 }
 
 var file_api_v1_instance_service_proto_enumTypes = make([]protoimpl.EnumInfo, 3)
-var file_api_v1_instance_service_proto_msgTypes = make([]protoimpl.MessageInfo, 24)
+var file_api_v1_instance_service_proto_msgTypes = make([]protoimpl.MessageInfo, 25)
 var file_api_v1_instance_service_proto_goTypes = []any{
 	(InstanceSetting_Key)(0),                             // 0: memos.api.v1.InstanceSetting.Key
 	(InstanceSetting_AIProviderType)(0),                  // 1: memos.api.v1.InstanceSetting.AIProviderType
@@ -1990,14 +2086,15 @@ var file_api_v1_instance_service_proto_goTypes = []any{
 	nil, // 24: memos.api.v1.InstanceSetting.TagsSetting.TagsEntry
 	(*InstanceSetting_NotificationSetting_EmailSetting)(nil), // 25: memos.api.v1.InstanceSetting.NotificationSetting.EmailSetting
 	(*InstanceStats_DatabaseStats)(nil),                      // 26: memos.api.v1.InstanceStats.DatabaseStats
-	(*User)(nil),                                             // 27: memos.api.v1.User
-	(*fieldmaskpb.FieldMask)(nil),                            // 28: google.protobuf.FieldMask
-	(*timestamppb.Timestamp)(nil),                            // 29: google.protobuf.Timestamp
-	(*color.Color)(nil),                                      // 30: google.type.Color
-	(*emptypb.Empty)(nil),                                    // 31: google.protobuf.Empty
+	(*InstanceStats_UserUsage)(nil),                          // 27: memos.api.v1.InstanceStats.UserUsage
+	(*User)(nil),                                             // 28: memos.api.v1.User
+	(*fieldmaskpb.FieldMask)(nil),                            // 29: google.protobuf.FieldMask
+	(*timestamppb.Timestamp)(nil),                            // 30: google.protobuf.Timestamp
+	(*color.Color)(nil),                                      // 31: google.type.Color
+	(*emptypb.Empty)(nil),                                    // 32: google.protobuf.Empty
 }
 var file_api_v1_instance_service_proto_depIdxs = []int32{
-	27, // 0: memos.api.v1.InstanceProfile.admin:type_name -> memos.api.v1.User
+	28, // 0: memos.api.v1.InstanceProfile.admin:type_name -> memos.api.v1.User
 	13, // 1: memos.api.v1.InstanceSetting.general_setting:type_name -> memos.api.v1.InstanceSetting.GeneralSetting
 	14, // 2: memos.api.v1.InstanceSetting.storage_setting:type_name -> memos.api.v1.InstanceSetting.StorageSetting
 	15, // 3: memos.api.v1.InstanceSetting.memo_related_setting:type_name -> memos.api.v1.InstanceSetting.MemoRelatedSetting
@@ -2006,37 +2103,39 @@ var file_api_v1_instance_service_proto_depIdxs = []int32{
 	19, // 6: memos.api.v1.InstanceSetting.ai_setting:type_name -> memos.api.v1.InstanceSetting.AISetting
 	5,  // 7: memos.api.v1.BatchGetInstanceSettingsResponse.settings:type_name -> memos.api.v1.InstanceSetting
 	5,  // 8: memos.api.v1.UpdateInstanceSettingRequest.setting:type_name -> memos.api.v1.InstanceSetting
-	28, // 9: memos.api.v1.UpdateInstanceSettingRequest.update_mask:type_name -> google.protobuf.FieldMask
+	29, // 9: memos.api.v1.UpdateInstanceSettingRequest.update_mask:type_name -> google.protobuf.FieldMask
 	25, // 10: memos.api.v1.TestInstanceEmailSettingRequest.email:type_name -> memos.api.v1.InstanceSetting.NotificationSetting.EmailSetting
 	26, // 11: memos.api.v1.InstanceStats.database:type_name -> memos.api.v1.InstanceStats.DatabaseStats
-	29, // 12: memos.api.v1.InstanceStats.generated_time:type_name -> google.protobuf.Timestamp
-	22, // 13: memos.api.v1.InstanceSetting.GeneralSetting.custom_profile:type_name -> memos.api.v1.InstanceSetting.GeneralSetting.CustomProfile
-	2,  // 14: memos.api.v1.InstanceSetting.StorageSetting.storage_type:type_name -> memos.api.v1.InstanceSetting.StorageSetting.StorageType
-	23, // 15: memos.api.v1.InstanceSetting.StorageSetting.s3_config:type_name -> memos.api.v1.InstanceSetting.StorageSetting.S3Config
-	30, // 16: memos.api.v1.InstanceSetting.TagMetadata.background_color:type_name -> google.type.Color
-	24, // 17: memos.api.v1.InstanceSetting.TagsSetting.tags:type_name -> memos.api.v1.InstanceSetting.TagsSetting.TagsEntry
-	25, // 18: memos.api.v1.InstanceSetting.NotificationSetting.email:type_name -> memos.api.v1.InstanceSetting.NotificationSetting.EmailSetting
-	20, // 19: memos.api.v1.InstanceSetting.AISetting.providers:type_name -> memos.api.v1.InstanceSetting.AIProviderConfig
-	21, // 20: memos.api.v1.InstanceSetting.AISetting.transcription:type_name -> memos.api.v1.InstanceSetting.TranscriptionConfig
-	1,  // 21: memos.api.v1.InstanceSetting.AIProviderConfig.type:type_name -> memos.api.v1.InstanceSetting.AIProviderType
-	16, // 22: memos.api.v1.InstanceSetting.TagsSetting.TagsEntry.value:type_name -> memos.api.v1.InstanceSetting.TagMetadata
-	4,  // 23: memos.api.v1.InstanceService.GetInstanceProfile:input_type -> memos.api.v1.GetInstanceProfileRequest
-	6,  // 24: memos.api.v1.InstanceService.GetInstanceSetting:input_type -> memos.api.v1.GetInstanceSettingRequest
-	7,  // 25: memos.api.v1.InstanceService.BatchGetInstanceSettings:input_type -> memos.api.v1.BatchGetInstanceSettingsRequest
-	9,  // 26: memos.api.v1.InstanceService.UpdateInstanceSetting:input_type -> memos.api.v1.UpdateInstanceSettingRequest
-	10, // 27: memos.api.v1.InstanceService.TestInstanceEmailSetting:input_type -> memos.api.v1.TestInstanceEmailSettingRequest
-	11, // 28: memos.api.v1.InstanceService.GetInstanceStats:input_type -> memos.api.v1.GetInstanceStatsRequest
-	3,  // 29: memos.api.v1.InstanceService.GetInstanceProfile:output_type -> memos.api.v1.InstanceProfile
-	5,  // 30: memos.api.v1.InstanceService.GetInstanceSetting:output_type -> memos.api.v1.InstanceSetting
-	8,  // 31: memos.api.v1.InstanceService.BatchGetInstanceSettings:output_type -> memos.api.v1.BatchGetInstanceSettingsResponse
-	5,  // 32: memos.api.v1.InstanceService.UpdateInstanceSetting:output_type -> memos.api.v1.InstanceSetting
-	31, // 33: memos.api.v1.InstanceService.TestInstanceEmailSetting:output_type -> google.protobuf.Empty
-	12, // 34: memos.api.v1.InstanceService.GetInstanceStats:output_type -> memos.api.v1.InstanceStats
-	29, // [29:35] is the sub-list for method output_type
-	23, // [23:29] is the sub-list for method input_type
-	23, // [23:23] is the sub-list for extension type_name
-	23, // [23:23] is the sub-list for extension extendee
-	0,  // [0:23] is the sub-list for field type_name
+	27, // 12: memos.api.v1.InstanceStats.user_usage:type_name -> memos.api.v1.InstanceStats.UserUsage
+	30, // 13: memos.api.v1.InstanceStats.generated_time:type_name -> google.protobuf.Timestamp
+	22, // 14: memos.api.v1.InstanceSetting.GeneralSetting.custom_profile:type_name -> memos.api.v1.InstanceSetting.GeneralSetting.CustomProfile
+	2,  // 15: memos.api.v1.InstanceSetting.StorageSetting.storage_type:type_name -> memos.api.v1.InstanceSetting.StorageSetting.StorageType
+	23, // 16: memos.api.v1.InstanceSetting.StorageSetting.s3_config:type_name -> memos.api.v1.InstanceSetting.StorageSetting.S3Config
+	31, // 17: memos.api.v1.InstanceSetting.TagMetadata.background_color:type_name -> google.type.Color
+	24, // 18: memos.api.v1.InstanceSetting.TagsSetting.tags:type_name -> memos.api.v1.InstanceSetting.TagsSetting.TagsEntry
+	25, // 19: memos.api.v1.InstanceSetting.NotificationSetting.email:type_name -> memos.api.v1.InstanceSetting.NotificationSetting.EmailSetting
+	20, // 20: memos.api.v1.InstanceSetting.AISetting.providers:type_name -> memos.api.v1.InstanceSetting.AIProviderConfig
+	21, // 21: memos.api.v1.InstanceSetting.AISetting.transcription:type_name -> memos.api.v1.InstanceSetting.TranscriptionConfig
+	1,  // 22: memos.api.v1.InstanceSetting.AIProviderConfig.type:type_name -> memos.api.v1.InstanceSetting.AIProviderType
+	16, // 23: memos.api.v1.InstanceSetting.TagsSetting.TagsEntry.value:type_name -> memos.api.v1.InstanceSetting.TagMetadata
+	30, // 24: memos.api.v1.InstanceStats.UserUsage.last_activity_time:type_name -> google.protobuf.Timestamp
+	4,  // 25: memos.api.v1.InstanceService.GetInstanceProfile:input_type -> memos.api.v1.GetInstanceProfileRequest
+	6,  // 26: memos.api.v1.InstanceService.GetInstanceSetting:input_type -> memos.api.v1.GetInstanceSettingRequest
+	7,  // 27: memos.api.v1.InstanceService.BatchGetInstanceSettings:input_type -> memos.api.v1.BatchGetInstanceSettingsRequest
+	9,  // 28: memos.api.v1.InstanceService.UpdateInstanceSetting:input_type -> memos.api.v1.UpdateInstanceSettingRequest
+	10, // 29: memos.api.v1.InstanceService.TestInstanceEmailSetting:input_type -> memos.api.v1.TestInstanceEmailSettingRequest
+	11, // 30: memos.api.v1.InstanceService.GetInstanceStats:input_type -> memos.api.v1.GetInstanceStatsRequest
+	3,  // 31: memos.api.v1.InstanceService.GetInstanceProfile:output_type -> memos.api.v1.InstanceProfile
+	5,  // 32: memos.api.v1.InstanceService.GetInstanceSetting:output_type -> memos.api.v1.InstanceSetting
+	8,  // 33: memos.api.v1.InstanceService.BatchGetInstanceSettings:output_type -> memos.api.v1.BatchGetInstanceSettingsResponse
+	5,  // 34: memos.api.v1.InstanceService.UpdateInstanceSetting:output_type -> memos.api.v1.InstanceSetting
+	32, // 35: memos.api.v1.InstanceService.TestInstanceEmailSetting:output_type -> google.protobuf.Empty
+	12, // 36: memos.api.v1.InstanceService.GetInstanceStats:output_type -> memos.api.v1.InstanceStats
+	31, // [31:37] is the sub-list for method output_type
+	25, // [25:31] is the sub-list for method input_type
+	25, // [25:25] is the sub-list for extension type_name
+	25, // [25:25] is the sub-list for extension extendee
+	0,  // [0:25] is the sub-list for field type_name
 }
 
 func init() { file_api_v1_instance_service_proto_init() }
@@ -2059,7 +2158,7 @@ func file_api_v1_instance_service_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_api_v1_instance_service_proto_rawDesc), len(file_api_v1_instance_service_proto_rawDesc)),
 			NumEnums:      3,
-			NumMessages:   24,
+			NumMessages:   25,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

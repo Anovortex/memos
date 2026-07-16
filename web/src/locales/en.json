@@ -848,6 +848,16 @@
         "title": "Local Storage",
         "size": "Data directory size"
       },
+      "user-usage": {
+        "title": "User Usage",
+        "description": "Notes, uploaded attachments, and latest note activity by user.",
+        "last-activity": "Latest note activity {{ago}}",
+        "no-activity": "No note activity",
+        "memo-count_one": "{{count}} memo",
+        "memo-count_other": "{{count}} memos",
+        "attachment-count_one": "{{count}} attachment · {{size}}",
+        "attachment-count_other": "{{count}} attachments · {{size}}"
+      },
       "unknown": "Unknown",
       "last-updated": "Last updated {{ago}}",
       "refresh": "Refresh",

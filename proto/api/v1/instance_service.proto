@@ -347,6 +347,8 @@ message InstanceStats {
   DatabaseStats database = 1;
   // Recursive size of the data directory in bytes. -1 if unavailable.
   int64 local_storage_bytes = 2;
+  // Per-user content usage. Admin only, like the containing resource.
+  repeated UserUsage user_usage = 3;
   // Server-side timestamp when the snapshot was generated.
   google.protobuf.Timestamp generated_time = 4;
 
@@ -356,5 +358,15 @@ message InstanceStats {
     string driver = 1;
     // size_bytes is the database size in bytes; -1 if unavailable.
     int64 size_bytes = 2;
+  }
+
+  message UserUsage {
+    // User resource name. Format: users/{user}.
+    string name = 1;
+    int32 memo_count = 2;
+    int32 attachment_count = 3;
+    int64 attachment_bytes = 4;
+    // Most recent memo update; absent when the user has no memos.
+    google.protobuf.Timestamp last_activity_time = 5;
   }
 }

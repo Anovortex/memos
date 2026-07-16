@@ -117,17 +117,83 @@ func (s *APIV1Service) computeInstanceStats(ctx context.Context) (*v1pb.Instance
 		return nil
 	})
 
+	g.Go(func() error {
+		usage, err := s.computeUserUsage(gctx)
+		if err != nil {
+			record("user_usage", err)
+			return nil
+		}
+		stats.UserUsage = usage
+		return nil
+	})
+
 	_ = g.Wait()
 
 	for _, r := range results {
 		slog.Warn("instance stats subtask failed", slog.String("subtask", r.name), slog.String("err", r.err.Error()))
 	}
 
-	const totalSubtasks = 2
+	const totalSubtasks = 3
 	if len(results) == totalSubtasks {
 		return nil, errors.New("all instance stats subtasks failed")
 	}
 	return stats, nil
+}
+
+func (s *APIV1Service) computeUserUsage(ctx context.Context) ([]*v1pb.InstanceStats_UserUsage, error) {
+	users, err := s.Store.ListUsers(ctx, &store.FindUser{})
+	if err != nil {
+		return nil, errors.Wrap(err, "list users")
+	}
+
+	usageByUserID := make(map[int32]*v1pb.InstanceStats_UserUsage, len(users))
+	usage := make([]*v1pb.InstanceStats_UserUsage, 0, len(users))
+	for _, user := range users {
+		item := &v1pb.InstanceStats_UserUsage{Name: BuildUserName(user.Username)}
+		usageByUserID[user.ID] = item
+		usage = append(usage, item)
+	}
+
+	limit := 1000
+	for offset := 0; ; offset += limit {
+		memos, err := s.Store.ListMemos(ctx, &store.FindMemo{ExcludeComments: true, ExcludeContent: true, Limit: &limit, Offset: &offset})
+		if err != nil {
+			return nil, errors.Wrap(err, "list memos")
+		}
+		for _, memo := range memos {
+			item := usageByUserID[memo.CreatorID]
+			if item == nil {
+				continue
+			}
+			item.MemoCount++
+			if item.LastActivityTime == nil || memo.UpdatedTs > item.LastActivityTime.Seconds {
+				item.LastActivityTime = timestamppb.New(time.Unix(memo.UpdatedTs, 0))
+			}
+		}
+		if len(memos) < limit {
+			break
+		}
+	}
+
+	for offset := 0; ; offset += limit {
+		attachments, err := s.Store.ListAttachments(ctx, &store.FindAttachment{Limit: &limit, Offset: &offset})
+		if err != nil {
+			return nil, errors.Wrap(err, "list attachments")
+		}
+		for _, attachment := range attachments {
+			item := usageByUserID[attachment.CreatorID]
+			if item == nil {
+				continue
+			}
+			item.AttachmentCount++
+			item.AttachmentBytes += attachment.Size
+		}
+		if len(attachments) < limit {
+			break
+		}
+	}
+
+	return usage, nil
 }
 
 // walkLocalStorage returns the recursive size of dir in bytes.

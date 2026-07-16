@@ -95,6 +95,48 @@ const ResourceStatsSection = () => {
               <StatRow label={t("setting.resource-stats.local-storage.size")} value={renderBytes(data.localStorageBytes, unknown)} />
             </SettingList>
           </SettingGroup>
+
+          <SettingGroup
+            title={t("setting.resource-stats.user-usage.title")}
+            description={t("setting.resource-stats.user-usage.description")}
+            showSeparator
+          >
+            <SettingList>
+              {data.userUsage.map((usage) => {
+                const username = usage.name.split("/").at(-1) || usage.name;
+                const activity = usage.lastActivityTime
+                  ? t("setting.resource-stats.user-usage.last-activity", {
+                      ago: formatRelativeTime(new Date(Number(usage.lastActivityTime.seconds) * 1000)),
+                    })
+                  : t("setting.resource-stats.user-usage.no-activity");
+                const memoCount = t(
+                  usage.memoCount === 1
+                    ? "setting.resource-stats.user-usage.memo-count_one"
+                    : "setting.resource-stats.user-usage.memo-count_other",
+                  { count: usage.memoCount },
+                );
+                const attachmentCount = t(
+                  usage.attachmentCount === 1
+                    ? "setting.resource-stats.user-usage.attachment-count_one"
+                    : "setting.resource-stats.user-usage.attachment-count_other",
+                  { count: usage.attachmentCount, size: formatBytes(usage.attachmentBytes) },
+                );
+                return (
+                  <SettingListItem
+                    key={usage.name}
+                    label={`@${username}`}
+                    description={activity}
+                    controlClassName="w-full justify-end sm:w-auto"
+                  >
+                    <div className="flex flex-col items-end gap-1 text-sm tabular-nums">
+                      <span>{memoCount}</span>
+                      <span className="text-muted-foreground">{attachmentCount}</span>
+                    </div>
+                  </SettingListItem>
+                );
+              })}
+            </SettingList>
+          </SettingGroup>
         </>
       ) : null}
     </SettingSection>

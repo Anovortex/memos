@@ -28,7 +28,11 @@ vi.mock("@/hooks/useInstanceQueries", () => ({
 }));
 
 vi.mock("@/utils/i18n", () => ({
-  useTranslate: () => (key: string) => key,
+  useTranslate: () => (key: string, values?: Record<string, string | number>) =>
+    ({
+      "setting.resource-stats.user-usage.memo-count_other": `${values?.count} memos`,
+      "setting.resource-stats.user-usage.attachment-count_one": `${values?.count} attachment · ${values?.size}`,
+    })[key] || key,
 }));
 
 describe("<ResourceStatsSection>", () => {
