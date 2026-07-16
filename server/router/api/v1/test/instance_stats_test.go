@@ -31,6 +31,34 @@ func TestGetInstanceStats_HappyPath(t *testing.T) {
 	require.GreaterOrEqual(t, resp.LocalStorageBytes, int64(0))
 }
 
+func TestGetInstanceStats_UserUsage(t *testing.T) {
+	ctx := context.Background()
+	ts := NewTestService(t)
+	defer ts.Cleanup()
+
+	admin, err := ts.CreateHostUser(ctx, "admin1")
+	require.NoError(t, err)
+	user, err := ts.CreateRegularUser(ctx, "alice")
+	require.NoError(t, err)
+	_, err = ts.Service.CreateAttachment(ts.CreateUserContext(ctx, user.ID), &v1pb.CreateAttachmentRequest{
+		Attachment: &v1pb.Attachment{Filename: "report.txt", Content: []byte("12345")},
+	})
+	require.NoError(t, err)
+
+	resp, err := ts.Service.GetInstanceStats(ts.CreateUserContext(ctx, admin.ID), &v1pb.GetInstanceStatsRequest{})
+	require.NoError(t, err)
+
+	var alice *v1pb.InstanceStats_UserUsage
+	for _, usage := range resp.UserUsage {
+		if usage.Name == "users/alice" {
+			alice = usage
+		}
+	}
+	require.NotNil(t, alice)
+	require.Equal(t, int32(1), alice.AttachmentCount)
+	require.Equal(t, int64(5), alice.AttachmentBytes)
+}
+
 func TestGetInstanceStats_NonAdminDenied(t *testing.T) {
 	ctx := context.Background()
 	ts := NewTestService(t)
