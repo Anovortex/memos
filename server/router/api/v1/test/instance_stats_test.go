@@ -2,6 +2,7 @@ package test
 
 import (
 	"context"
+	"fmt"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -9,6 +10,7 @@ import (
 	"google.golang.org/grpc/status"
 
 	v1pb "github.com/usememos/memos/proto/gen/api/v1"
+	"github.com/usememos/memos/store"
 )
 
 func TestGetInstanceStats_HappyPath(t *testing.T) {
@@ -44,6 +46,8 @@ func TestGetInstanceStats_UserUsage(t *testing.T) {
 		Attachment: &v1pb.Attachment{Filename: "report.txt", Content: []byte("12345")},
 	})
 	require.NoError(t, err)
+	_, err = ts.Store.CreateMemo(ctx, &store.Memo{UID: "alice-note", CreatorID: user.ID, Content: "hello", Visibility: store.Private})
+	require.NoError(t, err)
 
 	resp, err := ts.Service.GetInstanceStats(ts.CreateUserContext(ctx, admin.ID), &v1pb.GetInstanceStatsRequest{})
 	require.NoError(t, err)
@@ -55,8 +59,55 @@ func TestGetInstanceStats_UserUsage(t *testing.T) {
 		}
 	}
 	require.NotNil(t, alice)
+	require.Equal(t, int32(1), alice.MemoCount)
 	require.Equal(t, int32(1), alice.AttachmentCount)
 	require.Equal(t, int64(5), alice.AttachmentBytes)
+	require.NotNil(t, alice.LastActivityTime)
+
+	var adminUsage *v1pb.InstanceStats_UserUsage
+	for _, usage := range resp.UserUsage {
+		if usage.Name == "users/admin1" {
+			adminUsage = usage
+		}
+	}
+	require.NotNil(t, adminUsage)
+	require.Zero(t, adminUsage.MemoCount)
+	require.Zero(t, adminUsage.AttachmentBytes)
+}
+
+func TestGetInstanceStats_UserUsageIncludesMoreThanDefaultAttachmentLimit(t *testing.T) {
+	ctx := context.Background()
+	ts := NewTestService(t)
+	defer ts.Cleanup()
+
+	admin, err := ts.CreateHostUser(ctx, "admin1")
+	require.NoError(t, err)
+	user, err := ts.CreateRegularUser(ctx, "alice")
+	require.NoError(t, err)
+
+	const attachmentCount = 101
+	for i := range attachmentCount {
+		_, err := ts.Store.CreateAttachment(ctx, &store.Attachment{
+			UID:       fmt.Sprintf("attachment-%03d", i),
+			CreatorID: user.ID,
+			Filename:  fmt.Sprintf("attachment-%03d.txt", i),
+			Type:      "text/plain",
+			Size:      2,
+		})
+		require.NoError(t, err)
+	}
+
+	resp, err := ts.Service.GetInstanceStats(ts.CreateUserContext(ctx, admin.ID), &v1pb.GetInstanceStatsRequest{})
+	require.NoError(t, err)
+
+	for _, usage := range resp.UserUsage {
+		if usage.Name == "users/alice" {
+			require.Equal(t, int32(attachmentCount), usage.AttachmentCount)
+			require.Equal(t, int64(attachmentCount*2), usage.AttachmentBytes)
+			return
+		}
+	}
+	require.Fail(t, "alice usage not found")
 }
 
 func TestGetInstanceStats_NonAdminDenied(t *testing.T) {

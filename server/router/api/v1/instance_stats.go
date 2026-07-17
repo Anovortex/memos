@@ -3,6 +3,7 @@ package v1
 import (
 	"context"
 	"log/slog"
+	"math"
 	"os"
 	"path/filepath"
 	"sync"
@@ -154,43 +155,35 @@ func (s *APIV1Service) computeUserUsage(ctx context.Context) ([]*v1pb.InstanceSt
 		usage = append(usage, item)
 	}
 
-	limit := 1000
-	for offset := 0; ; offset += limit {
-		memos, err := s.Store.ListMemos(ctx, &store.FindMemo{ExcludeComments: true, ExcludeContent: true, Limit: &limit, Offset: &offset})
-		if err != nil {
-			return nil, errors.Wrap(err, "list memos")
+	// ponytail: single reads avoid unstable OFFSET totals; add driver-level GROUP BY
+	// queries if these full scans become measurable on a large instance.
+	memos, err := s.Store.ListMemos(ctx, &store.FindMemo{ExcludeComments: true, ExcludeContent: true})
+	if err != nil {
+		return nil, errors.Wrap(err, "list memos")
+	}
+	for _, memo := range memos {
+		item := usageByUserID[memo.CreatorID]
+		if item == nil {
+			continue
 		}
-		for _, memo := range memos {
-			item := usageByUserID[memo.CreatorID]
-			if item == nil {
-				continue
-			}
-			item.MemoCount++
-			if item.LastActivityTime == nil || memo.UpdatedTs > item.LastActivityTime.Seconds {
-				item.LastActivityTime = timestamppb.New(time.Unix(memo.UpdatedTs, 0))
-			}
-		}
-		if len(memos) < limit {
-			break
+		item.MemoCount++
+		if item.LastActivityTime == nil || memo.UpdatedTs > item.LastActivityTime.Seconds {
+			item.LastActivityTime = timestamppb.New(time.Unix(memo.UpdatedTs, 0))
 		}
 	}
 
-	for offset := 0; ; offset += limit {
-		attachments, err := s.Store.ListAttachments(ctx, &store.FindAttachment{Limit: &limit, Offset: &offset})
-		if err != nil {
-			return nil, errors.Wrap(err, "list attachments")
+	attachmentLimit := math.MaxInt32
+	attachments, err := s.Store.ListAttachments(ctx, &store.FindAttachment{Limit: &attachmentLimit})
+	if err != nil {
+		return nil, errors.Wrap(err, "list attachments")
+	}
+	for _, attachment := range attachments {
+		item := usageByUserID[attachment.CreatorID]
+		if item == nil {
+			continue
 		}
-		for _, attachment := range attachments {
-			item := usageByUserID[attachment.CreatorID]
-			if item == nil {
-				continue
-			}
-			item.AttachmentCount++
-			item.AttachmentBytes += attachment.Size
-		}
-		if len(attachments) < limit {
-			break
-		}
+		item.AttachmentCount++
+		item.AttachmentBytes += attachment.Size
 	}
 
 	return usage, nil

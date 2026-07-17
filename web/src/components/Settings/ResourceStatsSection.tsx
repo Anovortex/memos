@@ -7,6 +7,8 @@ import SettingGroup from "./SettingGroup";
 import { SettingList, SettingListItem, SettingPanel } from "./SettingList";
 import SettingSection from "./SettingSection";
 
+const relativeTimeFormatter = new Intl.RelativeTimeFormat(undefined, { numeric: "auto" });
+
 const formatBytes = (bytes: number | bigint): string => {
   const n = typeof bytes === "bigint" ? Number(bytes) : bytes;
   if (n < 0) return "—";
@@ -18,11 +20,12 @@ const formatBytes = (bytes: number | bigint): string => {
 
 const formatRelativeTime = (date: Date): string => {
   const seconds = Math.max(0, Math.floor((Date.now() - date.getTime()) / 1000));
-  if (seconds < 60) return `${seconds}s ago`;
+  if (seconds < 60) return relativeTimeFormatter.format(-seconds, "second");
   const minutes = Math.floor(seconds / 60);
-  if (minutes < 60) return `${minutes}m ago`;
+  if (minutes < 60) return relativeTimeFormatter.format(-minutes, "minute");
   const hours = Math.floor(minutes / 60);
-  return `${hours}h ago`;
+  if (hours < 24) return relativeTimeFormatter.format(-hours, "hour");
+  return relativeTimeFormatter.format(-Math.floor(hours / 24), "day");
 };
 
 const renderBytes = (value: bigint | number | undefined, unknown: string): string => {
