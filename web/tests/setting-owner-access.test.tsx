@@ -52,6 +52,7 @@ import Setting from "@/pages/Setting";
 
 describe("<Setting> owner access", () => {
   beforeEach(() => {
+    mocks.currentUser.name = "users/secondary-admin";
     mocks.fetchSettings.mockClear();
   });
 
@@ -64,5 +65,18 @@ describe("<Setting> owner access", () => {
 
     expect(screen.queryByText("setting.resource-stats.label")).not.toBeInTheDocument();
     expect(screen.queryByText("Resource stats section")).not.toBeInTheDocument();
+  });
+
+  it("shows resource usage to the original owner", () => {
+    mocks.currentUser.name = "users/owner";
+
+    render(
+      <MemoryRouter initialEntries={["/setting#resource-stats"]}>
+        <Setting />
+      </MemoryRouter>,
+    );
+
+    expect(screen.getByText("setting.resource-stats.label")).toBeInTheDocument();
+    expect(screen.getByText("Resource stats section")).toBeInTheDocument();
   });
 });

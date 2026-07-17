@@ -53,7 +53,11 @@ func (s *APIV1Service) GetInstanceStats(ctx context.Context, _ *v1pb.GetInstance
 	if user == nil {
 		return nil, status.Errorf(codes.Unauthenticated, "user not authenticated")
 	}
-	if user.Role != store.RoleAdmin {
+	owner, err := s.getInstanceOwner(ctx)
+	if err != nil {
+		return nil, status.Errorf(codes.Internal, "failed to get instance owner: %v", err)
+	}
+	if owner == nil || user.ID != owner.ID {
 		return nil, status.Errorf(codes.PermissionDenied, "permission denied")
 	}
 

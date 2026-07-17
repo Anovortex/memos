@@ -21,18 +21,21 @@ const Setting = () => {
   const sm = useMediaQuery("sm");
   const location = useLocation();
   const user = useCurrentUser();
-  const { fetchSettings } = useInstance();
+  const { profile, fetchSettings } = useInstance();
   const [selectedSection, setSelectedSection] = useState<SettingSectionKey>(DEFAULT_SETTING_SECTION);
-  const isHost = user?.role === User_Role.ADMIN;
+  const isAdmin = user?.role === User_Role.ADMIN;
+  const isOwner = isAdmin && profile.admin?.name === user.name;
 
   const sectionGroups = useMemo(() => {
-    const visibleSections = SETTINGS_SECTIONS.filter((section) => section.scope === "basic" || isHost);
+    const visibleSections = SETTINGS_SECTIONS.filter(
+      (section) => section.scope === "basic" || (isAdmin && (section.key !== "resource-stats" || isOwner)),
+    );
     return {
       basic: visibleSections.filter((section) => section.scope === "basic"),
       admin: visibleSections.filter((section) => section.scope === "admin"),
       all: visibleSections,
     };
-  }, [isHost]);
+  }, [isAdmin, isOwner]);
 
   const visibleSectionKeys = useMemo(() => new Set(sectionGroups.all.map((section) => section.key)), [sectionGroups.all]);
 
@@ -48,12 +51,12 @@ const Setting = () => {
   }, [location.hash, visibleSectionKeys]);
 
   useEffect(() => {
-    if (!isHost) {
+    if (!isAdmin) {
       return;
     }
     const preloadSettingKeys = new Set(sectionGroups.admin.flatMap((section) => section.preloadSettingKeys ?? []));
     void fetchSettings([...preloadSettingKeys]);
-  }, [fetchSettings, isHost, sectionGroups.admin]);
+  }, [fetchSettings, isAdmin, sectionGroups.admin]);
 
   const handleSectionSelectorItemClick = (section: SettingSectionKey) => {
     window.location.hash = section;
@@ -85,7 +88,7 @@ const Setting = () => {
             <div className="flex flex-col justify-start items-start w-40 h-auto shrink-0 py-2">
               <span className="text-sm mt-0.5 pl-3 font-mono select-none text-muted-foreground">{t("common.basic")}</span>
               <div className="w-full flex flex-col justify-start items-start mt-1">{renderSectionMenuItems(sectionGroups.basic)}</div>
-              {isHost && (
+              {isAdmin && (
                 <>
                   <span className="text-sm mt-4 pl-3 font-mono select-none text-muted-foreground">{t("common.admin")}</span>
                   <div className="w-full flex flex-col justify-start items-start mt-1">{renderSectionMenuItems(sectionGroups.admin)}</div>

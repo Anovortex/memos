@@ -330,10 +330,7 @@ func sameSMTPConnectionIdentity(setting, existing *storepb.InstanceNotificationS
 }
 
 func (s *APIV1Service) GetInstanceAdmin(ctx context.Context) (*v1pb.User, error) {
-	adminUserType := store.RoleAdmin
-	user, err := s.Store.GetUser(ctx, &store.FindUser{
-		Role: &adminUserType,
-	})
+	user, err := s.getInstanceOwner(ctx)
 	if err != nil {
 		return nil, errors.Wrapf(err, "failed to find admin")
 	}
@@ -343,4 +340,23 @@ func (s *APIV1Service) GetInstanceAdmin(ctx context.Context) (*v1pb.User, error)
 
 	currentUser, _ := s.fetchCurrentUser(ctx)
 	return convertUserFromStore(user, currentUser), nil
+}
+
+func (s *APIV1Service) getInstanceOwner(ctx context.Context) (*store.User, error) {
+	adminRole := store.RoleAdmin
+	admins, err := s.Store.ListUsers(ctx, &store.FindUser{Role: &adminRole})
+	if err != nil {
+		return nil, err
+	}
+	if len(admins) == 0 {
+		return nil, nil
+	}
+
+	owner := admins[0]
+	for _, admin := range admins[1:] {
+		if admin.ID < owner.ID {
+			owner = admin
+		}
+	}
+	return owner, nil
 }
