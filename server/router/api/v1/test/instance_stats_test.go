@@ -131,6 +131,39 @@ func TestGetInstanceStats_NonAdminDenied(t *testing.T) {
 	require.Equal(t, codes.PermissionDenied, st.Code())
 }
 
+func TestGetInstanceStats_SecondaryAdminDenied(t *testing.T) {
+	ctx := context.Background()
+	ts := NewTestService(t)
+	defer ts.Cleanup()
+
+	_, err := ts.CreateHostUser(ctx, "owner")
+	require.NoError(t, err)
+	secondaryAdmin, err := ts.CreateHostUser(ctx, "secondary-admin")
+	require.NoError(t, err)
+
+	_, err = ts.Service.GetInstanceStats(ts.CreateUserContext(ctx, secondaryAdmin.ID), &v1pb.GetInstanceStatsRequest{})
+	require.Error(t, err)
+	st, ok := status.FromError(err)
+	require.True(t, ok)
+	require.Equal(t, codes.PermissionDenied, st.Code())
+}
+
+func TestGetInstanceProfile_AdminRemainsOriginalOwner(t *testing.T) {
+	ctx := context.Background()
+	ts := NewTestService(t)
+	defer ts.Cleanup()
+
+	_, err := ts.CreateHostUser(ctx, "owner")
+	require.NoError(t, err)
+	_, err = ts.CreateHostUser(ctx, "secondary-admin")
+	require.NoError(t, err)
+
+	profile, err := ts.Service.GetInstanceProfile(ctx, &v1pb.GetInstanceProfileRequest{})
+	require.NoError(t, err)
+	require.NotNil(t, profile.Admin)
+	require.Equal(t, "users/owner", profile.Admin.Name)
+}
+
 func TestGetInstanceStats_Cache(t *testing.T) {
 	ctx := context.Background()
 	ts := NewTestService(t)
