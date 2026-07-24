@@ -1,0 +1,60 @@
+/* Dark Luxury — near-black layered surfaces, a single vivid accent, subtle
+   accent-tinted depth/glow. Vercel/Raycast register. Overrides only :root
+   tokens; the @theme inline map in default.css propagates them app-wide. */
+:root {
+  /* Surfaces — near-black graphite, each layer a touch lighter than the last */
+  --background: oklch(0.16 0.006 275);
+  --foreground: oklch(0.95 0.004 275);
+
+  --card: oklch(0.195 0.007 275);
+  --card-foreground: oklch(0.95 0.004 275);
+
+  /* Popovers float highest — most elevated surface */
+  --popover: oklch(0.235 0.008 275);
+  --popover-foreground: oklch(0.96 0.004 275);
+
+  /* Primary — the single vivid accent (electric violet). Used sparingly. */
+  --primary: oklch(0.66 0.2 285);
+  --primary-foreground: oklch(0.16 0.006 275);
+
+  /* Secondary — elevated neutral surface for secondary controls */
+  --secondary: oklch(0.26 0.009 275);
+  --secondary-foreground: oklch(0.92 0.004 275);
+
+  /* Muted — inline backgrounds for code, skeletons, metadata */
+  --muted: oklch(0.25 0.008 275);
+  --muted-foreground: oklch(0.68 0.006 275);
+
+  /* Accent — hover states carrying a hint of the primary hue */
+  --accent: oklch(0.3 0.03 285);
+  --accent-foreground: oklch(0.96 0.004 275);
+
+  --destructive: oklch(0.64 0.19 22);
+  --destructive-foreground: oklch(0.98 0.004 275);
+
+  --success: oklch(0.72 0.15 155);
+  --success-foreground: oklch(0.18 0.03 155);
+  --warning: oklch(0.8 0.14 78);
+  --warning-foreground: oklch(0.22 0.03 78);
+
+  /* Borders — hairline dividers, kept low-contrast so surfaces read as depth */
+  --border: oklch(0.29 0.008 275);
+  --input: oklch(0.33 0.009 275);
+  --ring: oklch(0.66 0.2 285);
+
+  /* Sidebar — the anchor, darkest layer in the stack */
+  --sidebar: oklch(0.13 0.006 275);
+  --sidebar-foreground: oklch(0.74 0.006 275);
+  --sidebar-accent: oklch(0.28 0.03 285);
+  --sidebar-accent-foreground: oklch(0.96 0.004 275);
+
+  /* Depth — dark drop shadows, with an accent-tinted glow on the larger tiers.
+     hsl ~285° violet matches the primary hue for a cohesive glow. */
+  --shadow-xs: 0 1px 2px 0px hsl(0 0% 0% / 0.5);
+  --shadow-sm: 0 1px 2px 0px hsl(0 0% 0% / 0.55), 0 1px 3px -1px hsl(0 0% 0% / 0.5);
+  --shadow: 0 2px 4px -1px hsl(0 0% 0% / 0.55), 0 1px 2px -1px hsl(0 0% 0% / 0.5);
+  --shadow-md: 0 4px 10px -2px hsl(0 0% 0% / 0.6), 0 0 0 1px hsl(285 60% 60% / 0.04);
+  --shadow-lg: 0 10px 30px -8px hsl(0 0% 0% / 0.65), 0 0 24px -6px hsl(285 70% 55% / 0.16);
+  --shadow-xl: 0 20px 48px -12px hsl(0 0% 0% / 0.7), 0 0 32px -6px hsl(285 70% 55% / 0.2);
+  --shadow-2xl: 0 28px 60px -12px hsl(0 0% 0% / 0.75), 0 0 40px -6px hsl(285 70% 55% / 0.24);
+}

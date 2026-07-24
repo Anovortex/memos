@@ -1,3 +1,4 @@
+import darkLuxuryThemeContent from "../themes/dark-luxury.css?raw";
 import defaultDarkThemeContent from "../themes/default-dark.css?raw";
 import paperThemeContent from "../themes/paper.css?raw";
 
@@ -5,7 +6,7 @@ import paperThemeContent from "../themes/paper.css?raw";
 // Types and Constants
 // ============================================================================
 
-const VALID_THEMES = ["system", "default", "default-dark", "paper"] as const;
+const VALID_THEMES = ["system", "default", "default-dark", "dark-luxury", "paper"] as const;
 
 export type Theme = (typeof VALID_THEMES)[number];
 export type ResolvedTheme = Exclude<Theme, "system">;
@@ -21,12 +22,14 @@ const STYLE_ELEMENT_ID = "instance-theme";
 const THEME_CONTENT: Record<ResolvedTheme, string | null> = {
   default: null,
   "default-dark": defaultDarkThemeContent,
+  "dark-luxury": darkLuxuryThemeContent,
   paper: paperThemeContent,
 };
 
 const THEME_COLORS: Record<ResolvedTheme, string> = {
   default: "#faf9f5",
   "default-dark": "#1d1f23",
+  "dark-luxury": "#0c0c11",
   paper: "#f5ede4",
 };
 
@@ -34,6 +37,7 @@ export const THEME_OPTIONS: ThemeOption[] = [
   { value: "system", label: "Sync with system" },
   { value: "default", label: "Light" },
   { value: "default-dark", label: "Dark" },
+  { value: "dark-luxury", label: "Dark Luxury" },
   { value: "paper", label: "Paper" },
 ];
 
@@ -183,7 +187,7 @@ const updateThemeColorMeta = (theme: ResolvedTheme): void => {
 };
 
 const isDarkTheme = (theme: ResolvedTheme): boolean => {
-  return theme.endsWith("-dark") || theme.endsWith(".dark");
+  return theme.endsWith("-dark") || theme.endsWith(".dark") || theme === "dark-luxury";
 };
 
 /**
