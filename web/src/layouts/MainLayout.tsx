@@ -77,7 +77,7 @@ const MainLayout = () => {
         </div>
       )}
       <div className={MAIN_CONTENT_CLASS_NAME}>
-        <div className={cn("w-full mx-auto px-4 sm:px-6 pt-2 md:pt-6 pb-8")}>
+        <div className={cn("w-full max-w-3xl mx-auto px-4 sm:px-6 pt-2 md:pt-10 pb-16")}>
           <Outlet />
         </div>
       </div>

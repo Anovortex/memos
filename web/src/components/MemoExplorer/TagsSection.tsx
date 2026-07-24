@@ -38,8 +38,8 @@ const TagsSection = (props: Props) => {
 
   return (
     <div className="w-full flex flex-col justify-start items-start mt-3 px-1 h-auto shrink-0 flex-nowrap">
-      <div className="flex flex-row justify-between items-center w-full gap-1 mb-1 text-sm leading-6 text-muted-foreground select-none">
-        <span>{t("common.tags")}</span>
+      <div className="flex flex-row justify-between items-center w-full gap-1 mt-5 mb-2 leading-6 text-muted-foreground select-none">
+        <span className="text-meta uppercase text-muted-foreground/80">{t("common.tags")}</span>
         {tags.length > 0 && (
           <Popover>
             <PopoverTrigger>
