@@ -131,7 +131,7 @@ const CreatorDisplay: React.FC<CreatorDisplayProps> = ({ creator, displayTime, t
       </Link>
       <TimeTooltip content={timeTooltip}>
         <span
-          className="w-auto -mt-0.5 text-xs leading-tight text-muted-foreground select-none cursor-pointer hover:opacity-80 transition-colors text-left"
+          className="text-meta uppercase w-auto mt-0.5 text-muted-foreground select-none cursor-pointer hover:text-foreground transition-colors text-left"
           onClick={onGotoDetail}
         >
           {displayTime}
@@ -165,7 +165,7 @@ interface TimeDisplayProps {
 const TimeDisplay: React.FC<TimeDisplayProps> = ({ displayTime, timeTooltip, onGotoDetail }) => (
   <TimeTooltip content={timeTooltip}>
     <span
-      className="w-auto text-sm leading-tight text-muted-foreground select-none cursor-pointer hover:text-foreground transition-colors text-left"
+      className="text-meta uppercase w-auto text-muted-foreground select-none cursor-pointer hover:text-foreground transition-colors text-left"
       onClick={onGotoDetail}
     >
       {displayTime}

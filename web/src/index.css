@@ -1,3 +1,4 @@
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&family=Space+Grotesk:wght@500;600;700&display=swap");
 @import "tailwindcss";
 @import "tw-animate-css";
 @import "./themes/default.css";
@@ -29,5 +30,41 @@
 
   body {
     @apply bg-background text-foreground;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+    /* Dark-luxury atmosphere: a faint accent aurora, fixed behind content. */
+    background-image:
+      radial-gradient(1100px 620px at 88% -12%, color-mix(in oklch, var(--primary) 9%, transparent), transparent 70%),
+      radial-gradient(820px 520px at -6% 4%, color-mix(in oklch, var(--primary) 5%, transparent), transparent 66%);
+    background-attachment: fixed;
+    background-repeat: no-repeat;
+  }
+
+  /* Display face + tightened tracking for structural headings. */
+  h1,
+  h2,
+  h3,
+  h4 {
+    font-family: var(--font-display);
+    letter-spacing: -0.02em;
+  }
+}
+
+@layer components {
+  /* Grotesk display type — wordmark, section headers. */
+  .font-display {
+    font-family: var(--font-display);
+    letter-spacing: -0.02em;
+  }
+
+  /* Monospace metadata — timestamps, counts, technical labels. Tabular so
+     numerals align; small and tracked to read as a caption, not body text. */
+  .text-meta {
+    font-family: var(--font-mono);
+    font-size: 0.6875rem;
+    line-height: 1;
+    letter-spacing: 0.03em;
+    font-variant-numeric: tabular-nums;
   }
 }
