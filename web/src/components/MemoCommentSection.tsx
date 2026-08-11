@@ -44,11 +44,14 @@ const MemoCommentSection = ({ memo, comments, parentPage, hasMoreComments, isFet
             </div>
           )
         ) : (
-          <div className="w-full flex flex-row justify-between items-center h-8 pl-3 mb-2">
-            <div className="flex flex-row justify-start items-center">
-              <MessageCircleIcon className="w-5 h-auto text-muted-foreground mr-1" />
-              <span className="text-muted-foreground text-sm">{t("memo.comment.self")}</span>
-              <span className="text-muted-foreground text-sm ml-1">({comments.length})</span>
+          // The thread opens with an editorial section header — same mono caption
+          // register as the explorer panels, with a rule marking where the memo
+          // ends and the conversation starts.
+          <div className="w-full flex flex-row justify-between items-center pl-3 pb-2 mb-3 border-b border-border/50">
+            <div className="flex flex-row justify-start items-center gap-1.5 text-muted-foreground">
+              <MessageCircleIcon className="w-3.5 h-auto" />
+              <span className="text-meta uppercase">{t("memo.comment.self")}</span>
+              <span className="text-meta opacity-70">{comments.length}</span>
             </div>
             {showCreateButton && (
               <Button variant="ghost" className="text-muted-foreground" onClick={() => setShowEditor(true)}>

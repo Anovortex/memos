@@ -99,7 +99,10 @@ const MemoDetail = () => {
             {parentMemo && (
               <div className="w-auto inline-block mb-2">
                 <Link
-                  className="px-3 py-1 border border-border rounded-lg max-w-xs w-auto text-sm flex flex-row justify-start items-center flex-nowrap text-muted-foreground hover:shadow hover:opacity-80"
+                  // Hover resolves the backlink toward the accent and full-contrast
+                  // text instead of the old dim-and-shadow — a designed way back up
+                  // the thread.
+                  className="px-3 py-1.5 border border-border rounded-lg max-w-xs w-auto text-sm flex flex-row justify-start items-center flex-nowrap text-muted-foreground transition-colors hover:border-primary/40 hover:text-foreground"
                   to={`/${parentMemo.name}`}
                   state={locationState}
                   viewTransition
