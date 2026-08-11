@@ -40,7 +40,9 @@ export const EditorToolbar: FC<EditorToolbarProps> = ({
   };
 
   return (
-    <div className="w-full flex flex-row justify-between items-center mb-2">
+    // Hairline rule separates writing from controls — the toolbar reads as a
+    // footer to the compose surface rather than another row of the content.
+    <div className="w-full flex flex-row justify-between items-center mt-1 mb-1.5 pt-2 border-t border-border/50">
       <div className="flex flex-row justify-start items-center gap-1">
         <InsertMenu
           isUploading={isUploading}

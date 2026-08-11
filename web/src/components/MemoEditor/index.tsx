@@ -246,7 +246,11 @@ const MemoEditorImpl: React.FC<MemoEditorProps> = ({
       <div
         ref={editorContainerRef}
         className={cn(
-          "group relative w-full flex flex-col justify-between items-start bg-card px-4 pt-3 pb-1 rounded-lg border border-border gap-2",
+          // Same surface system as the memo card (rounded-xl, px-5 rhythm), but the
+          // accent lands on focus-within instead of hover: composing is the one place
+          // the eye should be pulled to, and focus-within needs no JS state.
+          "group relative w-full flex flex-col justify-between items-start bg-card px-5 pt-4 pb-1 rounded-xl border border-border gap-2.5",
+          "transition-all duration-200 focus-within:border-primary/40 focus-within:shadow-lg",
           FOCUS_MODE_STYLES.transition,
           isFocusMode && cn(FOCUS_MODE_STYLES.container.base, FOCUS_MODE_STYLES.container.spacing),
           !isFocusMode && className,

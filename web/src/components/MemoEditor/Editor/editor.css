@@ -20,7 +20,9 @@
     outline: none;
   }
   & .cm-content {
-    caret-color: var(--foreground);
+    /* The caret is the one always-on accent moment in the compose surface — the
+       accent marks where the user is, rather than being decoration. */
+    caret-color: var(--primary);
     font-family: inherit;
     padding: 0;
   }

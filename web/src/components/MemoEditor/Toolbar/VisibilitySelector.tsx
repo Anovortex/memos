@@ -26,7 +26,11 @@ const VisibilitySelector = (props: VisibilitySelectorProps) => {
           <button
             className={cn(
               "inline-flex items-center rounded-md hover:bg-accent transition-colors",
-              compact ? "px-1.5 py-[3px] text-[13px] leading-5 text-foreground/85" : "h-8 px-2 text-sm text-muted-foreground",
+              // The non-compact selector sits in the compose toolbar alongside memo
+              // timestamps, so it reads in the same mono caption register.
+              compact
+                ? "px-1.5 py-[3px] text-[13px] leading-5 text-foreground/85"
+                : "h-8 px-2 text-meta uppercase text-muted-foreground hover:text-foreground",
             )}
           />
         }
