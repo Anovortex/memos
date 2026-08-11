@@ -15,7 +15,8 @@ interface Props {
 }
 
 export const AuthChip = ({ children }: { children: React.ReactNode }) => (
-  <span className="inline-flex w-fit items-center gap-1.5 rounded-full border border-border bg-accent/50 px-2.5 py-0.5 text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">
+  // Same mono caption register as memo timestamps and the compose toolbar.
+  <span className="text-meta inline-flex w-fit items-center gap-1.5 rounded-full border border-border bg-accent/50 px-2.5 py-1 uppercase tracking-widest text-muted-foreground">
     {children}
   </span>
 );
@@ -60,20 +61,25 @@ const AuthPageLayout = ({ chip, title, subtitle, hideExplore, children }: Props)
   return (
     <div className="min-h-svh w-full flex flex-col items-center px-4 py-4 sm:py-8">
       <div className="w-full grow flex flex-col justify-center items-center">
-        <div className="w-90 max-w-full rounded-xl border border-border bg-card p-7 shadow-sm">
-          <div className="mb-6 flex items-center gap-2">
+        {/* The auth card is the product's first impression: it sits alone on the
+            aurora background, so it carries more depth and a wider padding
+            rhythm than in-app surfaces. */}
+        <div className="w-90 max-w-full rounded-2xl border border-border bg-card p-8 shadow-xl">
+          <div className="mb-8 flex items-center gap-2">
             <img className="h-6 w-auto rounded-full" src={generalSetting.customProfile?.logoUrl || "/logo.webp"} alt="" />
-            <span className="text-sm font-semibold text-foreground">{generalSetting.customProfile?.title || "Memos"}</span>
+            <span className="font-display text-sm font-semibold text-foreground">{generalSetting.customProfile?.title || "Memos"}</span>
           </div>
           {chip && <div className="mb-2">{chip}</div>}
-          <h1 className="text-lg font-semibold tracking-tight text-foreground">{title}</h1>
-          {subtitle && <p className="mt-1 text-sm text-muted-foreground">{subtitle}</p>}
+          {/* Scale contrast does the hierarchy work — the display face comes from
+              the global h1 rule. */}
+          <h1 className="text-2xl font-semibold text-foreground">{title}</h1>
+          {subtitle && <p className="mt-1.5 text-sm text-muted-foreground">{subtitle}</p>}
           <div className="mt-6 w-full">{children}</div>
           {showExplore && (
-            <div className="-mx-7 -mb-7 mt-6 rounded-b-xl border-t border-border bg-background/60">
+            <div className="-mx-8 -mb-8 mt-7 rounded-b-2xl border-t border-border bg-background/60">
               <Link
                 to={ROUTES.EXPLORE}
-                className="group flex items-center justify-center gap-2 px-7 py-3 text-[13px] text-muted-foreground transition-colors hover:text-foreground"
+                className="group flex items-center justify-center gap-2 px-8 py-3.5 text-[13px] text-muted-foreground transition-colors hover:text-foreground"
                 viewTransition
               >
                 <CompassIcon className="h-3.5 w-3.5" />
