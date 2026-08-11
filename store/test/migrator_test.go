@@ -114,6 +114,52 @@ func TestMigrationMultipleReRuns(t *testing.T) {
 	require.Equal(t, initialVersion, finalVersion, "version should remain unchanged after multiple re-runs")
 }
 
+// TestMigrateFailsWhenSchemaIncomplete verifies Migrate refuses to start against a database that
+// looks initialized (the memo table exists) but is missing the rest of the schema. Without this
+// check the server boots fine and only fails at login with `relation "user" does not exist`.
+func TestMigrateFailsWhenSchemaIncomplete(t *testing.T) {
+	if getDriverFromEnv() != "sqlite" {
+		t.Skip("skipping focused migration fixture for non-sqlite driver")
+	}
+
+	ctx := context.Background()
+	dsn := fmt.Sprintf("%s/memos_incomplete.db", t.TempDir())
+
+	db, err := sql.Open("sqlite", dsn)
+	require.NoError(t, err)
+
+	// memo exists so IsInitialized reports true and LATEST.sql is skipped, but user never exists.
+	_, err = db.ExecContext(ctx, `
+		CREATE TABLE system_setting (
+			name TEXT NOT NULL,
+			value TEXT NOT NULL,
+			description TEXT NOT NULL DEFAULT '',
+			UNIQUE(name)
+		);
+		CREATE TABLE memo (
+			id INTEGER PRIMARY KEY AUTOINCREMENT
+		);
+	`)
+	require.NoError(t, err)
+
+	ts := NewTestingStoreWithDSN(ctx, t, "sqlite", dsn)
+	defer ts.Close()
+
+	// Record the current version so no incremental migration runs — otherwise a pending migration
+	// hits the missing tables first and we never reach the post-migration schema check.
+	currentSchemaVersion, err := ts.GetCurrentSchemaVersion()
+	require.NoError(t, err)
+	basicSettingBytes, err := protojson.Marshal(&storepb.InstanceBasicSetting{SchemaVersion: currentSchemaVersion})
+	require.NoError(t, err)
+	_, err = db.ExecContext(ctx, "INSERT INTO system_setting (name, value) VALUES ('BASIC', ?)", string(basicSettingBytes))
+	require.NoError(t, err)
+	require.NoError(t, db.Close())
+
+	err = ts.Migrate(ctx)
+	require.Error(t, err, "Migrate should reject a database missing the user table")
+	require.Contains(t, err.Error(), "schema is unusable")
+}
+
 // TestMigrationCopiesInstanceTagsToUserSettings verifies instance tag metadata is copied into user settings.
 func TestMigrationCopiesInstanceTagsToUserSettings(t *testing.T) {
 	if getDriverFromEnv() != "sqlite" {
@@ -135,8 +181,16 @@ func TestMigrationCopiesInstanceTagsToUserSettings(t *testing.T) {
 		);
 		CREATE TABLE user (
 			id INTEGER PRIMARY KEY AUTOINCREMENT,
+			created_ts BIGINT NOT NULL DEFAULT (strftime('%s', 'now')),
+			updated_ts BIGINT NOT NULL DEFAULT (strftime('%s', 'now')),
+			row_status TEXT NOT NULL DEFAULT 'NORMAL',
 			username TEXT NOT NULL UNIQUE,
-			role TEXT NOT NULL DEFAULT 'USER'
+			role TEXT NOT NULL DEFAULT 'USER',
+			email TEXT NOT NULL DEFAULT '',
+			nickname TEXT NOT NULL DEFAULT '',
+			password_hash TEXT NOT NULL DEFAULT '',
+			avatar_url TEXT NOT NULL DEFAULT '',
+			description TEXT NOT NULL DEFAULT ''
 		);
 		CREATE TABLE user_setting (
 			user_id INTEGER NOT NULL,

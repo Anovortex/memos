@@ -132,6 +132,15 @@ func (s *Store) Migrate(ctx context.Context) error {
 			return errors.Wrap(err, "failed to seed")
 		}
 	}
+
+	// Smoke-test the schema the app will actually query. A driver that reports "initialized"
+	// while the tables are missing or stale (wrong database, wrong postgres search_path,
+	// half-restored dump) otherwise boots fine and only fails at login.
+	// ponytail: one representative table, not all of them — widen if a partial schema shows up.
+	limit := 1
+	if _, err := s.driver.ListUsers(ctx, &FindUser{Limit: &limit}); err != nil {
+		return errors.Wrap(err, "migration finished but the schema is unusable; check that the connection targets the database/schema the migration ran against")
+	}
 	return nil
 }
 

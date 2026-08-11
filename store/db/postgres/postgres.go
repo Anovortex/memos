@@ -49,7 +49,10 @@ func (d *DB) Close() error {
 
 func (d *DB) IsInitialized(ctx context.Context) (bool, error) {
 	var exists bool
-	err := d.db.QueryRowContext(ctx, "SELECT EXISTS (SELECT 1 FROM information_schema.tables WHERE table_catalog = current_database() AND table_name = 'memo' AND table_type = 'BASE TABLE')").Scan(&exists)
+	// to_regclass resolves through the connection's search_path, so this matches the table the
+	// queries actually hit. information_schema.tables would find a 'memo' in *any* schema and
+	// wrongly report the DB as initialized, skipping LATEST.sql -> `relation "user" does not exist`.
+	err := d.db.QueryRowContext(ctx, "SELECT to_regclass('memo') IS NOT NULL").Scan(&exists)
 	if err != nil {
 		return false, errors.Wrap(err, "failed to check if database is initialized")
 	}
