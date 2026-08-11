@@ -16,9 +16,9 @@ const SettingSection: React.FC<SettingSectionProps> = ({ title, description, chi
         <div className="flex min-w-0 flex-col gap-3 border-b border-border/70 pb-4 sm:flex-row sm:items-end sm:justify-between">
           <div className="min-w-0 flex-1">
             {title && (
-              <div className="mb-1 text-lg font-semibold tracking-tight text-foreground">
-                {typeof title === "string" ? <h3>{title}</h3> : title}
-              </div>
+              // Scale contrast carries the hierarchy; the display face arrives via
+              // the global heading rule.
+              <div className="mb-1.5 text-xl font-semibold text-foreground">{typeof title === "string" ? <h3>{title}</h3> : title}</div>
             )}
             {description && <p className="w-full text-sm leading-6 text-muted-foreground">{description}</p>}
           </div>

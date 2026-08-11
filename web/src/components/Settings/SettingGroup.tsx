@@ -20,7 +20,9 @@ const SettingGroup: React.FC<SettingGroupProps> = ({ title, description, childre
           <div className="flex min-w-0 flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
             {(title || description) && (
               <div className="flex min-w-0 flex-1 flex-col gap-1">
-                {title && <h4 className="text-sm font-medium text-foreground">{title}</h4>}
+                {/* Group titles label a cluster of controls rather than heading a
+                    section, so they sit in the mono caption register. */}
+                {title && <h4 className="text-meta uppercase text-muted-foreground">{title}</h4>}
                 {description && <p className="max-w-2xl text-xs leading-5 text-muted-foreground">{description}</p>}
               </div>
             )}
