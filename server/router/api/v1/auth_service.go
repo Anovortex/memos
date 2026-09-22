@@ -2,6 +2,7 @@ package v1
 
 import (
 	"context"
+	"strings"
 
 	"golang.org/x/crypto/bcrypt"
 	"google.golang.org/grpc/codes"
@@ -53,6 +54,13 @@ func (s *APIV1Service) SignIn(ctx context.Context, request *v1pb.SignInRequest) 
 
 	// Authentication Method 1: Password-based authentication
 	if passwordCredentials := request.GetPasswordCredentials(); passwordCredentials != nil {
+		// Limit before the lookup and bcrypt so a flood does not cost hashing time.
+		if err := s.RateLimits.check(FlowSignInIP, clientIP(ctx)); err != nil {
+			return nil, err
+		}
+		if err := s.RateLimits.check(FlowSignInUser, strings.ToLower(passwordCredentials.Username)); err != nil {
+			return nil, err
+		}
 		user, err := s.Store.GetUser(ctx, &store.FindUser{
 			Username: &passwordCredentials.Username,
 		})

@@ -211,6 +211,9 @@ func (s *APIV1Service) CreateUser(ctx context.Context, request *v1pb.CreateUserR
 			roleToAssign = convertUserRoleToStore(request.User.Role)
 		}
 	} else {
+		if err := s.RateLimits.check(FlowSignUpIP, clientIP(ctx)); err != nil {
+			return nil, err
+		}
 		// Self sign-up (including first-run setup) must provide an email so the
 		// account can be verified and recovered.
 		if email == "" {

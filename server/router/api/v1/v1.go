@@ -8,6 +8,7 @@ import (
 	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
 	"github.com/labstack/echo/v5"
 	"golang.org/x/sync/semaphore"
+	"google.golang.org/grpc/metadata"
 
 	"github.com/usememos/memos/internal/ai"
 	"github.com/usememos/memos/internal/ai/embedding"
@@ -40,6 +41,9 @@ type APIV1Service struct {
 	// EmbeddingNotifier wakes the background embedding indexer after memo
 	// mutations. Nil when the indexer is not running (e.g. tests).
 	EmbeddingNotifier EmbeddingNotifier
+	// RateLimits bounds abusive flows (sign-in, sign-up, AI search). Nil disables
+	// limiting; the test helper leaves it nil and sets it per test.
+	RateLimits RateLimits
 	// EmbedderFactory overrides embedder construction for semantic search.
 	// Nil uses the provider-type dispatch; tests inject fakes here.
 	EmbedderFactory func(ai.ProviderConfig) (embedding.Embedder, error)
@@ -76,6 +80,7 @@ func NewAPIV1Service(secret string, profile *profile.Profile, store *store.Store
 		MarkdownService:          markdownService,
 		SSEHub:                   NewSSEHub(),
 		NotificationEmailSender:  nil,
+		RateLimits:               DefaultRateLimits(),
 		thumbnailSemaphore:       semaphore.NewWeighted(3), // Limit to 3 concurrent thumbnail generations
 		imageProcessingSemaphore: semaphore.NewWeighted(2),
 	}
@@ -115,6 +120,11 @@ func (s *APIV1Service) RegisterGateway(ctx context.Context, echoServer *echo.Ech
 	// Create gRPC-Gateway mux with auth middleware.
 	gwMux := runtime.NewServeMux(
 		runtime.WithMiddlewares(gatewayAuthMiddleware),
+		// Expose the socket peer so clientIP can distinguish a proxy on our side
+		// from a visitor who forged X-Forwarded-For.
+		runtime.WithMetadata(func(_ context.Context, r *http.Request) metadata.MD {
+			return metadata.Pairs(peerMetadataKey, r.RemoteAddr)
+		}),
 	)
 	if err := v1pb.RegisterInstanceServiceHandlerServer(ctx, gwMux, s); err != nil {
 		return err

@@ -32,6 +32,10 @@ func (*MetadataInterceptor) WrapUnary(next connect.UnaryFunc) connect.UnaryFunc 
 		header := req.Header()
 		md := metadata.MD{}
 
+		// Socket peer address; see clientIP for how it is used.
+		if peer := req.Peer().Addr; peer != "" {
+			md.Set(peerMetadataKey, peer)
+		}
 		// Copy important headers for client info extraction
 		if ua := header.Get("User-Agent"); ua != "" {
 			md.Set("user-agent", ua)

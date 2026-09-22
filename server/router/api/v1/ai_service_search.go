@@ -35,6 +35,9 @@ func (s *APIV1Service) SearchMemos(ctx context.Context, request *v1pb.SearchMemo
 	if user == nil {
 		return nil, status.Errorf(codes.Unauthenticated, "user not authenticated")
 	}
+	if err := s.RateLimits.check(FlowSearchUser, userRateKey(user.ID)); err != nil {
+		return nil, err
+	}
 
 	query := strings.TrimSpace(request.GetQuery())
 	if query == "" {
