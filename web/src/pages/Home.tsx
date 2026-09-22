@@ -1,6 +1,8 @@
 import MemoView from "@/components/MemoView";
 import PagedMemoList, { getMemoKey } from "@/components/PagedMemoList";
+import SemanticMemoList from "@/components/SemanticMemoList";
 import { useInstance } from "@/contexts/InstanceContext";
+import { useMemoFilterContext } from "@/contexts/MemoFilterContext";
 import { NewMemoProvider } from "@/contexts/NewMemoContext";
 import { useMemoFilters, useMemoSorting } from "@/hooks";
 import useCurrentUser from "@/hooks/useCurrentUser";
@@ -10,6 +12,7 @@ import { Memo } from "@/types/proto/api/v1/memo_service_pb";
 const Home = () => {
   const user = useCurrentUser();
   const { isInitialized } = useInstance();
+  const { getFiltersByFactor } = useMemoFilterContext();
 
   const memoFilter = useMemoFilters({
     creatorName: user?.name,
@@ -21,6 +24,15 @@ const Home = () => {
     pinnedFirst: true,
     state: State.NORMAL,
   });
+
+  const semanticFilters = getFiltersByFactor("semanticSearch");
+  if (semanticFilters.length > 0) {
+    return (
+      <div className="w-full min-h-full bg-background text-foreground">
+        <SemanticMemoList query={semanticFilters[0].value} />
+      </div>
+    );
+  }
 
   return (
     <div className="w-full min-h-full bg-background text-foreground">

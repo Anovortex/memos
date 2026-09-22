@@ -9,6 +9,7 @@ import {
   LinkIcon,
   LucideIcon,
   SearchIcon,
+  SparklesIcon,
   XIcon,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -32,6 +33,10 @@ const FILTER_CONFIGS: Record<FilterFactor, FilterConfig> = {
   },
   contentSearch: {
     icon: SearchIcon,
+    getLabel: (value) => value,
+  },
+  semanticSearch: {
+    icon: SparklesIcon,
     getLabel: (value) => value,
   },
   displayTime: {
