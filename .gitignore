@@ -32,3 +32,9 @@ dist
 # Frontend test coverage output (Vitest + @vitest/coverage-v8).
 web/coverage/
 docs/PRODUCT_VISION_PRD.pdf
+
+# Local dev SQLite databases created by `go run ./cmd/memos` without --data
+memos_*.db
+
+# Playwright MCP console/screenshot logs
+.playwright-mcp/
