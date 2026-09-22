@@ -14,4 +14,7 @@ var (
 	// ErrAudioLLMNotSupported indicates that the provider does not have a
 	// multimodal-audio LLM available in this codebase.
 	ErrAudioLLMNotSupported = errors.New("provider does not support multimodal audio capability")
+	// ErrEmbeddingNotSupported indicates that the provider does not have a text
+	// embedding implementation available in this codebase.
+	ErrEmbeddingNotSupported = errors.New("provider does not support text embedding capability")
 )
