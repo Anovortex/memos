@@ -123,3 +123,24 @@ CREATE TABLE `user_identity` (
 );
 
 CREATE INDEX `idx_user_identity_user_id` ON `user_identity`(`user_id`);
+
+-- memo_embedding
+CREATE TABLE `memo_embedding` (
+  `id`         INT          NOT NULL AUTO_INCREMENT PRIMARY KEY,
+  `memo_id`    INT          NOT NULL UNIQUE,
+  `creator_id` INT          NOT NULL,
+  `model`      VARCHAR(255) NOT NULL,
+  `vector`     MEDIUMBLOB   NOT NULL,
+  `updated_ts` BIGINT       NOT NULL DEFAULT (UNIX_TIMESTAMP()),
+  FOREIGN KEY (`memo_id`) REFERENCES `memo`(`id`) ON DELETE CASCADE
+);
+
+CREATE INDEX `idx_memo_embedding_creator_id` ON `memo_embedding`(`creator_id`);
+
+-- user_ai_usage
+CREATE TABLE `user_ai_usage` (
+  `user_id`    INT         NOT NULL,
+  `usage_date` VARCHAR(10) NOT NULL,
+  `tokens`     BIGINT      NOT NULL DEFAULT 0,
+  PRIMARY KEY (`user_id`, `usage_date`)
+);

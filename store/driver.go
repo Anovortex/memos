@@ -79,6 +79,16 @@ type Driver interface {
 	GetMemoShare(ctx context.Context, find *FindMemoShare) (*MemoShare, error)
 	DeleteMemoShare(ctx context.Context, delete *DeleteMemoShare) error
 
+	// MemoEmbedding model related methods.
+	UpsertMemoEmbedding(ctx context.Context, upsert *MemoEmbedding) (*MemoEmbedding, error)
+	ListMemoEmbeddings(ctx context.Context, find *FindMemoEmbedding) ([]*MemoEmbedding, error)
+	DeleteMemoEmbedding(ctx context.Context, delete *DeleteMemoEmbedding) error
+	ListMemosNeedingEmbedding(ctx context.Context, model string, limit int) ([]*Memo, error)
+
+	// UserAIUsage model related methods.
+	IncrementUserAIUsage(ctx context.Context, userID int32, usageDate string, tokens int64) error
+	GetUserAIUsage(ctx context.Context, userID int32, usageDate string) (int64, error)
+
 	// UserIdentity model related methods.
 	CreateUserIdentity(ctx context.Context, create *UserIdentity) (*UserIdentity, error)
 	ListUserIdentities(ctx context.Context, find *FindUserIdentity) ([]*UserIdentity, error)

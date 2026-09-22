@@ -145,6 +145,10 @@ func (s *Store) DeleteMemo(ctx context.Context, delete *DeleteMemo) error {
 	if err := s.driver.DeleteMemoRelation(ctx, &DeleteMemoRelation{RelatedMemoID: &delete.ID}); err != nil {
 		return err
 	}
+	// Clean up the embedding row; the FK cascade only covers drivers that enforce FKs.
+	if err := s.driver.DeleteMemoEmbedding(ctx, &DeleteMemoEmbedding{MemoID: delete.ID}); err != nil {
+		return err
+	}
 	// Clean up attachments linked to this memo.
 	attachments, err := s.ListAttachments(ctx, &FindAttachment{MemoID: &delete.ID})
 	if err != nil {
