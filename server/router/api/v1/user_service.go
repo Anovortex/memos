@@ -8,6 +8,7 @@ import (
 	"strconv"
 	"strings"
 	"time"
+	"unicode/utf8"
 
 	"github.com/pkg/errors"
 	"golang.org/x/crypto/bcrypt"
@@ -22,9 +23,14 @@ import (
 
 const maxBatchGetUsers = 100
 
+const minPasswordLength = 8
+
 func validatePassword(password string) error {
 	if password == "" {
 		return errors.New("password must not be empty")
+	}
+	if utf8.RuneCountInString(password) < minPasswordLength {
+		return errors.Errorf("password must be at least %d characters", minPasswordLength)
 	}
 	return nil
 }
@@ -188,10 +194,14 @@ func (s *APIV1Service) CreateUser(ctx context.Context, request *v1pb.CreateUserR
 		return nil, status.Errorf(codes.InvalidArgument, "user is required")
 	}
 	if err := validateWritableUsername(request.User.Username); err != nil {
-		return nil, status.Errorf(codes.InvalidArgument, "invalid username: %s", request.User.Username)
+		return nil, status.Errorf(codes.InvalidArgument, "%v", err)
 	}
 	if err := validatePassword(request.User.Password); err != nil {
 		return nil, status.Errorf(codes.InvalidArgument, "%v", err)
+	}
+	email := normalizeEmail(request.User.Email)
+	if err := validateEmailAddress(email); err != nil {
+		return nil, err
 	}
 
 	roleToAssign := store.RoleUser
@@ -201,6 +211,11 @@ func (s *APIV1Service) CreateUser(ctx context.Context, request *v1pb.CreateUserR
 			roleToAssign = convertUserRoleToStore(request.User.Role)
 		}
 	} else {
+		// Self sign-up (including first-run setup) must provide an email so the
+		// account can be verified and recovered.
+		if email == "" {
+			return nil, status.Errorf(codes.InvalidArgument, "email is required")
+		}
 		limitOne := 1
 		allUsers, err := s.Store.ListUsers(ctx, &store.FindUser{Limit: &limitOne})
 		if err != nil {
@@ -216,11 +231,14 @@ func (s *APIV1Service) CreateUser(ctx context.Context, request *v1pb.CreateUserR
 				user, created, err := s.Store.CreateUserIfNoUsers(ctx, &store.User{
 					Username:     request.User.Username,
 					Role:         store.RoleAdmin,
-					Email:        request.User.Email,
+					Email:        email,
 					Nickname:     request.User.DisplayName,
 					PasswordHash: string(passwordHash),
 				})
 				if err != nil {
+					if isUniqueConstraintViolation(err) {
+						return nil, status.Errorf(codes.AlreadyExists, "username is already taken")
+					}
 					return nil, status.Errorf(codes.Internal, "failed to create first user: %v", err)
 				}
 				if created {
@@ -245,12 +263,21 @@ func (s *APIV1Service) CreateUser(ctx context.Context, request *v1pb.CreateUserR
 		}
 	}
 
+	// Uniqueness is checked only after the registration gate above, so a closed
+	// instance does not let anonymous callers probe which accounts exist.
+	if err := s.checkUsernameAvailable(ctx, request.User.Username); err != nil {
+		return nil, err
+	}
+	if err := s.checkEmailAvailable(ctx, email, nil); err != nil {
+		return nil, err
+	}
+
 	// If validate_only is true, just validate without creating
 	if request.ValidateOnly {
 		// Perform validation checks without actually creating the user
 		return &v1pb.User{
 			Username:    request.User.Username,
-			Email:       request.User.Email,
+			Email:       email,
 			DisplayName: request.User.DisplayName,
 			Role:        convertUserRoleFromStore(roleToAssign),
 		}, nil
@@ -264,11 +291,16 @@ func (s *APIV1Service) CreateUser(ctx context.Context, request *v1pb.CreateUserR
 	user, err := s.Store.CreateUser(ctx, &store.User{
 		Username:     request.User.Username,
 		Role:         roleToAssign,
-		Email:        request.User.Email,
+		Email:        email,
 		Nickname:     request.User.DisplayName,
 		PasswordHash: string(passwordHash),
 	})
 	if err != nil {
+		// Lost a race with a concurrent sign-up; the pre-check above already
+		// covered the common case.
+		if isUniqueConstraintViolation(err) {
+			return nil, status.Errorf(codes.AlreadyExists, "username is already taken")
+		}
 		return nil, status.Errorf(codes.Internal, "failed to create user: %v", err)
 	}
 
@@ -322,7 +354,7 @@ func (s *APIV1Service) UpdateUser(ctx context.Context, request *v1pb.UpdateUserR
 				return nil, status.Errorf(codes.PermissionDenied, "permission denied: disallow change username")
 			}
 			if err := validateWritableUsername(request.User.Username); err != nil {
-				return nil, status.Errorf(codes.InvalidArgument, "invalid username: %s", request.User.Username)
+				return nil, status.Errorf(codes.InvalidArgument, "%v", err)
 			}
 			update.Username = &request.User.Username
 		case "display_name":
@@ -331,7 +363,14 @@ func (s *APIV1Service) UpdateUser(ctx context.Context, request *v1pb.UpdateUserR
 			}
 			update.Nickname = &request.User.DisplayName
 		case "email":
-			update.Email = &request.User.Email
+			email := normalizeEmail(request.User.Email)
+			if err := validateEmailAddress(email); err != nil {
+				return nil, err
+			}
+			if err := s.checkEmailAvailable(ctx, email, &user.ID); err != nil {
+				return nil, err
+			}
+			update.Email = &email
 		case "avatar_url":
 			// Validate avatar MIME type to prevent XSS during upload
 			if request.User.AvatarUrl != "" {

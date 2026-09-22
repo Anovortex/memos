@@ -1,4 +1,11 @@
+import { ConnectError } from "@connectrpc/connect";
+
 export function getErrorMessage(error: unknown, fallback = "Unknown error"): string {
+  // ConnectError.message is "[code] text"; the code prefix is noise for users.
+  if (error instanceof ConnectError) {
+    return error.rawMessage;
+  }
+
   if (error instanceof Error) {
     return error.message;
   }

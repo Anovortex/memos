@@ -20,13 +20,14 @@ import { ROUTES } from "@/router/routes";
 import { User_Role, UserSchema } from "@/types/proto/api/v1/user_service_pb";
 import { AUTH_REDIRECT_PARAM, appendSearchParams, getSafeRedirectPath } from "@/utils/auth-redirect";
 import { useTranslate } from "@/utils/i18n";
-import { getSignupUsernameErrorKey } from "@/utils/signup";
+import { getSignupPasswordErrorKey, getSignupUsernameErrorKey } from "@/utils/signup";
 
 const SignUp = () => {
   const t = useTranslate();
   const navigateTo = useNavigateTo();
   const actionBtnLoadingState = useLoading(false);
   const [username, setUsername] = useState("");
+  const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const { initialize: initAuth } = useAuth();
   const { generalSetting: instanceGeneralSetting, profile, initialize: initInstance } = useInstance();
@@ -46,13 +47,18 @@ const SignUp = () => {
   const handleFormSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
-    if (username === "" || password === "") {
+    if (username === "" || email === "" || password === "") {
       return;
     }
 
     const usernameErrorKey = getSignupUsernameErrorKey(username);
     if (usernameErrorKey) {
       toast.error(t(usernameErrorKey));
+      return;
+    }
+    const passwordErrorKey = getSignupPasswordErrorKey(password);
+    if (passwordErrorKey) {
+      toast.error(t(passwordErrorKey));
       return;
     }
 
@@ -64,6 +70,7 @@ const SignUp = () => {
       actionBtnLoadingState.setLoading();
       const user = create(UserSchema, {
         username,
+        email,
         password,
         role: User_Role.USER,
       });
@@ -96,10 +103,12 @@ const SignUp = () => {
       <CredentialFields
         idPrefix="signup"
         username={username}
+        email={email}
         password={password}
         passwordAutoComplete="new-password"
         readOnly={actionBtnLoadingState.isLoading}
         onUsernameChange={setUsername}
+        onEmailChange={setEmail}
         onPasswordChange={setPassword}
       />
       <Button type="submit" disabled={actionBtnLoadingState.isLoading}>

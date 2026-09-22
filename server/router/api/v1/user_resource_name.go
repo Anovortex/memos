@@ -28,7 +28,7 @@ func parseUsernameFromName(name string) (string, error) {
 
 func validateWritableUsername(username string) error {
 	if username == "" || isNumericUsername(username) || !base.UIDMatcher.MatchString(username) {
-		return errors.Errorf("invalid username %q", username)
+		return errors.Errorf("invalid username %q: use 1-36 letters, digits and hyphens, starting and ending with a letter or digit, and not digits only", username)
 	}
 	return nil
 }

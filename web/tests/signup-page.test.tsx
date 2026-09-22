@@ -53,11 +53,28 @@ describe("<SignUp>", () => {
     );
 
     fireEvent.change(screen.getByPlaceholderText("common.username"), { target: { value: "ahkhan.dev@gmail.com" } });
+    fireEvent.change(screen.getByPlaceholderText("common.email"), { target: { value: "ahkhan.dev@gmail.com" } });
     fireEvent.change(screen.getByPlaceholderText("common.password"), { target: { value: "password123" } });
     fireEvent.click(screen.getByRole("button", { name: "auth.create-admin-account" }));
 
     expect(mocks.toastError).toHaveBeenCalledWith("auth.username-email-not-allowed");
     expect(mocks.createUser).not.toHaveBeenCalled();
     expect(mocks.signIn).not.toHaveBeenCalled();
+  });
+
+  it("rejects a short password before calling the API", () => {
+    render(
+      <MemoryRouter>
+        <SignUp />
+      </MemoryRouter>,
+    );
+
+    fireEvent.change(screen.getByPlaceholderText("common.username"), { target: { value: "owner" } });
+    fireEvent.change(screen.getByPlaceholderText("common.email"), { target: { value: "owner@example.com" } });
+    fireEvent.change(screen.getByPlaceholderText("common.password"), { target: { value: "short1" } });
+    fireEvent.click(screen.getByRole("button", { name: "auth.create-admin-account" }));
+
+    expect(mocks.toastError).toHaveBeenCalledWith("auth.password-too-short");
+    expect(mocks.createUser).not.toHaveBeenCalled();
   });
 });

@@ -17,6 +17,7 @@
     "explore-public-memos": "Explore public memos on this instance",
     "first-run": "First run",
     "new-password": "New password",
+    "password-too-short": "Password must be at least 8 characters.",
     "protected-memo-notice": "This memo is not public. Sign in to continue.",
     "repeat-new-password": "Repeat the new password",
     "setup-description": "Create the administrator account for this instance.",

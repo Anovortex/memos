@@ -121,7 +121,7 @@ func (d *DB) ListUsers(ctx context.Context, find *store.FindUser) ([]*store.User
 		where, args = append(where, "role = "+placeholder(len(args)+1)), append(args, *v)
 	}
 	if v := find.Email; v != nil {
-		where, args = append(where, "email = "+placeholder(len(args)+1)), append(args, *v)
+		where, args = append(where, "LOWER(email) = LOWER("+placeholder(len(args)+1)+")"), append(args, *v)
 	}
 	if v := find.Nickname; v != nil {
 		where, args = append(where, "nickname = "+placeholder(len(args)+1)), append(args, *v)
