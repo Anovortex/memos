@@ -330,6 +330,18 @@ func normalizeDeploymentAISetting(setting *storepb.InstanceAISetting) error {
 			return errors.New("aiSetting transcription configuration exceeds a supported length limit")
 		}
 	}
+	if embeddingCfg := setting.Embedding; embeddingCfg != nil {
+		embeddingCfg.ProviderId = strings.TrimSpace(embeddingCfg.ProviderId)
+		embeddingCfg.Model = strings.TrimSpace(embeddingCfg.Model)
+		if embeddingCfg.ProviderId != "" {
+			if _, ok := providers[embeddingCfg.ProviderId]; !ok {
+				return errors.Errorf("aiSetting embedding providerId %q does not reference a provider", embeddingCfg.ProviderId)
+			}
+		}
+		if len(embeddingCfg.Model) > maxTranscriptionModelLength {
+			return errors.New("aiSetting embedding configuration exceeds a supported length limit")
+		}
+	}
 	return nil
 }
 

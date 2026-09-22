@@ -9,6 +9,7 @@ import (
 	"github.com/lithammer/shortuuid/v4"
 	"github.com/pkg/errors"
 	colorpb "google.golang.org/genproto/googleapis/type/color"
+	"google.golang.org/protobuf/proto"
 
 	v1pb "github.com/usememos/memos/proto/gen/api/v1"
 	storepb "github.com/usememos/memos/proto/gen/store"
@@ -87,6 +88,44 @@ func (s *APIV1Service) prepareInstanceAISettingForUpdate(ctx context.Context, se
 	if err := preparePersistedTranscriptionConfig(setting, existing); err != nil {
 		return err
 	}
+	if err := preparePersistedEmbeddingConfig(setting, existing); err != nil {
+		return err
+	}
+	return nil
+}
+
+func preparePersistedEmbeddingConfig(setting *storepb.InstanceAISetting, existing *storepb.InstanceAISetting) error {
+	// Same "absence == keep" semantics as the transcription config. Clone:
+	// `existing` aliases the shared settings cache, which other goroutines
+	// (search handler, embedding runner) read concurrently.
+	if setting.Embedding == nil && existing != nil && existing.GetEmbedding() != nil {
+		cloned, _ := proto.Clone(existing.GetEmbedding()).(*storepb.EmbeddingConfig)
+		setting.Embedding = cloned
+	}
+	if setting.Embedding == nil {
+		return nil
+	}
+
+	cfg := setting.Embedding
+	cfg.ProviderId = strings.TrimSpace(cfg.ProviderId)
+	cfg.Model = strings.TrimSpace(cfg.Model)
+
+	if cfg.ProviderId != "" {
+		referenced := false
+		for _, provider := range setting.Providers {
+			if provider != nil && provider.Id == cfg.ProviderId {
+				referenced = true
+				break
+			}
+		}
+		if !referenced {
+			return errors.Errorf("embedding provider_id %q does not reference any configured provider", cfg.ProviderId)
+		}
+	}
+
+	if len(cfg.Model) > maxTranscriptionConfigModelLength {
+		return errors.Errorf("embedding model is too long; maximum length is %d characters", maxTranscriptionConfigModelLength)
+	}
 	return nil
 }
 
@@ -95,8 +134,11 @@ func preparePersistedTranscriptionConfig(setting *storepb.InstanceAISetting, exi
 	// matching the same "absence == keep" semantics used for API keys. The preserved
 	// config still falls through to validation below, so a stale provider_id is
 	// rejected if the same update removed or renamed its referenced provider.
-	if setting.Transcription == nil && existing != nil {
-		setting.Transcription = existing.GetTranscription()
+	// Clone: `existing` aliases the shared settings cache, which other goroutines
+	// read concurrently — never mutate it in place.
+	if setting.Transcription == nil && existing != nil && existing.GetTranscription() != nil {
+		cloned, _ := proto.Clone(existing.GetTranscription()).(*storepb.TranscriptionConfig)
+		setting.Transcription = cloned
 	}
 	if setting.Transcription == nil {
 		return nil
