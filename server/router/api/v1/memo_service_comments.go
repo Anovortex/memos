@@ -58,6 +58,11 @@ func (s *APIV1Service) CreateMemoComment(ctx context.Context, request *v1pb.Crea
 		MemoId: request.CommentId,
 	})
 	if err != nil {
+		// Preserve CreateMemo's status (e.g. ResourceExhausted for the memo
+		// cap, InvalidArgument for content length) instead of masking it.
+		if _, ok := status.FromError(err); ok {
+			return nil, err
+		}
 		return nil, status.Errorf(codes.Internal, "failed to create memo")
 	}
 	memoUID, err = ExtractMemoUIDFromName(memoComment.Name)

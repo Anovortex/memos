@@ -34,6 +34,12 @@ type Profile struct {
 	Commit string
 	// InstanceURL is the url of your memos instance.
 	InstanceURL string
+	// FreeTierMaxMemos caps how many memos (including comments) a user may
+	// create. 0 means unlimited.
+	FreeTierMaxMemos int64
+	// FreeTierAITokensPerDay caps AI tokens a user may spend per UTC day
+	// (embedding indexing plus semantic-search queries). 0 means unlimited.
+	FreeTierAITokensPerDay int64
 }
 
 // AllowAnonymous reports whether unauthenticated visitors may access the instance.

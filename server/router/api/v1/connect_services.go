@@ -523,6 +523,14 @@ func (s *ConnectServiceHandler) Transcribe(ctx context.Context, req *connect.Req
 	return connect.NewResponse(resp), nil
 }
 
+func (s *ConnectServiceHandler) SearchMemos(ctx context.Context, req *connect.Request[v1pb.SearchMemosRequest]) (*connect.Response[v1pb.SearchMemosResponse], error) {
+	resp, err := s.APIV1Service.SearchMemos(ctx, req.Msg)
+	if err != nil {
+		return nil, convertGRPCError(err)
+	}
+	return connect.NewResponse(resp), nil
+}
+
 // ShortcutService
 
 func (s *ConnectServiceHandler) ListShortcuts(ctx context.Context, req *connect.Request[v1pb.ListShortcutsRequest]) (*connect.Response[v1pb.ListShortcutsResponse], error) {

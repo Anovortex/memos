@@ -35,12 +35,17 @@ const (
 const (
 	// AIServiceTranscribeProcedure is the fully-qualified name of the AIService's Transcribe RPC.
 	AIServiceTranscribeProcedure = "/memos.api.v1.AIService/Transcribe"
+	// AIServiceSearchMemosProcedure is the fully-qualified name of the AIService's SearchMemos RPC.
+	AIServiceSearchMemosProcedure = "/memos.api.v1.AIService/SearchMemos"
 )
 
 // AIServiceClient is a client for the memos.api.v1.AIService service.
 type AIServiceClient interface {
 	// Transcribe transcribes an audio file using an instance AI provider.
 	Transcribe(context.Context, *connect.Request[v1.TranscribeRequest]) (*connect.Response[v1.TranscribeResponse], error)
+	// SearchMemos ranks the calling user's own memos by semantic similarity to
+	// the query. Results never include another user's memos.
+	SearchMemos(context.Context, *connect.Request[v1.SearchMemosRequest]) (*connect.Response[v1.SearchMemosResponse], error)
 }
 
 // NewAIServiceClient constructs a client for the memos.api.v1.AIService service. By default, it
@@ -60,12 +65,19 @@ func NewAIServiceClient(httpClient connect.HTTPClient, baseURL string, opts ...c
 			connect.WithSchema(aIServiceMethods.ByName("Transcribe")),
 			connect.WithClientOptions(opts...),
 		),
+		searchMemos: connect.NewClient[v1.SearchMemosRequest, v1.SearchMemosResponse](
+			httpClient,
+			baseURL+AIServiceSearchMemosProcedure,
+			connect.WithSchema(aIServiceMethods.ByName("SearchMemos")),
+			connect.WithClientOptions(opts...),
+		),
 	}
 }
 
 // aIServiceClient implements AIServiceClient.
 type aIServiceClient struct {
-	transcribe *connect.Client[v1.TranscribeRequest, v1.TranscribeResponse]
+	transcribe  *connect.Client[v1.TranscribeRequest, v1.TranscribeResponse]
+	searchMemos *connect.Client[v1.SearchMemosRequest, v1.SearchMemosResponse]
 }
 
 // Transcribe calls memos.api.v1.AIService.Transcribe.
@@ -73,10 +85,18 @@ func (c *aIServiceClient) Transcribe(ctx context.Context, req *connect.Request[v
 	return c.transcribe.CallUnary(ctx, req)
 }
 
+// SearchMemos calls memos.api.v1.AIService.SearchMemos.
+func (c *aIServiceClient) SearchMemos(ctx context.Context, req *connect.Request[v1.SearchMemosRequest]) (*connect.Response[v1.SearchMemosResponse], error) {
+	return c.searchMemos.CallUnary(ctx, req)
+}
+
 // AIServiceHandler is an implementation of the memos.api.v1.AIService service.
 type AIServiceHandler interface {
 	// Transcribe transcribes an audio file using an instance AI provider.
 	Transcribe(context.Context, *connect.Request[v1.TranscribeRequest]) (*connect.Response[v1.TranscribeResponse], error)
+	// SearchMemos ranks the calling user's own memos by semantic similarity to
+	// the query. Results never include another user's memos.
+	SearchMemos(context.Context, *connect.Request[v1.SearchMemosRequest]) (*connect.Response[v1.SearchMemosResponse], error)
 }
 
 // NewAIServiceHandler builds an HTTP handler from the service implementation. It returns the path
@@ -92,10 +112,18 @@ func NewAIServiceHandler(svc AIServiceHandler, opts ...connect.HandlerOption) (s
 		connect.WithSchema(aIServiceMethods.ByName("Transcribe")),
 		connect.WithHandlerOptions(opts...),
 	)
+	aIServiceSearchMemosHandler := connect.NewUnaryHandler(
+		AIServiceSearchMemosProcedure,
+		svc.SearchMemos,
+		connect.WithSchema(aIServiceMethods.ByName("SearchMemos")),
+		connect.WithHandlerOptions(opts...),
+	)
 	return "/memos.api.v1.AIService/", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		switch r.URL.Path {
 		case AIServiceTranscribeProcedure:
 			aIServiceTranscribeHandler.ServeHTTP(w, r)
+		case AIServiceSearchMemosProcedure:
+			aIServiceSearchMemosHandler.ServeHTTP(w, r)
 		default:
 			http.NotFound(w, r)
 		}
@@ -107,4 +135,8 @@ type UnimplementedAIServiceHandler struct{}
 
 func (UnimplementedAIServiceHandler) Transcribe(context.Context, *connect.Request[v1.TranscribeRequest]) (*connect.Response[v1.TranscribeResponse], error) {
 	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("memos.api.v1.AIService.Transcribe is not implemented"))
+}
+
+func (UnimplementedAIServiceHandler) SearchMemos(context.Context, *connect.Request[v1.SearchMemosRequest]) (*connect.Response[v1.SearchMemosResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("memos.api.v1.AIService.SearchMemos is not implemented"))
 }

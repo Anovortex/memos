@@ -22,6 +22,7 @@ import (
 	"github.com/usememos/memos/server/router/frontend"
 	"github.com/usememos/memos/server/router/mcp"
 	"github.com/usememos/memos/server/router/rss"
+	embeddingrunner "github.com/usememos/memos/server/runner/embedding"
 	"github.com/usememos/memos/server/runner/s3presign"
 	"github.com/usememos/memos/store"
 )
@@ -33,9 +34,10 @@ type Server struct {
 	Profile *profile.Profile
 	Store   *store.Store
 
-	echoServer *echo.Echo
-	httpServer *http.Server
-	sseHub     *apiv1.SSEHub
+	echoServer      *echo.Echo
+	httpServer      *http.Server
+	sseHub          *apiv1.SSEHub
+	embeddingRunner *embeddingrunner.Runner
 
 	backgroundRunnerCancels []context.CancelFunc
 	backgroundRunnerWG      sync.WaitGroup
@@ -75,6 +77,8 @@ func NewServer(ctx context.Context, profile *profile.Profile, store *store.Store
 
 	apiV1Service := apiv1.NewAPIV1Service(s.Secret, profile, store)
 	s.sseHub = apiV1Service.SSEHub
+	s.embeddingRunner = embeddingrunner.NewRunner(store, profile)
+	apiV1Service.EmbeddingNotifier = s.embeddingRunner
 
 	// Register HTTP file server routes BEFORE gRPC-Gateway to ensure proper range request handling for Safari.
 	// This uses native HTTP serving (http.ServeContent) instead of gRPC for video/audio files.
@@ -169,6 +173,19 @@ func (s *Server) startBackgroundRunners(ctx context.Context) {
 		s3presignRunner.Run(s3Context)
 		slog.Info("s3presign runner stopped")
 	}()
+
+	// Create and start the embedding indexer runner.
+	embeddingContext, embeddingCancel := context.WithCancel(ctx)
+	s.backgroundRunnerCancels = append(s.backgroundRunnerCancels, embeddingCancel)
+	s.backgroundRunnerWG.Add(1)
+	go func() {
+		defer s.backgroundRunnerWG.Done()
+		s.embeddingRunner.Run(embeddingContext)
+		slog.Info("embedding runner stopped")
+	}()
+	// Kick the initial backlog drain asynchronously so a large corpus or slow
+	// provider cannot block startup or delay graceful shutdown.
+	s.embeddingRunner.Poke()
 
 	slog.Info("background runners started")
 }

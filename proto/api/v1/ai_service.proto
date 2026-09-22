@@ -2,6 +2,7 @@ syntax = "proto3";
 
 package memos.api.v1;
 
+import "api/v1/memo_service.proto";
 import "google/api/annotations.proto";
 import "google/api/client.proto";
 import "google/api/field_behavior.proto";
@@ -16,6 +17,16 @@ service AIService {
       body: "*"
     };
     option (google.api.method_signature) = "audio";
+  }
+
+  // SearchMemos ranks the calling user's own memos by semantic similarity to
+  // the query. Results never include another user's memos.
+  rpc SearchMemos(SearchMemosRequest) returns (SearchMemosResponse) {
+    option (google.api.http) = {
+      post: "/api/v1/ai:searchMemos"
+      body: "*"
+    };
+    option (google.api.method_signature) = "query";
   }
 }
 
@@ -43,4 +54,25 @@ message TranscriptionAudio {
 message TranscribeResponse {
   // The transcribed text.
   string text = 1;
+}
+
+message SearchMemosRequest {
+  // Required. The natural-language search query.
+  string query = 1 [(google.api.field_behavior) = REQUIRED];
+
+  // Optional. Maximum results to return. Defaults to 20, capped at 50.
+  int32 limit = 2 [(google.api.field_behavior) = OPTIONAL];
+}
+
+message SearchMemosResponse {
+  message Result {
+    // The matched memo.
+    Memo memo = 1;
+
+    // Cosine similarity of the memo to the query, higher is closer.
+    float score = 2;
+  }
+
+  // Results ordered by descending score.
+  repeated Result results = 1;
 }

@@ -43,6 +43,9 @@ var (
 				Driver:      viper.GetString("driver"),
 				DSN:         viper.GetString("dsn"),
 				InstanceURL: viper.GetString("instance-url"),
+
+				FreeTierMaxMemos:       viper.GetInt64("free-tier-max-memos"),
+				FreeTierAITokensPerDay: viper.GetInt64("free-tier-ai-tokens-per-day"),
 			}
 			instanceProfile.Version = version.GetCurrentVersion()
 			instanceProfile.Commit = version.Commit
@@ -132,6 +135,8 @@ func init() {
 	rootCmd.PersistentFlags().String("instance-url", "", "the url of your memos instance")
 	rootCmd.PersistentFlags().Bool("allow-private-webhooks", false, "allow webhook URLs to resolve to private/reserved IP addresses")
 	rootCmd.PersistentFlags().String("log-level", "info", "log verbosity level (debug, info, warn, error)")
+	rootCmd.PersistentFlags().Int64("free-tier-max-memos", 0, "max memos per user, 0 for unlimited")
+	rootCmd.PersistentFlags().Int64("free-tier-ai-tokens-per-day", 0, "max AI tokens per user per UTC day, 0 for unlimited")
 
 	if err := viper.BindPFlag("demo", rootCmd.PersistentFlags().Lookup("demo")); err != nil {
 		panic(err)
@@ -158,6 +163,12 @@ func init() {
 		panic(err)
 	}
 	if err := viper.BindPFlag("allow-private-webhooks", rootCmd.PersistentFlags().Lookup("allow-private-webhooks")); err != nil {
+		panic(err)
+	}
+	if err := viper.BindPFlag("free-tier-max-memos", rootCmd.PersistentFlags().Lookup("free-tier-max-memos")); err != nil {
+		panic(err)
+	}
+	if err := viper.BindPFlag("free-tier-ai-tokens-per-day", rootCmd.PersistentFlags().Lookup("free-tier-ai-tokens-per-day")); err != nil {
 		panic(err)
 	}
 	if err := viper.BindPFlag("log-level", rootCmd.PersistentFlags().Lookup("log-level")); err != nil {

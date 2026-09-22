@@ -9,6 +9,8 @@ import (
 	"github.com/labstack/echo/v5"
 	"golang.org/x/sync/semaphore"
 
+	"github.com/usememos/memos/internal/ai"
+	"github.com/usememos/memos/internal/ai/embedding"
 	"github.com/usememos/memos/internal/markdown"
 	"github.com/usememos/memos/internal/profile"
 	v1pb "github.com/usememos/memos/proto/gen/api/v1"
@@ -35,6 +37,12 @@ type APIV1Service struct {
 	MarkdownService         markdown.Service
 	SSEHub                  *SSEHub
 	NotificationEmailSender notification.EmailSender
+	// EmbeddingNotifier wakes the background embedding indexer after memo
+	// mutations. Nil when the indexer is not running (e.g. tests).
+	EmbeddingNotifier EmbeddingNotifier
+	// EmbedderFactory overrides embedder construction for semantic search.
+	// Nil uses the provider-type dispatch; tests inject fakes here.
+	EmbedderFactory func(ai.ProviderConfig) (embedding.Embedder, error)
 
 	// thumbnailSemaphore limits concurrent thumbnail generation to prevent memory exhaustion
 	thumbnailSemaphore       *semaphore.Weighted
@@ -42,6 +50,18 @@ type APIV1Service struct {
 
 	// instanceStatsCache memoizes GetInstanceStats results for instanceStatsCacheTTL.
 	instanceStatsCache instanceStatsCache
+}
+
+// EmbeddingNotifier is implemented by the background embedding indexer.
+type EmbeddingNotifier interface {
+	Poke()
+}
+
+// notifyEmbedding wakes the embedding indexer if one is attached.
+func (s *APIV1Service) notifyEmbedding() {
+	if s.EmbeddingNotifier != nil {
+		s.EmbeddingNotifier.Poke()
+	}
 }
 
 func NewAPIV1Service(secret string, profile *profile.Profile, store *store.Store) *APIV1Service {

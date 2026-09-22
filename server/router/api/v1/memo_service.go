@@ -14,6 +14,7 @@ import (
 	"google.golang.org/protobuf/types/known/emptypb"
 
 	"github.com/usememos/memos/internal/httpgetter"
+	"github.com/usememos/memos/internal/plan"
 	v1pb "github.com/usememos/memos/proto/gen/api/v1"
 	"github.com/usememos/memos/server/runner/memopayload"
 	"github.com/usememos/memos/store"
@@ -74,6 +75,10 @@ func (s *APIV1Service) CreateMemo(ctx context.Context, request *v1pb.CreateMemoR
 	}
 	if user == nil {
 		return nil, status.Errorf(codes.Unauthenticated, "user not authenticated")
+	}
+
+	if err := s.checkMemoCountCap(ctx, user); err != nil {
+		return nil, err
 	}
 
 	memoUID, err := ValidateAndGenerateUID(request.MemoId)
@@ -171,6 +176,8 @@ func (s *APIV1Service) CreateMemo(ctx context.Context, request *v1pb.CreateMemoR
 	if !isMentionNotificationSuppressed(ctx) {
 		s.dispatchMemoMentionNotificationsBestEffort(ctx, memo, nil, "")
 	}
+
+	s.notifyEmbedding()
 
 	return memoMessage, nil
 }
@@ -493,8 +500,21 @@ func (s *APIV1Service) UpdateMemo(ctx context.Context, request *v1pb.UpdateMemoR
 		}
 	}
 
+	if contentUpdated {
+		// Drop the stale embedding BEFORE the content update so a failed delete
+		// aborts cleanly (old content + old embedding stay consistent) instead
+		// of stranding a stale vector the missing-row scan would never revisit.
+		if err := s.Store.DeleteMemoEmbedding(ctx, &store.DeleteMemoEmbedding{MemoID: memo.ID}); err != nil {
+			return nil, status.Errorf(codes.Internal, "failed to invalidate memo embedding")
+		}
+	}
+
 	if err = s.Store.UpdateMemo(ctx, update); err != nil {
 		return nil, status.Errorf(codes.Internal, "failed to update memo")
+	}
+
+	if contentUpdated {
+		s.notifyEmbedding()
 	}
 
 	memo, err = s.Store.GetMemo(ctx, &store.FindMemo{
@@ -598,6 +618,30 @@ func (s *APIV1Service) getContentLengthLimit(ctx context.Context) (int, error) {
 		return 0, status.Errorf(codes.Internal, "failed to get instance memo related setting")
 	}
 	return int(instanceMemoRelatedSetting.ContentLengthLimit), nil
+}
+
+// checkMemoCountCap enforces the free-tier memo limit. Comments count too
+// (CreateMemoComment routes through CreateMemo), or they would be an unbounded
+// loophole. Count-then-create is racy under concurrency; accepted at this scale.
+func (s *APIV1Service) checkMemoCountCap(ctx context.Context, user *store.User) error {
+	limits := plan.ForUser(s.Profile, user)
+	if limits.MaxMemos <= 0 {
+		return nil
+	}
+	// ponytail: count via list, matching instance_stats.go's documented choice;
+	// add a driver-level COUNT if this becomes measurable.
+	excludeContent := true
+	memos, err := s.Store.ListMemos(ctx, &store.FindMemo{
+		CreatorID:      &user.ID,
+		ExcludeContent: excludeContent,
+	})
+	if err != nil {
+		return status.Errorf(codes.Internal, "failed to count memos")
+	}
+	if int64(len(memos)) >= limits.MaxMemos {
+		return status.Errorf(codes.ResourceExhausted, "memo limit reached (max %d)", limits.MaxMemos)
+	}
+	return nil
 }
 
 // DispatchMemoCreatedWebhook dispatches webhook when memo is created.
