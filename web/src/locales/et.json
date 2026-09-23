@@ -773,24 +773,6 @@
       "invalid-regex": "Kehtetu või ebaturvaline regex-muster.",
       "used-count": "{{count}} memod",
       "using-default-color": "Vaikevärvi kasutamine."
-    },
-    "resource-stats": {
-      "label": "Vahendid",
-      "title": "Ressursistatistika",
-      "description": "Selle eksemplari ressursikasutus.",
-      "database": {
-        "title": "Andmebaas",
-        "driver": "Juht",
-        "size": "Suurus"
-      },
-      "local-storage": {
-        "title": "Kohalik salvestusruum",
-        "size": "Andmekataloogi suurus"
-      },
-      "unknown": "Tundmatu",
-      "last-updated": "Viimati värskendatud {{ago}}",
-      "refresh": "Värskenda",
-      "load-error": "Statistika laadimine ebaõnnestus"
     }
   },
   "tag": {
@@ -816,5 +798,20 @@
     "select-visibility": "Nähtavus",
     "tags": "Sildid",
     "upload-attachment": "Laadi üles manus(ed)"
+  },
+  "dashboard": {
+    "database": {
+      "title": "Andmebaas",
+      "driver": "Juht",
+      "size": "Suurus"
+    },
+    "local-storage": {
+      "title": "Kohalik salvestusruum",
+      "size": "Andmekataloogi suurus"
+    },
+    "unknown": "Tundmatu",
+    "last-updated": "Viimati värskendatud {{ago}}",
+    "refresh": "Värskenda",
+    "load-error": "Statistika laadimine ebaõnnestus"
   }
 }

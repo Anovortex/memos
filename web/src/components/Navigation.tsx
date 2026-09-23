@@ -1,4 +1,4 @@
-import { BellIcon, EarthIcon, InfoIcon, LibraryIcon, PaperclipIcon, UserCircleIcon } from "lucide-react";
+import { BellIcon, EarthIcon, InfoIcon, LayoutDashboardIcon, LibraryIcon, PaperclipIcon, SettingsIcon, UserCircleIcon } from "lucide-react";
 import { NavLink } from "react-router-dom";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import useCurrentUser from "@/hooks/useCurrentUser";
@@ -7,6 +7,7 @@ import { cn } from "@/lib/utils";
 import { Routes } from "@/router";
 import { UserNotification_Status } from "@/types/proto/api/v1/user_service_pb";
 import { useTranslate } from "@/utils/i18n";
+import { isSuperUser } from "@/utils/user";
 import MemosLogo from "./MemosLogo";
 import UserMenu from "./UserMenu";
 
@@ -68,6 +69,18 @@ const Navigation = (props: Props) => {
       </div>
     ),
   };
+  const dashboardNavLink: NavLinkItem = {
+    id: "header-dashboard",
+    path: Routes.DASHBOARD,
+    title: t("common.dashboard"),
+    icon: <LayoutDashboardIcon className="w-6 h-auto shrink-0" />,
+  };
+  const settingsNavLink: NavLinkItem = {
+    id: "header-settings",
+    path: Routes.SETTING,
+    title: t("common.settings"),
+    icon: <SettingsIcon className="w-6 h-auto shrink-0" />,
+  };
   const signInNavLink: NavLinkItem = {
     id: "header-auth",
     path: Routes.AUTH,
@@ -75,15 +88,21 @@ const Navigation = (props: Props) => {
     icon: <UserCircleIcon className="w-6 h-auto shrink-0" />,
   };
 
-  const primaryNavLinks: NavLinkItem[] = currentUser
-    ? [homeNavLink, exploreNavLink, attachmentsNavLink, inboxNavLink]
-    : [exploreNavLink, aboutNavLink, signInNavLink];
+  // The operator runs the instance and has no notes of their own, so the
+  // note-taking surfaces stay out of their rail.
+  const operator = isSuperUser(currentUser);
+  const startPath = operator ? Routes.DASHBOARD : Routes.HOME;
+  const primaryNavLinks: NavLinkItem[] = !currentUser
+    ? [exploreNavLink, aboutNavLink, signInNavLink]
+    : operator
+      ? [dashboardNavLink, settingsNavLink]
+      : [homeNavLink, exploreNavLink, attachmentsNavLink, inboxNavLink];
   const inboxAriaLabel = unreadCount > 0 ? `${t("common.inbox")}, ${unreadCount} unread` : t("common.inbox");
 
   return (
     <header className={cn("w-full h-full overflow-auto flex flex-col justify-between items-start gap-4", className)}>
       <div className="w-full px-1 py-1 flex flex-col justify-start items-start space-y-2 overflow-auto overflow-x-hidden shrink">
-        <NavLink className="mb-3 cursor-default" to={currentUser ? Routes.HOME : Routes.EXPLORE}>
+        <NavLink className="mb-3 cursor-default" to={currentUser ? startPath : Routes.EXPLORE}>
           <MemosLogo collapsed={collapsed} />
         </NavLink>
         <TooltipProvider>

@@ -736,25 +736,7 @@
       "use-tls": "Használja az STARTTLS-et",
       "use-tls-description": "Frissítse az SMTP kapcsolatot STARTTLS-szel. Tartsa bekapcsolva az Gmail esetében az 587 porttal."
     },
-    "select-section": "Válassza ki a szakaszt",
-    "resource-stats": {
-      "label": "Erőforrás",
-      "title": "Erőforrás-statisztika",
-      "description": "Erőforrás-használat ehhez a példányhoz.",
-      "database": {
-        "title": "Adatbázis",
-        "driver": "Driver",
-        "size": "Méret"
-      },
-      "local-storage": {
-        "title": "Helyi tárolás",
-        "size": "Adatkönyvtár mérete"
-      },
-      "unknown": "Ismeretlen",
-      "last-updated": "Utoljára frissítve {{ago}}",
-      "refresh": "Frissítés",
-      "load-error": "Nem sikerült betölteni a statisztikákat"
-    }
+    "select-section": "Válassza ki a szakaszt"
   },
   "tag": {
     "all-tags": "Minden címke",
@@ -816,5 +798,20 @@
       "description": "Ezeket a feltöltéseket soha nem csatolták feljegyzéshez. Tekintse át vagy távolítsa el őket itt.",
       "title": "Leválasztott feltöltések"
     }
+  },
+  "dashboard": {
+    "database": {
+      "title": "Adatbázis",
+      "driver": "Driver",
+      "size": "Méret"
+    },
+    "local-storage": {
+      "title": "Helyi tárolás",
+      "size": "Adatkönyvtár mérete"
+    },
+    "unknown": "Ismeretlen",
+    "last-updated": "Utoljára frissítve {{ago}}",
+    "refresh": "Frissítés",
+    "load-error": "Nem sikerült betölteni a statisztikákat"
   }
 }

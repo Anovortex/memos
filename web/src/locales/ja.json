@@ -762,25 +762,7 @@
       "use-tls": "STARTTLSを使用する",
       "use-tls-description": "SMTP 接続を STARTTLS にアップグレードします。 ポート 587 の Gmail ではこれをオンのままにします。"
     },
-    "select-section": "セクションを選択",
-    "resource-stats": {
-      "label": "リソース",
-      "title": "リソース統計",
-      "description": "このインスタンスのリソース使用量。",
-      "database": {
-        "title": "データベース",
-        "driver": "ドライバ",
-        "size": "サイズ"
-      },
-      "local-storage": {
-        "title": "ローカルストレージ",
-        "size": "データディレクトリのサイズ"
-      },
-      "unknown": "未知",
-      "last-updated": "最終更新日 {{ago}}",
-      "refresh": "リフレッシュ",
-      "load-error": "統計のロードに失敗しました"
-    }
+    "select-section": "セクションを選択"
   },
   "tag": {
     "all-tags": "すべてのタグ",
@@ -842,5 +824,20 @@
       "description": "これらのアップロードはメモに添付されることはありませんでした。 ここでそれらを確認または削除してください。",
       "title": "リンクされていないアップロード"
     }
+  },
+  "dashboard": {
+    "database": {
+      "title": "データベース",
+      "driver": "ドライバ",
+      "size": "サイズ"
+    },
+    "local-storage": {
+      "title": "ローカルストレージ",
+      "size": "データディレクトリのサイズ"
+    },
+    "unknown": "未知",
+    "last-updated": "最終更新日 {{ago}}",
+    "refresh": "リフレッシュ",
+    "load-error": "統計のロードに失敗しました"
   }
 }

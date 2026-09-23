@@ -736,25 +736,7 @@
       "use-tls": "Koristite STARTTLS",
       "use-tls-description": "Nadogradite vezu SMTP s STARTTLS. Neka ovo bude uključeno za Gmail s priključkom 587."
     },
-    "select-section": "Odaberite odjeljak",
-    "resource-stats": {
-      "label": "Resursi",
-      "title": "Statistika resursa",
-      "description": "Upotreba resursa za ovu instancu.",
-      "database": {
-        "title": "Baza podataka",
-        "driver": "Vozač",
-        "size": "Veličina"
-      },
-      "local-storage": {
-        "title": "Lokalna pohrana",
-        "size": "Veličina direktorija podataka"
-      },
-      "unknown": "Nepoznato",
-      "last-updated": "Zadnji put ažurirano {{ago}}",
-      "refresh": "Osvježiti",
-      "load-error": "Neuspješno učitavanje statistike"
-    }
+    "select-section": "Odaberite odjeljak"
   },
   "tag": {
     "all-tags": "Svi tagovi",
@@ -816,5 +798,20 @@
       "description": "Ovi prijenosi nikada nisu bili priloženi uz dopis. Ovdje ih pregledajte ili uklonite.",
       "title": "Nepovezani prijenosi"
     }
+  },
+  "dashboard": {
+    "database": {
+      "title": "Baza podataka",
+      "driver": "Vozač",
+      "size": "Veličina"
+    },
+    "local-storage": {
+      "title": "Lokalna pohrana",
+      "size": "Veličina direktorija podataka"
+    },
+    "unknown": "Nepoznato",
+    "last-updated": "Zadnji put ažurirano {{ago}}",
+    "refresh": "Osvježiti",
+    "load-error": "Neuspješno učitavanje statistike"
   }
 }

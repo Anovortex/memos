@@ -736,25 +736,7 @@
       "use-tls": "Použijte STARTTLS",
       "use-tls-description": "Upgradujte připojení SMTP pomocí STARTTLS. Nechte toto zapnuté pro Gmail s portem 587."
     },
-    "select-section": "Vyberte sekci",
-    "resource-stats": {
-      "label": "Zdroje",
-      "title": "Statistika zdrojů",
-      "description": "Využití zdrojů pro tuto instanci.",
-      "database": {
-        "title": "Databáze",
-        "driver": "Řidič",
-        "size": "Velikost"
-      },
-      "local-storage": {
-        "title": "Místní úložiště",
-        "size": "Velikost datového adresáře"
-      },
-      "unknown": "Neznámý",
-      "last-updated": "Poslední aktualizace {{ago}}",
-      "refresh": "Obnovit",
-      "load-error": "Statistiky se nepodařilo načíst"
-    }
+    "select-section": "Vyberte sekci"
   },
   "tag": {
     "all-tags": "Všechny štítky",
@@ -816,5 +798,20 @@
       "description": "Tato nahraná videa nebyla nikdy připojena k poznámce. Zde je zkontrolujte nebo odstraňte.",
       "title": "Nepropojená nahrávání"
     }
+  },
+  "dashboard": {
+    "database": {
+      "title": "Databáze",
+      "driver": "Řidič",
+      "size": "Velikost"
+    },
+    "local-storage": {
+      "title": "Místní úložiště",
+      "size": "Velikost datového adresáře"
+    },
+    "unknown": "Neznámý",
+    "last-updated": "Poslední aktualizace {{ago}}",
+    "refresh": "Obnovit",
+    "load-error": "Statistiky se nepodařilo načíst"
   }
 }

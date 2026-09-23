@@ -18,6 +18,7 @@ import { cn } from "@/lib/utils";
 import { Routes } from "@/router";
 import { getLocaleWithFallback, loadLocale, useTranslate } from "@/utils/i18n";
 import { getThemeWithFallback, loadTheme, THEME_OPTIONS } from "@/utils/theme";
+import { isSuperUser } from "@/utils/user";
 import { LocaleSearchList } from "./LocalePicker";
 import UserAvatar from "./UserAvatar";
 import {
@@ -45,6 +46,8 @@ const UserMenu = (props: Props) => {
   const sseStatus = useSSEConnectionStatus();
   const currentLocale = getLocaleWithFallback(userGeneralSetting?.locale);
   const currentTheme = getThemeWithFallback(userGeneralSetting?.theme);
+  // Profile and archive are note surfaces; the operator has none.
+  const operator = isSuperUser(currentUser);
 
   const handleLocaleChange = async (locale: Locale) => {
     if (!currentUser) return;
@@ -142,14 +145,18 @@ const UserMenu = (props: Props) => {
         )}
       </DropdownMenuTrigger>
       <DropdownMenuContent align="start">
-        <DropdownMenuItem onClick={() => navigateTo(`/u/${encodeURIComponent(currentUser?.username ?? "")}`)}>
-          <SquareUserIcon className="size-4 text-muted-foreground" />
-          {t("common.profile")}
-        </DropdownMenuItem>
-        <DropdownMenuItem onClick={() => navigateTo(Routes.ARCHIVED)}>
-          <ArchiveIcon className="size-4 text-muted-foreground" />
-          {t("common.archived")}
-        </DropdownMenuItem>
+        {!operator && (
+          <DropdownMenuItem onClick={() => navigateTo(`/u/${encodeURIComponent(currentUser?.username ?? "")}`)}>
+            <SquareUserIcon className="size-4 text-muted-foreground" />
+            {t("common.profile")}
+          </DropdownMenuItem>
+        )}
+        {!operator && (
+          <DropdownMenuItem onClick={() => navigateTo(Routes.ARCHIVED)}>
+            <ArchiveIcon className="size-4 text-muted-foreground" />
+            {t("common.archived")}
+          </DropdownMenuItem>
+        )}
         <DropdownMenuItem onClick={() => navigateTo(Routes.ABOUT)}>
           <InfoIcon className="size-4 text-muted-foreground" />
           {t("common.about")}

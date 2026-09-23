@@ -773,24 +773,6 @@
       "invalid-regex": "Nederīgs vai nedrošs regulārās izteiksmes modelis.",
       "used-count": "{{count}} piezīmes",
       "using-default-color": "Izmantojot noklusējuma krāsu."
-    },
-    "resource-stats": {
-      "label": "Resursi",
-      "title": "Resursu statistika",
-      "description": "Resursu lietojums šim gadījumam.",
-      "database": {
-        "title": "Datu bāze",
-        "driver": "Šoferis",
-        "size": "Izmērs"
-      },
-      "local-storage": {
-        "title": "Vietējā krātuve",
-        "size": "Datu direktorija lielums"
-      },
-      "unknown": "Nezināms",
-      "last-updated": "Pēdējo reizi atjaunināts {{ago}}",
-      "refresh": "Atsvaidzināt",
-      "load-error": "Neizdevās ielādēt statistiku"
     }
   },
   "tag": {
@@ -816,5 +798,20 @@
     "select-visibility": "Redzamība",
     "tags": "Tagi",
     "upload-attachment": "Augšupielādēt pielikumu(-us)"
+  },
+  "dashboard": {
+    "database": {
+      "title": "Datu bāze",
+      "driver": "Šoferis",
+      "size": "Izmērs"
+    },
+    "local-storage": {
+      "title": "Vietējā krātuve",
+      "size": "Datu direktorija lielums"
+    },
+    "unknown": "Nezināms",
+    "last-updated": "Pēdējo reizi atjaunināts {{ago}}",
+    "refresh": "Atsvaidzināt",
+    "load-error": "Neizdevās ielādēt statistiku"
   }
 }

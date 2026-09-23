@@ -768,25 +768,7 @@
       "use-tls": "Użyj STARTTLS",
       "use-tls-description": "Zaktualizuj połączenie SMTP za pomocą STARTTLS. Pozostaw tę opcję włączoną dla Gmail z portem 587."
     },
-    "select-section": "Wybierz sekcję",
-    "resource-stats": {
-      "label": "Zasoby",
-      "title": "Statystyki zasobów",
-      "description": "Użycie zasobów dla tej instancji.",
-      "database": {
-        "title": "Baza danych",
-        "driver": "Sterownik",
-        "size": "Rozmiar"
-      },
-      "local-storage": {
-        "title": "Magazyn lokalny",
-        "size": "Rozmiar katalogu danych"
-      },
-      "unknown": "Nieznany",
-      "last-updated": "Ostatnia aktualizacja {{ago}}",
-      "refresh": "Odśwież",
-      "load-error": "Nie udało się załadować statystyk"
-    }
+    "select-section": "Wybierz sekcję"
   },
   "tag": {
     "all-tags": "Wszystkie tagi",
@@ -848,5 +830,20 @@
       "description": "Przesłane pliki nigdy nie zostały dołączone do notatki. Przejrzyj je lub usuń tutaj.",
       "title": "Niepowiązane przesłane pliki"
     }
+  },
+  "dashboard": {
+    "database": {
+      "title": "Baza danych",
+      "driver": "Sterownik",
+      "size": "Rozmiar"
+    },
+    "local-storage": {
+      "title": "Magazyn lokalny",
+      "size": "Rozmiar katalogu danych"
+    },
+    "unknown": "Nieznany",
+    "last-updated": "Ostatnia aktualizacja {{ago}}",
+    "refresh": "Odśwież",
+    "load-error": "Nie udało się załadować statystyk"
   }
 }

@@ -736,25 +736,7 @@
       "use-tls": "Verwenden Sie STARTTLS",
       "use-tls-description": "Rüsten Sie die SMTP-Verbindung mit STARTTLS auf. Behalten Sie dies für Gmail mit Port 587 bei."
     },
-    "select-section": "Abschnitt auswählen",
-    "resource-stats": {
-      "label": "Ressourcen",
-      "title": "Ressourcenstatistik",
-      "description": "Ressourcennutzung für diese Instanz.",
-      "database": {
-        "title": "Datenbank",
-        "driver": "Treiber",
-        "size": "Größe"
-      },
-      "local-storage": {
-        "title": "Lokaler Speicher",
-        "size": "Größe des Datenverzeichnisses"
-      },
-      "unknown": "Unbekannt",
-      "last-updated": "Letzte Aktualisierung {{ago}}",
-      "refresh": "Aktualisieren",
-      "load-error": "Statistiken konnten nicht geladen werden"
-    }
+    "select-section": "Abschnitt auswählen"
   },
   "tag": {
     "all-tags": "Alle Tags",
@@ -816,5 +798,20 @@
       "description": "Diese Uploads wurden nie an ein Memo angehängt. Überprüfen oder entfernen Sie sie hier.",
       "title": "Nicht verlinkte Uploads"
     }
+  },
+  "dashboard": {
+    "database": {
+      "title": "Datenbank",
+      "driver": "Treiber",
+      "size": "Größe"
+    },
+    "local-storage": {
+      "title": "Lokaler Speicher",
+      "size": "Größe des Datenverzeichnisses"
+    },
+    "unknown": "Unbekannt",
+    "last-updated": "Letzte Aktualisierung {{ago}}",
+    "refresh": "Aktualisieren",
+    "load-error": "Statistiken konnten nicht geladen werden"
   }
 }

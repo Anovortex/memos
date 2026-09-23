@@ -4,7 +4,7 @@ import App from "@/App";
 import { ChunkLoadErrorFallback } from "@/components/ErrorBoundary";
 import MainLayout from "@/layouts/MainLayout";
 import RootLayout from "@/layouts/RootLayout";
-import { LandingRoute, RequireAuthRoute, RequireGuestRoute } from "./guards";
+import { LandingRoute, RequireAuthRoute, RequireGuestRoute, RequireOperatorRoute } from "./guards";
 import { ROUTES } from "./routes";
 
 // Wrap lazy imports to auto-reload on chunk load failure (e.g., after redeployment).
@@ -28,6 +28,7 @@ const AdminSignIn = lazyWithReload(() => import("@/pages/AdminSignIn"));
 const About = lazyWithReload(() => import("@/pages/About"));
 const Archived = lazyWithReload(() => import("@/pages/Archived"));
 const AuthCallback = lazyWithReload(() => import("@/pages/AuthCallback"));
+const Dashboard = lazyWithReload(() => import("@/pages/Dashboard"));
 const Explore = lazyWithReload(() => import("@/pages/Explore"));
 const ForgotPassword = lazyWithReload(() => import("@/pages/ForgotPassword"));
 const Home = lazyWithReload(() => import("@/pages/Home"));
@@ -113,6 +114,10 @@ export const routeConfig: RouteObject[] = [
               { path: Routes.ATTACHMENTS, element: <Attachments /> },
               { path: Routes.INBOX, element: <Inboxes /> },
               { path: Routes.SETTING, element: <Setting /> },
+              {
+                element: <RequireOperatorRoute />,
+                children: [{ path: Routes.DASHBOARD, element: <Dashboard /> }],
+              },
             ],
           },
           { path: "403", element: <PermissionDenied /> },

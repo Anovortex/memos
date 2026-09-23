@@ -736,25 +736,7 @@
       "use-tls": "Använd STARTTLS",
       "use-tls-description": "Uppgradera SMTP-anslutningen med STARTTLS. Behåll detta för Gmail med port 587."
     },
-    "select-section": "Välj avsnitt",
-    "resource-stats": {
-      "label": "Resurser",
-      "title": "Resursstatistik",
-      "description": "Resursanvändning för den här instansen.",
-      "database": {
-        "title": "Databas",
-        "driver": "Förare",
-        "size": "Storlek"
-      },
-      "local-storage": {
-        "title": "Lokal förvaring",
-        "size": "Datakatalogstorlek"
-      },
-      "unknown": "Okänd",
-      "last-updated": "Senast uppdaterad {{ago}}",
-      "refresh": "Uppdatera",
-      "load-error": "Det gick inte att läsa in statistik"
-    }
+    "select-section": "Välj avsnitt"
   },
   "tag": {
     "all-tags": "Alla taggar",
@@ -816,5 +798,20 @@
       "description": "Dessa uppladdningar bifogades aldrig till ett memo. Granska eller ta bort dem här.",
       "title": "Olänkade uppladdningar"
     }
+  },
+  "dashboard": {
+    "database": {
+      "title": "Databas",
+      "driver": "Förare",
+      "size": "Storlek"
+    },
+    "local-storage": {
+      "title": "Lokal förvaring",
+      "size": "Datakatalogstorlek"
+    },
+    "unknown": "Okänd",
+    "last-updated": "Senast uppdaterad {{ago}}",
+    "refresh": "Uppdatera",
+    "load-error": "Det gick inte att läsa in statistik"
   }
 }

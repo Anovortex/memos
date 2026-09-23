@@ -773,24 +773,6 @@
       "invalid-regex": "Netinkamas arba nesaugus reguliariojo reiškinio šablonas.",
       "used-count": "{{count}} atmintinės",
       "using-default-color": "Numatytosios spalvos naudojimas."
-    },
-    "resource-stats": {
-      "label": "Ištekliai",
-      "title": "Išteklių statistika",
-      "description": "Šio atvejo išteklių naudojimas.",
-      "database": {
-        "title": "Duomenų bazė",
-        "driver": "Vairuotojas",
-        "size": "Dydis"
-      },
-      "local-storage": {
-        "title": "Vietinė saugykla",
-        "size": "Duomenų katalogo dydis"
-      },
-      "unknown": "Nežinoma",
-      "last-updated": "Paskutinį kartą atnaujintas {{ago}}",
-      "refresh": "Atnaujinti",
-      "load-error": "Nepavyko įkelti statistikos"
     }
   },
   "tag": {
@@ -816,5 +798,20 @@
     "select-visibility": "Matomumas",
     "tags": "Žymos",
     "upload-attachment": "Įkelti priedą (-us)"
+  },
+  "dashboard": {
+    "database": {
+      "title": "Duomenų bazė",
+      "driver": "Vairuotojas",
+      "size": "Dydis"
+    },
+    "local-storage": {
+      "title": "Vietinė saugykla",
+      "size": "Duomenų katalogo dydis"
+    },
+    "unknown": "Nežinoma",
+    "last-updated": "Paskutinį kartą atnaujintas {{ago}}",
+    "refresh": "Atnaujinti",
+    "load-error": "Nepavyko įkelti statistikos"
   }
 }

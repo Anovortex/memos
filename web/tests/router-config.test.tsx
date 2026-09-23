@@ -2,7 +2,7 @@ import { isValidElement } from "react";
 import type { RouteObject } from "react-router-dom";
 import { describe, expect, it } from "vitest";
 import { routeConfig, ROUTES } from "@/router";
-import { RequireAuthRoute, RequireGuestRoute } from "@/router/guards";
+import { RequireAuthRoute, RequireGuestRoute, RequireOperatorRoute } from "@/router/guards";
 
 // Walk the nested route config and find the first route with the given path,
 // starting from the provided roots. Returns undefined if nothing matches.
@@ -52,9 +52,14 @@ describe("router configuration", () => {
   });
 
   it("wraps authenticated-only pages in RequireAuthRoute", () => {
-    for (const path of [ROUTES.ARCHIVED, ROUTES.ATTACHMENTS, ROUTES.INBOX, ROUTES.SETTING]) {
+    for (const path of [ROUTES.ARCHIVED, ROUTES.ATTACHMENTS, ROUTES.INBOX, ROUTES.SETTING, ROUTES.DASHBOARD]) {
       expect(hasAncestorOfType(routeConfig, path, RequireAuthRoute)).toBe(true);
     }
+  });
+
+  it("reserves the dashboard for the operator", () => {
+    expect(hasAncestorOfType(routeConfig, ROUTES.DASHBOARD, RequireOperatorRoute)).toBe(true);
+    expect(hasAncestorOfType(routeConfig, ROUTES.SETTING, RequireOperatorRoute)).toBe(false);
   });
 
   it("leaves public pages outside RequireAuthRoute", () => {

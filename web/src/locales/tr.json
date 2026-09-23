@@ -736,25 +736,7 @@
       "use-tls": "STARTTLS'i kullanın",
       "use-tls-description": "SMTP bağlantısını STARTTLS ile yükseltin. 587 bağlantı noktasına sahip Gmail için bunu açık tutun."
     },
-    "select-section": "Bölüm seç",
-    "resource-stats": {
-      "label": "Kaynaklar",
-      "title": "Kaynak İstatistikleri",
-      "description": "Bu örnek için kaynak kullanımı.",
-      "database": {
-        "title": "Veritabanı",
-        "driver": "Sürücü",
-        "size": "Boyut"
-      },
-      "local-storage": {
-        "title": "Yerel Depolama",
-        "size": "Veri dizini boyutu"
-      },
-      "unknown": "Bilinmiyor",
-      "last-updated": "Son güncelleme {{ago}}",
-      "refresh": "Yenile",
-      "load-error": "İstatistikler yüklenemedi"
-    }
+    "select-section": "Bölüm seç"
   },
   "tag": {
     "all-tags": "Tüm Etiketler",
@@ -816,5 +798,20 @@
       "description": "Bu yüklemeler hiçbir zaman bir nota eklenmedi. Bunları burada inceleyin veya kaldırın.",
       "title": "Bağlantısı kaldırılan yüklemeler"
     }
+  },
+  "dashboard": {
+    "database": {
+      "title": "Veritabanı",
+      "driver": "Sürücü",
+      "size": "Boyut"
+    },
+    "local-storage": {
+      "title": "Yerel Depolama",
+      "size": "Veri dizini boyutu"
+    },
+    "unknown": "Bilinmiyor",
+    "last-updated": "Son güncelleme {{ago}}",
+    "refresh": "Yenile",
+    "load-error": "İstatistikler yüklenemedi"
   }
 }

@@ -45,7 +45,7 @@ describe("<PasswordSignInForm>", () => {
   it("lands the operator on the dashboard", async () => {
     signInAs(User_Role.ADMIN);
 
-    await waitFor(() => expect(mocks.navigateTo).toHaveBeenCalledWith("/setting#resource-stats", { replace: true }));
+    await waitFor(() => expect(mocks.navigateTo).toHaveBeenCalledWith("/dashboard", { replace: true }));
   });
 
   it("lands a member on their notes", async () => {

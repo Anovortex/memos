@@ -736,25 +736,7 @@
       "use-tls": "Use STARTTLS",
       "use-tls-description": "Upgrade the SMTP connection with STARTTLS. Keep this on for Gmail with port 587."
     },
-    "select-section": "Select section",
-    "resource-stats": {
-      "label": "Resources",
-      "title": "Resource Statistics",
-      "description": "Resource usage for this instance.",
-      "database": {
-        "title": "Database",
-        "driver": "Driver",
-        "size": "Size"
-      },
-      "local-storage": {
-        "title": "Local Storage",
-        "size": "Data directory size"
-      },
-      "unknown": "Unknown",
-      "last-updated": "Last updated {{ago}}",
-      "refresh": "Refresh",
-      "load-error": "Failed to load statistics"
-    }
+    "select-section": "Select section"
   },
   "tag": {
     "all-tags": "All Tags",
@@ -816,5 +798,20 @@
       "description": "These uploads were never attached to a memo. Review or remove them here.",
       "title": "Unlinked uploads"
     }
+  },
+  "dashboard": {
+    "database": {
+      "title": "Database",
+      "driver": "Driver",
+      "size": "Size"
+    },
+    "local-storage": {
+      "title": "Local Storage",
+      "size": "Data directory size"
+    },
+    "unknown": "Unknown",
+    "last-updated": "Last updated {{ago}}",
+    "refresh": "Refresh",
+    "load-error": "Failed to load statistics"
   }
 }

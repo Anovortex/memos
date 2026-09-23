@@ -767,24 +767,6 @@
       "invalid-regex": "無效或不安全的正規表示式模式。",
       "used-count": "{{count}} 篇備忘錄",
       "using-default-color": "使用預設顏色。"
-    },
-    "resource-stats": {
-      "label": "資源",
-      "title": "資源統計",
-      "description": "此實例的資源使用狀況。",
-      "database": {
-        "title": "資料庫",
-        "driver": "驅動程式",
-        "size": "大小"
-      },
-      "local-storage": {
-        "title": "本機儲存",
-        "size": "資料目錄大小"
-      },
-      "unknown": "未知",
-      "last-updated": "最後更新 {{ago}}",
-      "refresh": "重新整理",
-      "load-error": "載入統計資料失敗"
     }
   },
   "tag": {
@@ -810,5 +792,20 @@
     "select-visibility": "瀏覽權限",
     "tags": "標籤",
     "upload-attachment": "上傳附件"
+  },
+  "dashboard": {
+    "database": {
+      "title": "資料庫",
+      "driver": "驅動程式",
+      "size": "大小"
+    },
+    "local-storage": {
+      "title": "本機儲存",
+      "size": "資料目錄大小"
+    },
+    "unknown": "未知",
+    "last-updated": "最後更新 {{ago}}",
+    "refresh": "重新整理",
+    "load-error": "載入統計資料失敗"
   }
 }

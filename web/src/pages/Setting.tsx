@@ -21,21 +21,18 @@ const Setting = () => {
   const sm = useMediaQuery("sm");
   const location = useLocation();
   const user = useCurrentUser();
-  const { profile, fetchSettings } = useInstance();
+  const { fetchSettings } = useInstance();
   const [selectedSection, setSelectedSection] = useState<SettingSectionKey>(DEFAULT_SETTING_SECTION);
   const isAdmin = user?.role === User_Role.ADMIN;
-  const isOwner = isAdmin && profile.admin?.name === user.name;
 
   const sectionGroups = useMemo(() => {
-    const visibleSections = SETTINGS_SECTIONS.filter(
-      (section) => section.scope === "basic" || (isAdmin && (section.key !== "resource-stats" || isOwner)),
-    );
+    const visibleSections = SETTINGS_SECTIONS.filter((section) => section.scope === "basic" || isAdmin);
     return {
       basic: visibleSections.filter((section) => section.scope === "basic"),
       admin: visibleSections.filter((section) => section.scope === "admin"),
       all: visibleSections,
     };
-  }, [isAdmin, isOwner]);
+  }, [isAdmin]);
 
   const visibleSectionKeys = useMemo(() => new Set(sectionGroups.all.map((section) => section.key)), [sectionGroups.all]);
 

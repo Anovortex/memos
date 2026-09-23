@@ -736,25 +736,7 @@
       "use-tls": "Uporabite STARTTLS",
       "use-tls-description": "Nadgradite povezavo SMTP z STARTTLS. Naj bo to vključeno za Gmail z vrati 587."
     },
-    "select-section": "Izberite razdelek",
-    "resource-stats": {
-      "label": "Viri",
-      "title": "Statistika virov",
-      "description": "Poraba virov za ta primer.",
-      "database": {
-        "title": "Baza podatkov",
-        "driver": "Voznik",
-        "size": "Velikost"
-      },
-      "local-storage": {
-        "title": "Lokalna shramba",
-        "size": "Velikost podatkovnega imenika"
-      },
-      "unknown": "Neznano",
-      "last-updated": "Nazadnje posodobljen {{ago}}",
-      "refresh": "Osveži",
-      "load-error": "Statistike ni bilo mogoče naložiti"
-    }
+    "select-section": "Izberite razdelek"
   },
   "tag": {
     "all-tags": "Vse značke",
@@ -816,5 +798,20 @@
       "description": "Ti prenosi niso bili nikoli priloženi beležki. Tukaj jih preglejte ali odstranite.",
       "title": "Nepovezani prenosi"
     }
+  },
+  "dashboard": {
+    "database": {
+      "title": "Baza podatkov",
+      "driver": "Voznik",
+      "size": "Velikost"
+    },
+    "local-storage": {
+      "title": "Lokalna shramba",
+      "size": "Velikost podatkovnega imenika"
+    },
+    "unknown": "Neznano",
+    "last-updated": "Nazadnje posodobljen {{ago}}",
+    "refresh": "Osveži",
+    "load-error": "Statistike ni bilo mogoče naložiti"
   }
 }

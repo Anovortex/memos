@@ -736,25 +736,7 @@
       "use-tls": "Utilitzeu STARTTLS",
       "use-tls-description": "Actualitzeu la connexió SMTP amb STARTTLS. Mantingueu-ho activat per a Gmail amb el port 587."
     },
-    "select-section": "Seleccioneu la secció",
-    "resource-stats": {
-      "label": "Recursos",
-      "title": "Estadístiques de recursos",
-      "description": "Ús de recursos per a aquesta instància.",
-      "database": {
-        "title": "Base de dades",
-        "driver": "Conductor",
-        "size": "Mida"
-      },
-      "local-storage": {
-        "title": "Emmagatzematge local",
-        "size": "Mida del directori de dades"
-      },
-      "unknown": "Desconegut",
-      "last-updated": "Darrera actualització {{ago}}",
-      "refresh": "Actualitza",
-      "load-error": "No s'han pogut carregar les estadístiques"
-    }
+    "select-section": "Seleccioneu la secció"
   },
   "tag": {
     "all-tags": "Totes les etiquetes",
@@ -816,5 +798,20 @@
       "description": "Aquestes càrregues mai es van adjuntar a una nota. Revisa-los o elimina'ls aquí.",
       "title": "Càrregues desenllaçades"
     }
+  },
+  "dashboard": {
+    "database": {
+      "title": "Base de dades",
+      "driver": "Conductor",
+      "size": "Mida"
+    },
+    "local-storage": {
+      "title": "Emmagatzematge local",
+      "size": "Mida del directori de dades"
+    },
+    "unknown": "Desconegut",
+    "last-updated": "Darrera actualització {{ago}}",
+    "refresh": "Actualitza",
+    "load-error": "No s'han pogut carregar les estadístiques"
   }
 }

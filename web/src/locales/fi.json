@@ -773,24 +773,6 @@
       "invalid-regex": "Virheellinen tai vaarallinen regex-malli.",
       "used-count": "{{count}} muistiot",
       "using-default-color": "Käytä oletusväriä."
-    },
-    "resource-stats": {
-      "label": "Resurssit",
-      "title": "Resurssitilastot",
-      "description": "Resurssin käyttö tässä tapauksessa.",
-      "database": {
-        "title": "Tietokanta",
-        "driver": "Kuljettaja",
-        "size": "Koko"
-      },
-      "local-storage": {
-        "title": "Paikallinen tallennustila",
-        "size": "Tietohakemiston koko"
-      },
-      "unknown": "Tuntematon",
-      "last-updated": "Viimeksi päivitetty {{ago}}",
-      "refresh": "Päivitä",
-      "load-error": "Tilastojen lataaminen epäonnistui"
     }
   },
   "tag": {
@@ -816,5 +798,20 @@
     "select-visibility": "Näkyvyys",
     "tags": "Tunnisteet",
     "upload-attachment": "Lataa liite(t)"
+  },
+  "dashboard": {
+    "database": {
+      "title": "Tietokanta",
+      "driver": "Kuljettaja",
+      "size": "Koko"
+    },
+    "local-storage": {
+      "title": "Paikallinen tallennustila",
+      "size": "Tietohakemiston koko"
+    },
+    "unknown": "Tuntematon",
+    "last-updated": "Viimeksi päivitetty {{ago}}",
+    "refresh": "Päivitä",
+    "load-error": "Tilastojen lataaminen epäonnistui"
   }
 }

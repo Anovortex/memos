@@ -736,25 +736,7 @@
       "use-tls": "Bruk STARTTLS",
       "use-tls-description": "Oppgrader SMTP-tilkoblingen med STARTTLS. Hold dette på for Gmail med port 587."
     },
-    "select-section": "Velg seksjon",
-    "resource-stats": {
-      "label": "Ressurser",
-      "title": "Ressursstatistikk",
-      "description": "Ressursbruk for denne forekomsten.",
-      "database": {
-        "title": "Database",
-        "driver": "Sjåfør",
-        "size": "Størrelse"
-      },
-      "local-storage": {
-        "title": "Lokal lagring",
-        "size": "Datakatalogstørrelse"
-      },
-      "unknown": "Ukjent",
-      "last-updated": "Sist oppdatert {{ago}}",
-      "refresh": "Forfriske",
-      "load-error": "Kunne ikke laste inn statistikk"
-    }
+    "select-section": "Velg seksjon"
   },
   "tag": {
     "all-tags": "Alle tagger",
@@ -816,5 +798,20 @@
       "description": "Disse opplastingene ble aldri knyttet til et notat. Se gjennom eller fjern dem her.",
       "title": "Frakoblede opplastinger"
     }
+  },
+  "dashboard": {
+    "database": {
+      "title": "Database",
+      "driver": "Sjåfør",
+      "size": "Størrelse"
+    },
+    "local-storage": {
+      "title": "Lokal lagring",
+      "size": "Datakatalogstørrelse"
+    },
+    "unknown": "Ukjent",
+    "last-updated": "Sist oppdatert {{ago}}",
+    "refresh": "Forfriske",
+    "load-error": "Kunne ikke laste inn statistikk"
   }
 }

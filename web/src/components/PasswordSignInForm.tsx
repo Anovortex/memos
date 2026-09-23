@@ -52,7 +52,7 @@ function PasswordSignInForm({ redirectPath }: PasswordSignInFormProps) {
       await initialize();
       // Without an explicit target the operator lands on the dashboard.
       const isOperator = response.user?.role === User_Role.ADMIN;
-      navigateTo(redirectPath || (isOperator ? `${ROUTES.SETTING}#resource-stats` : ROUTES.HOME), { replace: true });
+      navigateTo(redirectPath || (isOperator ? ROUTES.DASHBOARD : ROUTES.HOME), { replace: true });
     } catch (error: unknown) {
       handleError(error, toast.error, {
         fallbackMessage: "Failed to sign in.",

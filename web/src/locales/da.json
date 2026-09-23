@@ -773,24 +773,6 @@
       "invalid-regex": "Ugyldigt eller usikkert regex-mønster.",
       "used-count": "{{count}}-memoer",
       "using-default-color": "Bruger standardfarve."
-    },
-    "resource-stats": {
-      "label": "Ressourcer",
-      "title": "Ressourcestatistik",
-      "description": "Ressourceforbrug for denne instans.",
-      "database": {
-        "title": "Database",
-        "driver": "Chauffør",
-        "size": "Størrelse"
-      },
-      "local-storage": {
-        "title": "Lokal opbevaring",
-        "size": "Datamappestørrelse"
-      },
-      "unknown": "Ukendt",
-      "last-updated": "Sidst opdateret {{ago}}",
-      "refresh": "Opfriske",
-      "load-error": "Kunne ikke indlæse statistik"
     }
   },
   "tag": {
@@ -816,5 +798,20 @@
     "select-visibility": "Sigtbarhed",
     "tags": "Tags",
     "upload-attachment": "Upload vedhæftede filer"
+  },
+  "dashboard": {
+    "database": {
+      "title": "Database",
+      "driver": "Chauffør",
+      "size": "Størrelse"
+    },
+    "local-storage": {
+      "title": "Lokal opbevaring",
+      "size": "Datamappestørrelse"
+    },
+    "unknown": "Ukendt",
+    "last-updated": "Sidst opdateret {{ago}}",
+    "refresh": "Opfriske",
+    "load-error": "Kunne ikke indlæse statistik"
   }
 }

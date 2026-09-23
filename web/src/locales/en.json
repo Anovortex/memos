@@ -196,7 +196,8 @@
     "username": "Username",
     "version": "Version",
     "visibility": "Visibility",
-    "yourself": "Yourself"
+    "yourself": "Yourself",
+    "dashboard": "Dashboard"
   },
   "locale-picker": {
     "no-language-feedback": "Language not found? Submit feedback"
@@ -864,34 +865,6 @@
       "invalid-regex": "Invalid or unsafe regex pattern.",
       "used-count": "{{count}} memos",
       "using-default-color": "Using default color."
-    },
-    "resource-stats": {
-      "label": "Resources",
-      "title": "Resource Statistics",
-      "description": "Resource usage for this instance.",
-      "database": {
-        "title": "Database",
-        "driver": "Driver",
-        "size": "Size"
-      },
-      "local-storage": {
-        "title": "Local Storage",
-        "size": "Data directory size"
-      },
-      "user-usage": {
-        "title": "User Usage",
-        "description": "Notes, uploaded attachments, and latest note activity by user.",
-        "last-activity": "Latest note activity {{ago}}",
-        "no-activity": "No note activity",
-        "memo-count_one": "{{count}} memo",
-        "memo-count_other": "{{count}} memos",
-        "attachment-count_one": "{{count}} attachment · {{size}}",
-        "attachment-count_other": "{{count}} attachments · {{size}}"
-      },
-      "unknown": "Unknown",
-      "last-updated": "Last updated {{ago}}",
-      "refresh": "Refresh",
-      "load-error": "Failed to load statistics"
     }
   },
   "tag": {
@@ -917,5 +890,36 @@
     "select-visibility": "Visibility",
     "tags": "Tags",
     "upload-attachment": "Upload Attachment(s)"
+  },
+  "dashboard": {
+    "title": "Overview",
+    "description": "Noviledger Notes at a glance.",
+    "members": "Members",
+    "notes": "Notes",
+    "invite": "Invite member",
+    "manage-members": "Manage members",
+    "database": {
+      "title": "Database",
+      "driver": "Driver",
+      "size": "Size"
+    },
+    "local-storage": {
+      "title": "Local Storage",
+      "size": "Data directory size"
+    },
+    "user-usage": {
+      "title": "User Usage",
+      "description": "Notes, uploaded attachments, and latest note activity by user.",
+      "last-activity": "Latest note activity {{ago}}",
+      "no-activity": "No note activity",
+      "memo-count_one": "{{count}} memo",
+      "memo-count_other": "{{count}} memos",
+      "attachment-count_one": "{{count}} attachment · {{size}}",
+      "attachment-count_other": "{{count}} attachments · {{size}}"
+    },
+    "unknown": "Unknown",
+    "last-updated": "Last updated {{ago}}",
+    "refresh": "Refresh",
+    "load-error": "Failed to load statistics"
   }
 }

@@ -773,24 +773,6 @@
       "invalid-regex": "Neplatný alebo nebezpečný vzor regulárneho výrazu.",
       "used-count": "poznámky {{count}}",
       "using-default-color": "Použitie predvolenej farby."
-    },
-    "resource-stats": {
-      "label": "Zdroje",
-      "title": "Štatistika zdrojov",
-      "description": "Využitie zdrojov pre tento prípad.",
-      "database": {
-        "title": "Databáza",
-        "driver": "Vodič",
-        "size": "Veľkosť"
-      },
-      "local-storage": {
-        "title": "Miestne úložisko",
-        "size": "Veľkosť dátového adresára"
-      },
-      "unknown": "Neznámy",
-      "last-updated": "Posledná aktualizácia {{ago}}",
-      "refresh": "Obnoviť",
-      "load-error": "Nepodarilo sa načítať štatistiky"
     }
   },
   "tag": {
@@ -816,5 +798,20 @@
     "select-visibility": "Viditeľnosť",
     "tags": "Tagy",
     "upload-attachment": "Nahrať prílohy"
+  },
+  "dashboard": {
+    "database": {
+      "title": "Databáza",
+      "driver": "Vodič",
+      "size": "Veľkosť"
+    },
+    "local-storage": {
+      "title": "Miestne úložisko",
+      "size": "Veľkosť dátového adresára"
+    },
+    "unknown": "Neznámy",
+    "last-updated": "Posledná aktualizácia {{ago}}",
+    "refresh": "Obnoviť",
+    "load-error": "Nepodarilo sa načítať štatistiky"
   }
 }

@@ -773,24 +773,6 @@
       "invalid-regex": "Model regex nevalid sau nesigur.",
       "used-count": "note {{count}}",
       "using-default-color": "Folosind culoarea implicită."
-    },
-    "resource-stats": {
-      "label": "Resurse",
-      "title": "Statistica resurselor",
-      "description": "Utilizarea resurselor pentru această instanță.",
-      "database": {
-        "title": "Baza de date",
-        "driver": "Șofer",
-        "size": "Dimensiune"
-      },
-      "local-storage": {
-        "title": "Stocare locală",
-        "size": "Dimensiunea directorului de date"
-      },
-      "unknown": "Necunoscut",
-      "last-updated": "Ultima actualizare {{ago}}",
-      "refresh": "Reîmprospăta",
-      "load-error": "Nu s-au încărcat statisticile"
     }
   },
   "tag": {
@@ -816,5 +798,20 @@
     "select-visibility": "Vizibilitate",
     "tags": "Etichete",
     "upload-attachment": "Încărcați atașamente"
+  },
+  "dashboard": {
+    "database": {
+      "title": "Baza de date",
+      "driver": "Șofer",
+      "size": "Dimensiune"
+    },
+    "local-storage": {
+      "title": "Stocare locală",
+      "size": "Dimensiunea directorului de date"
+    },
+    "unknown": "Necunoscut",
+    "last-updated": "Ultima actualizare {{ago}}",
+    "refresh": "Reîmprospăta",
+    "load-error": "Nu s-au încărcat statisticile"
   }
 }

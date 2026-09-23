@@ -736,25 +736,7 @@
       "use-tls": "Usar STARTTLS",
       "use-tls-description": "Atualize a conexão SMTP com STARTTLS. Mantenha isso ativado para Gmail com porta 587."
     },
-    "select-section": "Selecione a seção",
-    "resource-stats": {
-      "label": "Recursos",
-      "title": "Estatísticas de recursos",
-      "description": "Uso de recursos para esta instância.",
-      "database": {
-        "title": "Banco de dados",
-        "driver": "Motorista",
-        "size": "Tamanho"
-      },
-      "local-storage": {
-        "title": "Armazenamento local",
-        "size": "Tamanho do diretório de dados"
-      },
-      "unknown": "Desconhecida",
-      "last-updated": "Última atualização {{ago}}",
-      "refresh": "Atualizar",
-      "load-error": "Falha ao carregar estatísticas"
-    }
+    "select-section": "Selecione a seção"
   },
   "tag": {
     "all-tags": "Todas as Etiquetas",
@@ -816,5 +798,20 @@
       "description": "Esses uploads nunca foram anexados a um memorando. Revise ou remova-os aqui.",
       "title": "Envios desvinculados"
     }
+  },
+  "dashboard": {
+    "database": {
+      "title": "Banco de dados",
+      "driver": "Motorista",
+      "size": "Tamanho"
+    },
+    "local-storage": {
+      "title": "Armazenamento local",
+      "size": "Tamanho do diretório de dados"
+    },
+    "unknown": "Desconhecida",
+    "last-updated": "Última atualização {{ago}}",
+    "refresh": "Atualizar",
+    "load-error": "Falha ao carregar estatísticas"
   }
 }

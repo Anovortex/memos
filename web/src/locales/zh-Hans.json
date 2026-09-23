@@ -795,24 +795,6 @@
       "use-ssl-description": "使用隐式 TLS，通常搭配 465 端口。若在 587 端口使用 STARTTLS 请关闭此选项。",
       "use-tls": "使用 STARTTLS",
       "use-tls-description": "通过 STARTTLS 升级 SMTP 连接。Gmail 使用 587 端口时保持开启。"
-    },
-    "resource-stats": {
-      "database": {
-        "driver": "驱动",
-        "size": "大小",
-        "title": "数据库"
-      },
-      "description": "此实例的资源使用情况。",
-      "label": "资源",
-      "last-updated": "{{ago}} 前更新",
-      "load-error": "加载统计数据失败",
-      "local-storage": {
-        "size": "数据目录大小",
-        "title": "本地存储"
-      },
-      "refresh": "刷新",
-      "title": "资源统计",
-      "unknown": "未知"
     }
   },
   "tag": {
@@ -875,5 +857,20 @@
       "description": "这些文件从未附加到任何备忘。可在此查看或删除。",
       "title": "未关联的上传"
     }
+  },
+  "dashboard": {
+    "database": {
+      "driver": "驱动",
+      "size": "大小",
+      "title": "数据库"
+    },
+    "last-updated": "{{ago}} 前更新",
+    "load-error": "加载统计数据失败",
+    "local-storage": {
+      "size": "数据目录大小",
+      "title": "本地存储"
+    },
+    "refresh": "刷新",
+    "unknown": "未知"
   }
 }

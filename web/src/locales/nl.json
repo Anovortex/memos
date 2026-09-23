@@ -736,25 +736,7 @@
       "use-tls": "Gebruik STARTTLS",
       "use-tls-description": "Upgrade de SMTP-verbinding met STARTTLS. Houd dit ingeschakeld voor Gmail met poort 587."
     },
-    "select-section": "Selecteer sectie",
-    "resource-stats": {
-      "label": "Bronnen",
-      "title": "Statistieken van hulpbronnen",
-      "description": "Resourcegebruik voor dit exemplaar.",
-      "database": {
-        "title": "Database",
-        "driver": "Bestuurder",
-        "size": "Maat"
-      },
-      "local-storage": {
-        "title": "Lokale opslag",
-        "size": "Grootte van de gegevensmap"
-      },
-      "unknown": "Onbekend",
-      "last-updated": "Laatst bijgewerkte {{ago}}",
-      "refresh": "Vernieuwen",
-      "load-error": "Kan statistieken niet laden"
-    }
+    "select-section": "Selecteer sectie"
   },
   "tag": {
     "all-tags": "Alle labels",
@@ -816,5 +798,20 @@
       "description": "Deze uploads zijn nooit bij een memo gevoegd. Bekijk of verwijder ze hier.",
       "title": "Ontkoppelde uploads"
     }
+  },
+  "dashboard": {
+    "database": {
+      "title": "Database",
+      "driver": "Bestuurder",
+      "size": "Maat"
+    },
+    "local-storage": {
+      "title": "Lokale opslag",
+      "size": "Grootte van de gegevensmap"
+    },
+    "unknown": "Onbekend",
+    "last-updated": "Laatst bijgewerkte {{ago}}",
+    "refresh": "Vernieuwen",
+    "load-error": "Kan statistieken niet laden"
   }
 }
