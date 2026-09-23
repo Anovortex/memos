@@ -255,7 +255,8 @@
     "visibility": "Viditeľnosť",
     "view-all": "Zobraziť všetko",
     "views": "Zobrazenia",
-    "yourself": "seba"
+    "yourself": "seba",
+    "dashboard": "Dashboard"
   },
   "locale-picker": {
     "no-language-feedback": "Jazyk sa nenašiel? Odoslať spätnú väzbu"
@@ -487,7 +488,9 @@
     "mode": "Režim vyhľadávania",
     "retry": "Skúste to znova",
     "syntax-help": "Syntax vyhľadávania",
-    "text": "Text"
+    "text": "Text",
+    "semantic": "Semantic",
+    "semantic-placeholder": "Ask your notes…"
   },
   "setting": {
     "access-token": {

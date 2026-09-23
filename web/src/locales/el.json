@@ -255,7 +255,8 @@
     "visibility": "Ορατότητα",
     "view-all": "Προβολή όλων",
     "views": "Προβολές",
-    "yourself": "Σύ ο ίδιος"
+    "yourself": "Σύ ο ίδιος",
+    "dashboard": "Dashboard"
   },
   "locale-picker": {
     "no-language-feedback": "Δεν βρέθηκε η γλώσσα; Υποβολή σχολίων"
@@ -487,7 +488,9 @@
     "mode": "Λειτουργία αναζήτησης",
     "retry": "Δοκιμάζω πάλι",
     "syntax-help": "Σύνταξη αναζήτησης",
-    "text": "Κείμενο"
+    "text": "Κείμενο",
+    "semantic": "Semantic",
+    "semantic-placeholder": "Ask your notes…"
   },
   "setting": {
     "access-token": {

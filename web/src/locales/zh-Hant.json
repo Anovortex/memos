@@ -255,7 +255,8 @@
     "visibility": "瀏覽權限",
     "view-all": "查看全部",
     "views": "檢視",
-    "yourself": "您自己"
+    "yourself": "您自己",
+    "dashboard": "Dashboard"
   },
   "locale-picker": {
     "no-language-feedback": "未找到語言？ 提交回饋"
@@ -487,7 +488,9 @@
     "mode": "搜尋模式",
     "retry": "重試",
     "syntax-help": "搜尋語法",
-    "text": "文字"
+    "text": "文字",
+    "semantic": "Semantic",
+    "semantic-placeholder": "Ask your notes…"
   },
   "setting": {
     "access-token": {

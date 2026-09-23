@@ -255,7 +255,8 @@
     "visibility": "נראות",
     "view-all": "הצג הכל",
     "views": "תצוגות",
-    "yourself": "עצמך"
+    "yourself": "עצמך",
+    "dashboard": "Dashboard"
   },
   "locale-picker": {
     "no-language-feedback": "לא מצאתם את השפה? שלחו משוב"
@@ -487,7 +488,9 @@
     "mode": "מצב חיפוש",
     "retry": "נסה שוב",
     "syntax-help": "תחביר חיפוש",
-    "text": "טקסט"
+    "text": "טקסט",
+    "semantic": "Semantic",
+    "semantic-placeholder": "Ask your notes…"
   },
   "setting": {
     "access-token": {

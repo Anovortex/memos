@@ -255,7 +255,8 @@
     "visibility": "दृश्यता",
     "view-all": "सभी देखें",
     "views": "दृश्य",
-    "yourself": "खुद"
+    "yourself": "खुद",
+    "dashboard": "Dashboard"
   },
   "locale-picker": {
     "no-language-feedback": "भाषा नहीं मिली? प्रतिक्रिया सबमिट करें"
@@ -487,7 +488,9 @@
     "mode": "सर्च मोड",
     "retry": "रिट्री करें",
     "syntax-help": "सर्च सिंटैक्स",
-    "text": "टेक्स्ट"
+    "text": "टेक्स्ट",
+    "semantic": "Semantic",
+    "semantic-placeholder": "Ask your notes…"
   },
   "setting": {
     "access-token": {

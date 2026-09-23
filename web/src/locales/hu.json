@@ -255,7 +255,8 @@
     "visibility": "Láthatóság",
     "view-all": "Összes megtekintése",
     "views": "Nézetek",
-    "yourself": "Magad"
+    "yourself": "Magad",
+    "dashboard": "Dashboard"
   },
   "locale-picker": {
     "no-language-feedback": "Nem található a nyelv? Visszajelzés küldése"
@@ -487,7 +488,9 @@
     "mode": "Keresési mód",
     "retry": "Próbálja újra",
     "syntax-help": "Keresési szintaxis",
-    "text": "Szöveg"
+    "text": "Szöveg",
+    "semantic": "Semantic",
+    "semantic-placeholder": "Ask your notes…"
   },
   "setting": {
     "access-token": {

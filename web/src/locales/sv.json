@@ -255,7 +255,8 @@
     "visibility": "Synlighet",
     "view-all": "Visa alla",
     "views": "Vyer",
-    "yourself": "Själv"
+    "yourself": "Själv",
+    "dashboard": "Dashboard"
   },
   "locale-picker": {
     "no-language-feedback": "Språket hittades inte? Skicka feedback"
@@ -487,7 +488,9 @@
     "mode": "Sökläge",
     "retry": "Försöka igen",
     "syntax-help": "Söksyntax",
-    "text": "Text"
+    "text": "Text",
+    "semantic": "Semantic",
+    "semantic-placeholder": "Ask your notes…"
   },
   "setting": {
     "access-token": {

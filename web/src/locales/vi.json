@@ -255,7 +255,8 @@
     "visibility": "Quyền xem",
     "view-all": "Xem tất cả",
     "views": "Các chế độ xem",
-    "yourself": "Bản thân"
+    "yourself": "Bản thân",
+    "dashboard": "Dashboard"
   },
   "locale-picker": {
     "no-language-feedback": "Không tìm thấy ngôn ngữ? Gửi phản hồi"
@@ -487,7 +488,9 @@
     "mode": "Chế độ tìm kiếm",
     "retry": "Thử lại",
     "syntax-help": "Cú pháp tìm kiếm",
-    "text": "Văn bản"
+    "text": "Văn bản",
+    "semantic": "Semantic",
+    "semantic-placeholder": "Ask your notes…"
   },
   "setting": {
     "access-token": {

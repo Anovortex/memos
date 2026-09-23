@@ -255,7 +255,8 @@
     "visibility": "Redzamība",
     "view-all": "Skatīt visu",
     "views": "Skati",
-    "yourself": "sevi"
+    "yourself": "sevi",
+    "dashboard": "Dashboard"
   },
   "locale-picker": {
     "no-language-feedback": "Valoda nav atrasta? Iesniedziet atsauksmes"
@@ -487,7 +488,9 @@
     "mode": "Meklēšanas režīms",
     "retry": "Mēģiniet vēlreiz",
     "syntax-help": "Meklēšanas sintakse",
-    "text": "Teksts"
+    "text": "Teksts",
+    "semantic": "Semantic",
+    "semantic-placeholder": "Ask your notes…"
   },
   "setting": {
     "access-token": {

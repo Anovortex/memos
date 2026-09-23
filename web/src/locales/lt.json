@@ -255,7 +255,8 @@
     "visibility": "Matomumas",
     "view-all": "Peržiūrėti viską",
     "views": "Rodiniai",
-    "yourself": "save"
+    "yourself": "save",
+    "dashboard": "Dashboard"
   },
   "locale-picker": {
     "no-language-feedback": "Kalba nerasta? Pateikite atsiliepimą"
@@ -487,7 +488,9 @@
     "mode": "Paieškos režimas",
     "retry": "Bandykite dar kartą",
     "syntax-help": "Paieškos sintaksė",
-    "text": "Tekstas"
+    "text": "Tekstas",
+    "semantic": "Semantic",
+    "semantic-placeholder": "Ask your notes…"
   },
   "setting": {
     "access-token": {

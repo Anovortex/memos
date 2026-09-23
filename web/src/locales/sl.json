@@ -255,7 +255,8 @@
     "visibility": "Vidnost",
     "view-all": "Ogled vseh",
     "views": "Pogledi",
-    "yourself": "Ti"
+    "yourself": "Ti",
+    "dashboard": "Dashboard"
   },
   "locale-picker": {
     "no-language-feedback": "Jezik ni bil najden? Pošlji povratne informacije"
@@ -487,7 +488,9 @@
     "mode": "Način iskanja",
     "retry": "Poskusite znova",
     "syntax-help": "Sintaksa iskanja",
-    "text": "Besedilo"
+    "text": "Besedilo",
+    "semantic": "Semantic",
+    "semantic-placeholder": "Ask your notes…"
   },
   "setting": {
     "access-token": {

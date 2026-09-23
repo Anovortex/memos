@@ -255,7 +255,8 @@
     "visibility": "ხილვადობა",
     "view-all": "ყველას ნახვა",
     "views": "ხედები",
-    "yourself": "თქვენ"
+    "yourself": "თქვენ",
+    "dashboard": "Dashboard"
   },
   "locale-picker": {
     "no-language-feedback": "ენა ვერ მოიძებნა? გამოხმაურება"
@@ -487,7 +488,9 @@
     "mode": "ძიების რეჟიმი",
     "retry": "ხელახლა სცადეთ",
     "syntax-help": "ძიების სინტაქსი",
-    "text": "ტექსტი"
+    "text": "ტექსტი",
+    "semantic": "Semantic",
+    "semantic-placeholder": "Ask your notes…"
   },
   "setting": {
     "access-token": {

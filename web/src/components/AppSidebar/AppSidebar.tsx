@@ -11,6 +11,7 @@ import {
   HouseIcon,
   ImageIcon,
   InfoIcon,
+  LayoutDashboardIcon,
   LayoutListIcon,
   ListIcon,
   type LucideIcon,
@@ -18,6 +19,7 @@ import {
   MenuIcon,
   PaperclipIcon,
   SearchIcon,
+  SettingsIcon,
   SquarePenIcon,
   Trash2Icon,
   UserRoundIcon,
@@ -45,6 +47,7 @@ import { type MemoStatsContext, useFilteredMemoStats } from "@/hooks/useFiltered
 import useMediaQuery from "@/hooks/useMediaQuery";
 import { useNotifications, useUser } from "@/hooks/useUserQueries";
 import { combineCELFilters } from "@/lib/cel-filter";
+import { SPACES_ENABLED } from "@/lib/features";
 import { getMemoScopePath, getProfileUsername, type PrimaryMemoScope, resolveMemoScope } from "@/lib/memo-views";
 import { userNamePrefix } from "@/lib/resource-names";
 import { cn } from "@/lib/utils";
@@ -52,6 +55,7 @@ import { collectionPathForLocation, ROUTES } from "@/router/routes";
 import { State } from "@/types/proto/api/v1/common_pb";
 import { User_Role, UserNotification_Status } from "@/types/proto/api/v1/user_service_pb";
 import { useTranslate } from "@/utils/i18n";
+import { isSuperUser } from "@/utils/user";
 import MemosLogo from "../MemosLogo";
 import CommonSidebarContent from "./CommonSidebarContent";
 import { getSidebarRouteKind } from "./routes";
@@ -235,7 +239,9 @@ const SettingsSidebarContent = () => {
   const user = useCurrentUser();
   const { setMobileOpen } = useAppSidebar();
   const isHost = user?.role === User_Role.ADMIN;
-  const currentSection = location.hash.slice(1) || DEFAULT_SETTING_SECTION;
+  // The operator dashboard shows this list as its sidebar; only the settings page has a current row.
+  const onSettings = Boolean(matchPath(ROUTES.SETTING, location.pathname));
+  const currentSection = onSettings ? location.hash.slice(1) || DEFAULT_SETTING_SECTION : "";
   const basic = SETTINGS_SECTIONS.filter((section) => section.scope === "basic");
   const admin = SETTINGS_SECTIONS.filter((section) => section.scope === "admin");
   const renderSections = (sections: typeof SETTINGS_SECTIONS) =>
@@ -292,7 +298,7 @@ const RouteSidebarContent = () => {
   if (kind === "map") return <CollectionSidebarContent context="home" showStatistics={false} scopeFilter={MAP_MEMO_FILTER} />;
   if (kind === "attachments") return <AttachmentsSidebarContent />;
   if (kind === "inbox") return <InboxSidebarContent />;
-  if (kind === "settings") return <SettingsSidebarContent />;
+  if (kind === "settings" || kind === "dashboard") return <SettingsSidebarContent />;
   if (kind === "memo") return <MemoDetailSidebarContent />;
   if (kind === "common") return <CommonSidebarContent />;
   return null;
@@ -344,6 +350,9 @@ const GlobalNavigation = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const currentUser = useCurrentUser();
+  // The operator runs the instance and has no notes: their rail is the dashboard and settings.
+  const operator = isSuperUser(currentUser);
+  const showScope = Boolean(currentUser) && !operator;
   const { memoDetail, memoScope, setMemoScope, setMobileOpen, setQuickFindOpen } = useAppSidebar();
   const { filters } = useMemoFilterContext();
   const routeKind = getSidebarRouteKind(location.pathname);
@@ -377,52 +386,56 @@ const GlobalNavigation = () => {
     setMobileOpen(false);
   };
 
-  const items: GlobalNavItem[] = currentUser
-    ? [
-        {
-          id: "calendar",
-          label: t("common.calendar"),
-          path: collectionPathForLocation(ROUTES.CALENDAR, location.pathname),
-          icon: CalendarDaysIcon,
-          active: routeKind === "calendar",
-        },
-        {
-          id: "map",
-          label: t("common.map"),
-          path: collectionPathForLocation(ROUTES.MAP, location.pathname),
-          icon: MapIcon,
-          active: routeKind === "map",
-        },
-        {
-          id: "attachments",
-          label: t("common.attachments"),
-          path: collectionPathForLocation(ROUTES.ATTACHMENTS, location.pathname),
-          icon: PaperclipIcon,
-          active: routeKind === "attachments",
-        },
-      ]
-    : [
-        {
-          id: "explore",
-          label: t("common.explore"),
-          path: ROUTES.EXPLORE,
-          icon: EarthIcon,
-          active: routeKind === "explore" || routeKind === "profile" || routeKind === "memo",
-        },
-        {
-          id: "about",
-          label: t("common.about"),
-          path: ROUTES.ABOUT,
-          icon: InfoIcon,
-          active: Boolean(matchPath(ROUTES.ABOUT, location.pathname)),
-        },
-      ];
+  const memberItems: GlobalNavItem[] = [
+    {
+      id: "calendar",
+      label: t("common.calendar"),
+      path: collectionPathForLocation(ROUTES.CALENDAR, location.pathname),
+      icon: CalendarDaysIcon,
+      active: routeKind === "calendar",
+    },
+    {
+      id: "map",
+      label: t("common.map"),
+      path: collectionPathForLocation(ROUTES.MAP, location.pathname),
+      icon: MapIcon,
+      active: routeKind === "map",
+    },
+    {
+      id: "attachments",
+      label: t("common.attachments"),
+      path: collectionPathForLocation(ROUTES.ATTACHMENTS, location.pathname),
+      icon: PaperclipIcon,
+      active: routeKind === "attachments",
+    },
+  ];
+  const operatorItems: GlobalNavItem[] = [
+    { id: "dashboard", label: t("common.dashboard"), path: ROUTES.DASHBOARD, icon: LayoutDashboardIcon, active: routeKind === "dashboard" },
+    { id: "settings", label: t("common.settings"), path: ROUTES.SETTING, icon: SettingsIcon, active: routeKind === "settings" },
+  ];
+  const visitorItems: GlobalNavItem[] = [
+    {
+      id: "explore",
+      label: t("common.explore"),
+      path: ROUTES.EXPLORE,
+      icon: EarthIcon,
+      active: routeKind === "explore" || routeKind === "profile" || routeKind === "memo",
+    },
+    {
+      id: "about",
+      label: t("common.about"),
+      path: ROUTES.ABOUT,
+      icon: InfoIcon,
+      active: Boolean(matchPath(ROUTES.ABOUT, location.pathname)),
+    },
+  ];
+  const items = !currentUser ? visitorItems : operator ? operatorItems : memberItems;
 
   // Keep exactly one textual anchor in the compact horizontal navigator. The active
   // destination expands; routes outside this navigator fall back to its first control
   // without incorrectly marking that fallback as the current page.
-  const activeNavigatorItemId = currentUser && scopeRouteActive ? "scope" : items.find((item) => item.active)?.id;
-  const expandedNavigatorItemId = activeNavigatorItemId ?? (currentUser ? "scope" : items[0]?.id);
+  const activeNavigatorItemId = showScope && scopeRouteActive ? "scope" : items.find((item) => item.active)?.id;
+  const expandedNavigatorItemId = activeNavigatorItemId ?? (showScope ? "scope" : items[0]?.id);
   const scopeExpanded = expandedNavigatorItemId === "scope";
 
   const scopeMenuContent = (
@@ -447,7 +460,7 @@ const GlobalNavigation = () => {
   return (
     <TooltipProvider>
       <nav className={cn("@container flex h-7 items-center gap-0.5", SIDEBAR_RAIL_CLASSES)} aria-label="Primary">
-        {currentUser && (
+        {showScope && (
           <DropdownMenu
             onOpenChange={(open, eventDetails) => {
               // Off the scope routes this is a navigation control, not a menu trigger.
@@ -527,27 +540,30 @@ const GlobalNavigation = () => {
           );
         })}
         {/* Search is a place to go, not a header action: it closes the navigator's row
-            so the header keeps only the brand and the bordered compose control. */}
-        <Tooltip>
-          <TooltipTrigger
-            render={
-              <button
-                type="button"
-                aria-label={t("common.search")}
-                className={cn("ms-auto", navPillClasses(false))}
-                onClick={() => {
-                  setMobileOpen(false);
-                  setQuickFindOpen(true);
-                }}
-              />
-            }
-          >
-            <span className={SIDEBAR_NAV_LEADING_SLOT_CLASSES} aria-hidden="true">
-              <SearchIcon className="size-4 opacity-75" strokeWidth={1.8} />
-            </span>
-          </TooltipTrigger>
-          <TooltipContent side="bottom">{t("common.search")}</TooltipContent>
-        </Tooltip>
+            so the header keeps only the brand and the bordered compose control. The
+            operator has no notes to search. */}
+        {!operator && (
+          <Tooltip>
+            <TooltipTrigger
+              render={
+                <button
+                  type="button"
+                  aria-label={t("common.search")}
+                  className={cn("ms-auto", navPillClasses(false))}
+                  onClick={() => {
+                    setMobileOpen(false);
+                    setQuickFindOpen(true);
+                  }}
+                />
+              }
+            >
+              <span className={SIDEBAR_NAV_LEADING_SLOT_CLASSES} aria-hidden="true">
+                <SearchIcon className="size-4 opacity-75" strokeWidth={1.8} />
+              </span>
+            </TooltipTrigger>
+            <TooltipContent side="bottom">{t("common.search")}</TooltipContent>
+          </Tooltip>
+        )}
       </nav>
     </TooltipProvider>
   );
@@ -557,13 +573,15 @@ const GlobalNavigation = () => {
 const SidebarBrand = ({ className, size = "md" }: { className?: string; size?: "md" | "header" }) => {
   const currentUser = useCurrentUser();
 
-  if (currentUser) {
+  // Spaces stay hidden until the Teams gate exists; until then the brand is a plain link home.
+  if (currentUser && SPACES_ENABLED) {
     return <SpaceSwitcher className={className} size={size} />;
   }
 
+  const home = !currentUser ? ROUTES.EXPLORE : isSuperUser(currentUser) ? ROUTES.DASHBOARD : ROUTES.HOME;
   return (
     <Link
-      to={currentUser ? ROUTES.HOME : ROUTES.EXPLORE}
+      to={home}
       className={cn(
         "transition-colors hover:bg-sidebar-accent/65 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring/40",
         sidebarSurfaceVariants({ role: size === "header" ? "headerBrand" : "mobileBrand" }),
@@ -584,7 +602,7 @@ const AppSidebar = ({ className }: { className?: string }) => {
     <aside className={cn("flex h-full w-full select-none flex-col bg-sidebar text-sidebar-foreground", className)}>
       <div data-sidebar-header className={cn("flex h-13 shrink-0 items-center justify-between gap-2", SIDEBAR_RAIL_CLASSES)}>
         <SidebarBrand className="min-w-0" size="header" />
-        {canCompose && <NewMemoAction onClick={openEditor} />}
+        {canCompose && !isSuperUser(currentUser) && <NewMemoAction onClick={openEditor} />}
       </div>
       <GlobalNavigation />
       <div className="mx-3 mt-2 border-t border-border/70" />

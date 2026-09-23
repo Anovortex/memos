@@ -255,7 +255,8 @@
     "visibility": "Visibilitas",
     "view-all": "Lihat semua",
     "views": "Tampilan",
-    "yourself": "Anda sendiri"
+    "yourself": "Anda sendiri",
+    "dashboard": "Dashboard"
   },
   "locale-picker": {
     "no-language-feedback": "Bahasa tidak ditemukan? Kirim masukan"
@@ -487,7 +488,9 @@
     "mode": "Mode pencarian",
     "retry": "Coba lagi",
     "syntax-help": "Sintaks pencarian",
-    "text": "Teks"
+    "text": "Teks",
+    "semantic": "Semantic",
+    "semantic-placeholder": "Ask your notes…"
   },
   "setting": {
     "access-token": {

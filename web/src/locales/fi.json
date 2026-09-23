@@ -255,7 +255,8 @@
     "visibility": "Näkyvyys",
     "view-all": "Näytä kaikki",
     "views": "Näkymät",
-    "yourself": "itseäsi"
+    "yourself": "itseäsi",
+    "dashboard": "Dashboard"
   },
   "locale-picker": {
     "no-language-feedback": "Eikö kieltä löydy? Lähetä palautetta"
@@ -487,7 +488,9 @@
     "mode": "Hakutila",
     "retry": "Yritä uudelleen",
     "syntax-help": "Hakusyntaksi",
-    "text": "Teksti"
+    "text": "Teksti",
+    "semantic": "Semantic",
+    "semantic-placeholder": "Ask your notes…"
   },
   "setting": {
     "access-token": {

@@ -255,7 +255,8 @@
     "visibility": "Nähtavus",
     "view-all": "Kuva kõik",
     "views": "Vaated",
-    "yourself": "iseennast"
+    "yourself": "iseennast",
+    "dashboard": "Dashboard"
   },
   "locale-picker": {
     "no-language-feedback": "Keelt ei leitud? Esitage tagasisidet"
@@ -487,7 +488,9 @@
     "mode": "Otsingurežiim",
     "retry": "Proovi uuesti",
     "syntax-help": "Otsingu süntaks",
-    "text": "Tekst"
+    "text": "Tekst",
+    "semantic": "Semantic",
+    "semantic-placeholder": "Ask your notes…"
   },
   "setting": {
     "access-token": {

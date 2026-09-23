@@ -255,7 +255,8 @@
     "visibility": "Видимість",
     "view-all": "Переглянути всі",
     "views": "Подання",
-    "yourself": "Ви"
+    "yourself": "Ви",
+    "dashboard": "Dashboard"
   },
   "locale-picker": {
     "no-language-feedback": "Мова не знайдена? Надіслати відгук"
@@ -487,7 +488,9 @@
     "mode": "Режим пошуку",
     "retry": "Повторіть спробу",
     "syntax-help": "Синтаксис пошуку",
-    "text": "Текст"
+    "text": "Текст",
+    "semantic": "Semantic",
+    "semantic-placeholder": "Ask your notes…"
   },
   "setting": {
     "access-token": {

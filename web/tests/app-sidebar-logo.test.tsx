@@ -7,6 +7,9 @@ import { SIDEBAR_SECTION_ACTION_ICON_CLASSES } from "@/components/AppSidebar/Sid
 import { type MemoFilter, parseFilterQuery } from "@/contexts/MemoFilterContext";
 import { resolveCollectionRoute } from "@/router/routes";
 
+// Upstream's Spaces UI is hidden by default (lib/features.ts); these tests describe it switched on.
+vi.mock("@/lib/features", () => ({ SPACES_ENABLED: true }));
+
 const authState = vi.hoisted(() => ({
   currentUser: { name: "users/test" } as { name: string } | undefined,
   memoViews: [] as Array<{ name: string; title: string }>,

@@ -255,7 +255,8 @@
     "visibility": "Görünürlük",
     "view-all": "Tümünü gör",
     "views": "Görünümler",
-    "yourself": "Kendiniz"
+    "yourself": "Kendiniz",
+    "dashboard": "Dashboard"
   },
   "locale-picker": {
     "no-language-feedback": "Dil bulunamadı mı? Geri bildirim gönder"
@@ -487,7 +488,9 @@
     "mode": "Arama modu",
     "retry": "Yeniden dene",
     "syntax-help": "Arama sözdizimi",
-    "text": "Metin"
+    "text": "Metin",
+    "semantic": "Semantic",
+    "semantic-placeholder": "Ask your notes…"
   },
   "setting": {
     "access-token": {

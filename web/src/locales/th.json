@@ -255,7 +255,8 @@
     "visibility": "การมองเห็น",
     "view-all": "ดูทั้งหมด",
     "views": "มุมมอง",
-    "yourself": "ตัวคุณ"
+    "yourself": "ตัวคุณ",
+    "dashboard": "Dashboard"
   },
   "locale-picker": {
     "no-language-feedback": "ไม่พบภาษา? ส่งข้อเสนอแนะ"
@@ -487,7 +488,9 @@
     "mode": "โหมดการค้นหา",
     "retry": "ลองใหม่",
     "syntax-help": "ไวยากรณ์การค้นหา",
-    "text": "ข้อความ"
+    "text": "ข้อความ",
+    "semantic": "Semantic",
+    "semantic-placeholder": "Ask your notes…"
   },
   "setting": {
     "access-token": {

@@ -1,4 +1,4 @@
-import { CornerDownLeftIcon, SearchIcon } from "lucide-react";
+import { CornerDownLeftIcon, SearchIcon, SparklesIcon } from "lucide-react";
 import { type ChangeEvent, type FormEvent, type KeyboardEvent, useEffect, useId, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -17,11 +17,13 @@ import { cn } from "@/lib/utils";
 import { useTranslate } from "@/utils/i18n";
 import { getRouteActionPolicy, getSidebarRouteKind } from "./routes";
 
-export type QuickFindMode = "text" | "cel";
+export type QuickFindMode = "text" | "semantic" | "cel";
 
 const buildSearchFilters = (query: string, mode: QuickFindMode): MemoFilter[] => {
   const trimmed = query.trim();
   if (mode === "cel") return trimmed ? [{ factor: "celSearch", value: trimmed }] : [];
+  // One semantic question at a time; the AI search answers it as a ranked list.
+  if (mode === "semantic") return trimmed ? [{ factor: "semanticSearch", value: trimmed }] : [];
   return Array.from(new Set(trimmed.split(/\s+/).filter(Boolean))).map((value) => ({ factor: "contentSearch", value }));
 };
 
@@ -31,7 +33,9 @@ export const buildQuickFindFilters = (
   preserveCurrentScope: boolean,
   mode: QuickFindMode,
 ): MemoFilter[] => {
-  const scopeFilters = preserveCurrentScope ? currentFilters.filter((filter) => !isSearchFilter(filter)) : [];
+  const scopeFilters = preserveCurrentScope
+    ? currentFilters.filter((filter) => !isSearchFilter(filter) && filter.factor !== "semanticSearch")
+    : [];
   return [...scopeFilters, ...buildSearchFilters(query, mode)];
 };
 
@@ -39,6 +43,8 @@ export const buildQuickFindFilters = (
 export const readQuickFindQuery = (filters: MemoFilter[]): { query: string; mode: QuickFindMode } => {
   const celSearch = filters.find((filter) => filter.factor === "celSearch");
   if (celSearch) return { query: celSearch.value, mode: "cel" };
+  const semanticSearch = filters.find((filter) => filter.factor === "semanticSearch");
+  if (semanticSearch) return { query: semanticSearch.value, mode: "semantic" };
   return {
     query: filters
       .filter((filter) => filter.factor === "contentSearch")
@@ -161,7 +167,7 @@ const QuickFindDialog = () => {
               {compactScopeLabel}
             </span>
             <div role="tablist" aria-label={t("search.mode")} className="flex shrink-0 items-center gap-0.5 rounded-md bg-muted/60 p-0.5">
-              {(["text", "cel"] as const).map((value) => (
+              {(["text", "semantic", "cel"] as const).map((value) => (
                 <button
                   key={value}
                   type="button"
@@ -170,7 +176,7 @@ const QuickFindDialog = () => {
                   onClick={() => setMode(value)}
                   className={cn(tabsTriggerVariants({ variant: "segmented", active: mode === value }), "h-6 px-2 py-0 text-xs")}
                 >
-                  {value === "cel" ? t("search.expression-mode") : t("search.text")}
+                  {value === "cel" ? t("search.expression-mode") : value === "semantic" ? t("search.semantic") : t("search.text")}
                 </button>
               ))}
             </div>
@@ -204,11 +210,15 @@ const QuickFindDialog = () => {
             </div>
           ) : (
             <div className="flex h-[52px] shrink-0 items-center gap-2.5 px-4">
-              <SearchIcon className="size-[17px] shrink-0 text-muted-foreground" strokeWidth={1.8} />
+              {mode === "semantic" ? (
+                <SparklesIcon className="size-[17px] shrink-0 text-primary" strokeWidth={1.8} />
+              ) : (
+                <SearchIcon className="size-[17px] shrink-0 text-muted-foreground" strokeWidth={1.8} />
+              )}
               <Input
                 {...fieldProps}
                 className="h-10 border-0 bg-transparent px-0 !text-[14px] shadow-none focus-visible:ring-0"
-                placeholder={`${t("common.search")} ${compactScopeLabel}`}
+                placeholder={mode === "semantic" ? t("search.semantic-placeholder") : `${t("common.search")} ${compactScopeLabel}`}
                 aria-label={`${t("common.search")} ${scopeLabel}`}
               />
               <Button

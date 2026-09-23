@@ -255,7 +255,8 @@
     "visibility": "Sigtbarhed",
     "view-all": "Vis alle",
     "views": "Visninger",
-    "yourself": "Dig selv"
+    "yourself": "Dig selv",
+    "dashboard": "Dashboard"
   },
   "locale-picker": {
     "no-language-feedback": "Sprog ikke fundet? Send feedback"
@@ -487,7 +488,9 @@
     "mode": "Søgetilstand",
     "retry": "Prøv igen",
     "syntax-help": "Søgesyntaks",
-    "text": "Tekst"
+    "text": "Tekst",
+    "semantic": "Semantic",
+    "semantic-placeholder": "Ask your notes…"
   },
   "setting": {
     "access-token": {

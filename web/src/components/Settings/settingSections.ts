@@ -30,6 +30,7 @@ import SSOSection from "@/components/Settings/SSOSection";
 import StorageSection from "@/components/Settings/StorageSection";
 import TagsSection from "@/components/Settings/TagsSection";
 import WebhookSection from "@/components/Settings/WebhookSection";
+import { SPACES_ENABLED } from "@/lib/features";
 import { InstanceSetting_Key } from "@/types/proto/api/v1/instance_service_pb";
 
 export type SettingSectionKey =
@@ -59,7 +60,7 @@ export interface SettingSectionDefinition {
   preloadSettingKeys?: InstanceSetting_Key[];
 }
 
-export const SETTINGS_SECTIONS: SettingSectionDefinition[] = [
+const ALL_SETTINGS_SECTIONS: SettingSectionDefinition[] = [
   {
     key: "my-account",
     scope: "basic",
@@ -162,6 +163,11 @@ export const SETTINGS_SECTIONS: SettingSectionDefinition[] = [
     preloadSettingKeys: [InstanceSetting_Key.AI],
   },
 ];
+
+// Spaces stay hidden until the Teams gate exists (see lib/features.ts).
+export const SETTINGS_SECTIONS: SettingSectionDefinition[] = ALL_SETTINGS_SECTIONS.filter(
+  (section) => section.key !== "spaces" || SPACES_ENABLED,
+);
 
 export const DEFAULT_SETTING_SECTION: SettingSectionKey = "my-account";
 

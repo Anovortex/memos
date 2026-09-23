@@ -255,7 +255,8 @@
     "visibility": "Visibilidade",
     "view-all": "Ver tudo",
     "views": "Vistas",
-    "yourself": "Você próprio"
+    "yourself": "Você próprio",
+    "dashboard": "Dashboard"
   },
   "locale-picker": {
     "no-language-feedback": "Idioma não encontrado? Enviar comentários"
@@ -487,7 +488,9 @@
     "mode": "Modo de pesquisa",
     "retry": "Tentar novamente",
     "syntax-help": "Sintaxe de pesquisa",
-    "text": "Texto"
+    "text": "Texto",
+    "semantic": "Semantic",
+    "semantic-placeholder": "Ask your notes…"
   },
   "setting": {
     "access-token": {

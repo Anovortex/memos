@@ -54,6 +54,9 @@ services:
       # Free-tier caps, 0 = unlimited.
       MEMOS_FREE_TIER_MAX_MEMOS: ${MEMOS_FREE_TIER_MAX_MEMOS:-0}
       MEMOS_FREE_TIER_AI_TOKENS_PER_DAY: ${MEMOS_FREE_TIER_AI_TOKENS_PER_DAY:-0}
+      # Proxies whose forwarding headers name the real client; rate limits key on it.
+      # "private" covers cloudflared on this compose network; list CIDRs to narrow it.
+      MEMOS_TRUSTED_PROXIES: ${MEMOS_TRUSTED_PROXIES:-private}
     ports:
       - "127.0.0.1:${MEMOS_HOST_PORT:-5230}:5230"
     volumes:

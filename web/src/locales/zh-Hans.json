@@ -255,7 +255,8 @@
     "visibility": "可见性",
     "view-all": "查看全部",
     "views": "视图",
-    "yourself": "您自己"
+    "yourself": "您自己",
+    "dashboard": "Dashboard"
   },
   "locale-picker": {
     "no-language-feedback": "未找到语言？ 提交反馈"
@@ -487,7 +488,9 @@
     "mode": "搜索模式",
     "retry": "重试",
     "syntax-help": "搜索语法",
-    "text": "文本"
+    "text": "文本",
+    "semantic": "Semantic",
+    "semantic-placeholder": "Ask your notes…"
   },
   "setting": {
     "access-token": {

@@ -255,7 +255,8 @@
     "visibility": "公開範囲",
     "view-all": "すべて表示",
     "views": "ビュー",
-    "yourself": "あなた自身の"
+    "yourself": "あなた自身の",
+    "dashboard": "Dashboard"
   },
   "locale-picker": {
     "no-language-feedback": "言語が見つかりませんか? フィードバックを送信する"
@@ -487,7 +488,9 @@
     "mode": "検索モード",
     "retry": "リトライ",
     "syntax-help": "検索構文",
-    "text": "テキスト"
+    "text": "テキスト",
+    "semantic": "Semantic",
+    "semantic-placeholder": "Ask your notes…"
   },
   "setting": {
     "access-token": {

@@ -255,7 +255,8 @@
     "visibility": "Görünürlük",
     "view-all": "Hamısına bax",
     "views": "Görünüşlər",
-    "yourself": "Özünüz"
+    "yourself": "Özünüz",
+    "dashboard": "Dashboard"
   },
   "locale-picker": {
     "no-language-feedback": "Dil tapılmadı? Rəy göndərin"
@@ -487,7 +488,9 @@
     "mode": "Axtarış rejimi",
     "retry": "Yenidən cəhd et",
     "syntax-help": "Axtarış sintaksisi",
-    "text": "Mətn"
+    "text": "Mətn",
+    "semantic": "Semantic",
+    "semantic-placeholder": "Ask your notes…"
   },
   "setting": {
     "access-token": {

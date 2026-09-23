@@ -255,7 +255,8 @@
     "visibility": "Zichtbaarheid",
     "view-all": "Alles bekijken",
     "views": "Weergaven",
-    "yourself": "Jijzelf"
+    "yourself": "Jijzelf",
+    "dashboard": "Dashboard"
   },
   "locale-picker": {
     "no-language-feedback": "Taal niet gevonden? Geef feedback"
@@ -487,7 +488,9 @@
     "mode": "Zoekmodus",
     "retry": "Opnieuw proberen",
     "syntax-help": "Zoeksyntaxis",
-    "text": "Tekst"
+    "text": "Tekst",
+    "semantic": "Semantic",
+    "semantic-placeholder": "Ask your notes…"
   },
   "setting": {
     "access-token": {

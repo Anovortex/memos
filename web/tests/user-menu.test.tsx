@@ -8,6 +8,12 @@ const mocks = vi.hoisted(() => ({
   setMobileOpen: vi.fn(),
   logout: vi.fn(),
   notifications: [] as Array<{ status: number }>,
+  currentUser: { name: "users/steven", username: "steven", displayName: "Steven", role: 1 },
+  userPackageSetting: undefined as { plan: number } | undefined,
+}));
+
+vi.mock("@/components/InviteUserDialog", () => ({
+  default: () => <div>invite dialog</div>,
 }));
 
 vi.mock("@/contexts/AppSidebarContext", () => ({
@@ -17,13 +23,14 @@ vi.mock("@/contexts/AppSidebarContext", () => ({
 vi.mock("@/contexts/AuthContext", () => ({
   useAuth: () => ({
     userGeneralSetting: undefined,
+    userPackageSetting: mocks.userPackageSetting,
     refetchSettings: vi.fn(),
     logout: mocks.logout,
   }),
 }));
 
 vi.mock("@/hooks/useCurrentUser", () => ({
-  default: () => ({ name: "users/steven", username: "steven", displayName: "Steven" }),
+  default: () => mocks.currentUser,
 }));
 
 vi.mock("@/hooks/useLiveMemoRefresh", () => ({
@@ -55,6 +62,54 @@ describe("User menu", () => {
     mocks.setMobileOpen.mockReset();
     mocks.logout.mockReset();
     mocks.notifications = [];
+    mocks.currentUser = { name: "users/steven", username: "steven", displayName: "Steven", role: 1 };
+    mocks.userPackageSetting = undefined;
+  });
+
+  it("keeps the note surfaces out of the operator's menu", async () => {
+    mocks.currentUser = { name: "users/noviledger", username: "noviledger", displayName: "Noviledger", role: 2 };
+
+    render(
+      <MemoryRouter initialEntries={["/dashboard"]}>
+        <UserMenu />
+      </MemoryRouter>,
+    );
+    fireEvent.click(screen.getByRole("button", { name: /Noviledger/ }));
+
+    await screen.findByRole("menuitem", { name: "common.settings" });
+    expect(screen.queryByRole("menuitem", { name: "common.profile" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("menuitem", { name: "common.inbox" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("menuitem", { name: "common.archived" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("menuitem", { name: "setting.member.invite" })).not.toBeInTheDocument();
+    expect(screen.getAllByRole("separator")).toHaveLength(1);
+  });
+
+  it("offers Invite to a member on Teams, and only then", async () => {
+    render(
+      <MemoryRouter initialEntries={["/"]}>
+        <UserMenu />
+      </MemoryRouter>,
+    );
+    fireEvent.click(screen.getByRole("button", { name: /Steven/ }));
+    await screen.findByRole("menuitem", { name: "common.profile" });
+    expect(screen.queryByRole("menuitem", { name: "setting.member.invite" })).not.toBeInTheDocument();
+    expect(screen.queryByText("invite dialog")).not.toBeInTheDocument();
+  });
+
+  it("shows Invite and mounts the dialog for a member on Teams", async () => {
+    mocks.userPackageSetting = { plan: 2 };
+
+    render(
+      <MemoryRouter initialEntries={["/"]}>
+        <UserMenu />
+      </MemoryRouter>,
+    );
+    expect(screen.getByText("invite dialog")).toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: /Steven/ }));
+
+    const invite = await screen.findByRole("menuitem", { name: "setting.member.invite" });
+    const archived = screen.getByRole("menuitem", { name: "common.archived" });
+    expect(archived.compareDocumentPosition(invite) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
   });
 
   it("groups Inbox and Archived with Profile and marks Archived active", async () => {

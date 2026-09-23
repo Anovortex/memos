@@ -255,7 +255,8 @@
     "visibility": "Видимость",
     "view-all": "Просмотреть все",
     "views": "Представления",
-    "yourself": "Вы"
+    "yourself": "Вы",
+    "dashboard": "Dashboard"
   },
   "locale-picker": {
     "no-language-feedback": "Язык не найден? Отправить отзыв"
@@ -487,7 +488,9 @@
     "mode": "Режим поиска",
     "retry": "Повторить попытку",
     "syntax-help": "Синтаксис поиска",
-    "text": "Текст"
+    "text": "Текст",
+    "semantic": "Semantic",
+    "semantic-placeholder": "Ask your notes…"
   },
   "setting": {
     "access-token": {

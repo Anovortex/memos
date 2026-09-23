@@ -255,7 +255,8 @@
     "visibility": "Видимост",
     "view-all": "Вижте всички",
     "views": "Изгледи",
-    "yourself": "Себе си"
+    "yourself": "Себе си",
+    "dashboard": "Dashboard"
   },
   "locale-picker": {
     "no-language-feedback": "Езикът не е намерен? Изпратете обратна връзка"
@@ -487,7 +488,9 @@
     "mode": "Режим на търсене",
     "retry": "Опитайте отново",
     "syntax-help": "Синтаксис на търсенето",
-    "text": "Текст"
+    "text": "Текст",
+    "semantic": "Semantic",
+    "semantic-placeholder": "Ask your notes…"
   },
   "setting": {
     "access-token": {

@@ -255,7 +255,8 @@
     "visibility": "Vizibilitate",
     "view-all": "Vizualizați tot",
     "views": "Vizualizări",
-    "yourself": "Te"
+    "yourself": "Te",
+    "dashboard": "Dashboard"
   },
   "locale-picker": {
     "no-language-feedback": "Limba nu a fost găsită? Trimiteți feedback"
@@ -487,7 +488,9 @@
     "mode": "Mod de căutare",
     "retry": "Reîncercați",
     "syntax-help": "Sintaxă de căutare",
-    "text": "Text"
+    "text": "Text",
+    "semantic": "Semantic",
+    "semantic-placeholder": "Ask your notes…"
   },
   "setting": {
     "access-token": {

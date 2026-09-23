@@ -3,6 +3,9 @@ import { createMemoryRouter, MemoryRouter, RouterProvider } from "react-router-d
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import SpaceSwitcher from "@/components/AppSidebar/SpaceSwitcher";
 
+// Upstream's Spaces UI is hidden by default (lib/features.ts); these tests describe it switched on.
+vi.mock("@/lib/features", () => ({ SPACES_ENABLED: true }));
+
 const spaceState = vi.hoisted(() => ({
   spaces: [
     { name: "spaces/product", title: "Product", description: "" },

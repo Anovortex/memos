@@ -255,7 +255,8 @@
     "visibility": "Viditelnost",
     "view-all": "Zobrazit vše",
     "views": "Zobrazení",
-    "yourself": "Vy sami"
+    "yourself": "Vy sami",
+    "dashboard": "Dashboard"
   },
   "locale-picker": {
     "no-language-feedback": "Jazyk nenalezen? Odeslat zpětnou vazbu"
@@ -487,7 +488,9 @@
     "mode": "Režim vyhledávání",
     "retry": "Zkuste to znovu",
     "syntax-help": "Syntaxe vyhledávání",
-    "text": "Text"
+    "text": "Text",
+    "semantic": "Semantic",
+    "semantic-placeholder": "Ask your notes…"
   },
   "setting": {
     "access-token": {

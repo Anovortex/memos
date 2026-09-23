@@ -255,7 +255,8 @@
     "visibility": "Visibilitat",
     "view-all": "Veure-ho tot",
     "views": "Vistes",
-    "yourself": "Tu mateix"
+    "yourself": "Tu mateix",
+    "dashboard": "Dashboard"
   },
   "locale-picker": {
     "no-language-feedback": "No s'ha trobat l'idioma? Envieu comentaris"
@@ -487,7 +488,9 @@
     "mode": "Mode de cerca",
     "retry": "Torna-ho a provar",
     "syntax-help": "Sintaxi de cerca",
-    "text": "Text"
+    "text": "Text",
+    "semantic": "Semantic",
+    "semantic-placeholder": "Ask your notes…"
   },
   "setting": {
     "access-token": {

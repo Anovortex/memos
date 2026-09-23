@@ -11,6 +11,7 @@ export type SidebarRouteKind =
   | "attachments"
   | "inbox"
   | "settings"
+  | "dashboard"
   | "memo"
   | "common";
 
@@ -32,6 +33,7 @@ export const getSidebarRouteKind = (path: string): SidebarRouteKind => {
   if (matchPath(ROUTES.ATTACHMENTS, normalizedPath)) return "attachments";
   if (matchPath(ROUTES.INBOX, normalizedPath)) return "inbox";
   if (matchPath(ROUTES.SETTING, normalizedPath)) return "settings";
+  if (matchPath(ROUTES.DASHBOARD, normalizedPath)) return "dashboard";
   if (matchPath("/memos/:uid", normalizedPath) || matchPath(`${ROUTES.SHARED_MEMO}/:token`, normalizedPath)) return "memo";
   return "common";
 };

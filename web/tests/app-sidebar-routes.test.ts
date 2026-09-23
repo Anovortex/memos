@@ -21,6 +21,8 @@ describe("sidebar route content", () => {
     ["/Inbox/", "inbox"],
     ["/setting", "settings"],
     ["/Setting/", "settings"],
+    ["/dashboard", "dashboard"],
+    ["/Dashboard/", "dashboard"],
     ["/memos/abc", "memo"],
     ["/Memos/ABC/", "memo"],
     ["/memos/shares/token", "memo"],

@@ -255,7 +255,8 @@
     "visibility": "Видљивост",
     "view-all": "Погледајте све",
     "views": "Прикази",
-    "yourself": "Себе"
+    "yourself": "Себе",
+    "dashboard": "Dashboard"
   },
   "locale-picker": {
     "no-language-feedback": "Језик није пронађен? Пошаљите повратне информације"
@@ -487,7 +488,9 @@
     "mode": "Режим претраге",
     "retry": "Покушајте поново",
     "syntax-help": "Синтакса претраге",
-    "text": "Текст"
+    "text": "Текст",
+    "semantic": "Semantic",
+    "semantic-placeholder": "Ask your notes…"
   },
   "setting": {
     "access-token": {
