@@ -1,6 +1,6 @@
 import { create } from "@bufbuild/protobuf";
 import { timestampDate } from "@bufbuild/protobuf/wkt";
-import { InfoIcon, LoaderIcon, LockIcon, SparklesIcon, UserRoundXIcon } from "lucide-react";
+import { InfoIcon, LoaderIcon, LockIcon, MailCheckIcon, SparklesIcon, UserRoundXIcon } from "lucide-react";
 import { useState } from "react";
 import { toast } from "react-hot-toast";
 import { useSearchParams } from "react-router-dom";
@@ -20,26 +20,31 @@ import { ROUTES } from "@/router/routes";
 import { User_Role, UserSchema } from "@/types/proto/api/v1/user_service_pb";
 import { AUTH_REDIRECT_PARAM, appendSearchParams, getSafeRedirectPath } from "@/utils/auth-redirect";
 import { useTranslate } from "@/utils/i18n";
-import { getSignupPasswordErrorKey, getSignupUsernameErrorKey } from "@/utils/signup";
+import { getInviteEmail, getSignupPasswordErrorKey, getSignupUsernameErrorKey } from "@/utils/signup";
 
 const SignUp = () => {
   const t = useTranslate();
   const navigateTo = useNavigateTo();
   const actionBtnLoadingState = useLoading(false);
+  const [searchParams] = useSearchParams();
+  const inviteToken = searchParams.get("invite") ?? "";
+  // Prefills the form only; the server re-validates the token on sign-up.
+  const invitedEmail = getInviteEmail(inviteToken);
   const [username, setUsername] = useState("");
-  const [email, setEmail] = useState("");
+  const [email, setEmail] = useState(invitedEmail);
   const [password, setPassword] = useState("");
   const { initialize: initAuth } = useAuth();
   const { generalSetting: instanceGeneralSetting, profile, initialize: initInstance } = useInstance();
-  const [searchParams] = useSearchParams();
   const redirectTarget = getSafeRedirectPath(searchParams.get(AUTH_REDIRECT_PARAM));
   const signInPath = appendSearchParams(ROUTES.AUTH, searchParams);
 
   const passwordAuthAllowed = !instanceGeneralSetting.disallowPasswordAuth;
   const needsSetup = profile.needsSetup;
   // A private instance (no instance URL) only accepts the first-run account;
-  // the server rejects every later anonymous sign-up.
-  const registrationOpen = !instanceGeneralSetting.disallowUserRegistration && (needsSetup || profile.instanceUrl !== "");
+  // the server rejects every later anonymous sign-up. An invite link opens a
+  // closed instance for its email.
+  const registrationOpen =
+    (!instanceGeneralSetting.disallowUserRegistration || inviteToken !== "") && (needsSetup || profile.instanceUrl !== "");
   // Provider buttons only render on the SSO-provisioned branch below; skip the request elsewhere.
   const { identityProviderList, isLoading: identityProvidersLoading } = useIdentityProviderList(
     !needsSetup && registrationOpen && !passwordAuthAllowed,
@@ -76,7 +81,7 @@ const SignUp = () => {
         password,
         role: User_Role.USER,
       });
-      await userServiceClient.createUser({ user });
+      await userServiceClient.createUser({ user, inviteToken });
       const response = await authServiceClient.signIn({
         credentials: {
           case: "passwordCredentials",
@@ -109,6 +114,7 @@ const SignUp = () => {
         password={password}
         passwordAutoComplete="new-password"
         readOnly={actionBtnLoadingState.isLoading}
+        emailReadOnly={invitedEmail !== ""}
         onUsernameChange={setUsername}
         onEmailChange={setEmail}
         onPasswordChange={setPassword}
@@ -181,9 +187,19 @@ const SignUp = () => {
     );
   }
 
-  // Open registration.
+  // Open registration, or an invited sign-up on a closed instance.
   return (
-    <AuthPageLayout title={t("auth.create-your-account")}>
+    <AuthPageLayout
+      title={t("auth.create-your-account")}
+      chip={
+        inviteToken ? (
+          <AuthChip>
+            <MailCheckIcon className="h-3 w-3" />
+            {t("auth.invited")}
+          </AuthChip>
+        ) : undefined
+      }
+    >
       {signUpForm}
       {signInPrompt}
     </AuthPageLayout>

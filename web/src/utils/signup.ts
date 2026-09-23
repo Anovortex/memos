@@ -14,3 +14,22 @@ export const getSignupPasswordErrorKey = (password: string): "auth.password-too-
   }
   return undefined;
 };
+
+// Reads the email an invite link was issued for, from the unverified JWT
+// payload. It only prefills the form; the server checks signature and expiry.
+export const getInviteEmail = (inviteToken: string): string => {
+  const payload = inviteToken.split(".")[1];
+  if (!payload) {
+    return "";
+  }
+  try {
+    const base64 = payload.replace(/-/g, "+").replace(/_/g, "/");
+    const padded = base64 + "=".repeat((4 - (base64.length % 4)) % 4);
+    const bytes = Uint8Array.from(atob(padded), (char) => char.charCodeAt(0));
+    const claims: unknown = JSON.parse(new TextDecoder().decode(bytes));
+    const email = (claims as { email?: unknown })?.email;
+    return typeof email === "string" ? email : "";
+  } catch {
+    return "";
+  }
+};
