@@ -47,6 +47,13 @@ services:
       MEMOS_DRIVER: postgres
       MEMOS_DSN_FILE: /var/opt/memos/.memos_dsn
       MEMOS_PORT: "5230"
+      # Public URL. Required for verification/reset links; setting it also
+      # switches the instance to public mode (anonymous access + sign-up
+      # unless registration is disabled in Settings).
+      MEMOS_INSTANCE_URL: ${MEMOS_INSTANCE_URL:-}
+      # Free-tier caps, 0 = unlimited.
+      MEMOS_FREE_TIER_MAX_MEMOS: ${MEMOS_FREE_TIER_MAX_MEMOS:-0}
+      MEMOS_FREE_TIER_AI_TOKENS_PER_DAY: ${MEMOS_FREE_TIER_AI_TOKENS_PER_DAY:-0}
     ports:
       - "127.0.0.1:${MEMOS_HOST_PORT:-5230}:5230"
     volumes:
