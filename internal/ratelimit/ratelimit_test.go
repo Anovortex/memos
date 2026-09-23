@@ -29,18 +29,40 @@ func TestAllowRefillsOverTime(t *testing.T) {
 	require.True(t, l.Allow("a"))
 }
 
-func TestIdleEntriesAreEvicted(t *testing.T) {
-	// A zero rate never refills, so only eviction can make the key allow again.
-	l := New(rate.Limit(0), 1)
+func TestIdleEntriesAreEvictedOnlyAfterRefill(t *testing.T) {
+	l := New(PerHour(3), 3) // refills fully in an hour
+	require.Equal(t, time.Hour, l.ttl, "ttl covers the refill window")
 	now := time.Unix(1_700_000_000, 0)
 	l.now = func() time.Time { return now }
 
-	require.True(t, l.Allow("a"))
+	for range 3 {
+		require.True(t, l.Allow("a"))
+	}
 	require.False(t, l.Allow("a"))
 
-	now = now.Add(idleTTL + time.Second)
-	require.True(t, l.Allow("a"), "fresh bucket after the idle entry was swept")
+	// Well past the old 10-minute idle window, but the bucket is still nearly
+	// empty, so the entry must survive and keep denying.
+	now = now.Add(15 * time.Minute)
+	require.False(t, l.Allow("a"), "an idle gap shorter than the refill window grants no fresh burst")
+
+	now = now.Add(time.Hour + time.Minute)
+	require.True(t, l.Allow("b"))
+	_, stillThere := l.entries["a"]
+	require.False(t, stillThere, "entry idle for longer than ttl is swept")
 	require.Len(t, l.entries, 1)
+}
+
+func TestFastLimitersKeepMinimumTTL(t *testing.T) {
+	require.Equal(t, minIdleTTL, New(PerMinute(60), 1).ttl)
+}
+
+func TestEntryCapEvictsToBoundMemory(t *testing.T) {
+	l := New(PerMinute(60), 1)
+	l.maxEntries = 2
+	for _, key := range []string{"a", "b", "c", "d"} {
+		l.Allow(key)
+	}
+	require.LessOrEqual(t, len(l.entries), 2)
 }
 
 func TestNilLimiterAllowsEverything(t *testing.T) {

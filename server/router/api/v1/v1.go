@@ -122,8 +122,13 @@ func (s *APIV1Service) RegisterGateway(ctx context.Context, echoServer *echo.Ech
 		runtime.WithMiddlewares(gatewayAuthMiddleware),
 		// Expose the socket peer so clientIP can distinguish a proxy on our side
 		// from a visitor who forged X-Forwarded-For.
+		// grpc-gateway already appends RemoteAddr to x-forwarded-for metadata.
 		runtime.WithMetadata(func(_ context.Context, r *http.Request) metadata.MD {
-			return metadata.Pairs(peerMetadataKey, r.RemoteAddr)
+			md := metadata.Pairs(peerMetadataKey, r.RemoteAddr)
+			if cf := r.Header.Get("Cf-Connecting-Ip"); cf != "" {
+				md.Set(cfConnectingIPKey, cf)
+			}
+			return md
 		}),
 	)
 	if err := v1pb.RegisterInstanceServiceHandlerServer(ctx, gwMux, s); err != nil {

@@ -36,6 +36,9 @@ func (*MetadataInterceptor) WrapUnary(next connect.UnaryFunc) connect.UnaryFunc 
 		if peer := req.Peer().Addr; peer != "" {
 			md.Set(peerMetadataKey, peer)
 		}
+		if cf := header.Get("Cf-Connecting-Ip"); cf != "" {
+			md.Set(cfConnectingIPKey, cf)
+		}
 		// Copy important headers for client info extraction
 		if ua := header.Get("User-Agent"); ua != "" {
 			md.Set("user-agent", ua)

@@ -6,6 +6,7 @@
 package ratelimit
 
 import (
+	"math"
 	"sync"
 	"time"
 
@@ -13,20 +14,28 @@ import (
 )
 
 const (
-	// idleTTL is how long an unused key keeps its bucket before it is dropped.
-	idleTTL = 10 * time.Minute
+	// minIdleTTL is the least time an unused key keeps its bucket. A bucket is
+	// kept at least until it would be full again (see New), otherwise a short
+	// idle gap would hand out a fresh burst and bypass slow limits.
+	minIdleTTL = 10 * time.Minute
 	// sweepEvery bounds how often Allow scans for idle keys.
 	sweepEvery = time.Minute
+	// defaultMaxEntries bounds memory under a flood of distinct keys (spoofed
+	// usernames or addresses). Beyond it an arbitrary entry is dropped per
+	// insert; the flood then evicts mostly its own keys.
+	defaultMaxEntries = 100_000
 )
 
 // Limiter holds one token bucket per key. A nil *Limiter allows everything,
 // which is how tests and disabled deployments opt out.
 type Limiter struct {
-	mu        sync.Mutex
-	limit     rate.Limit
-	burst     int
-	entries   map[string]*entry
-	lastSweep time.Time
+	mu         sync.Mutex
+	limit      rate.Limit
+	burst      int
+	ttl        time.Duration
+	maxEntries int
+	entries    map[string]*entry
+	lastSweep  time.Time
 	// now is a test seam.
 	now func() time.Time
 }
@@ -38,11 +47,20 @@ type entry struct {
 
 // New creates a limiter refilling at limit with the given burst per key.
 func New(limit rate.Limit, burst int) *Limiter {
+	ttl := minIdleTTL
+	if limit > 0 && burst > 0 {
+		// Whole seconds, rounded up, so float drift never undercuts the window.
+		if refill := time.Duration(math.Ceil(float64(burst)/float64(limit))) * time.Second; refill > ttl {
+			ttl = refill
+		}
+	}
 	return &Limiter{
-		limit:   limit,
-		burst:   burst,
-		entries: map[string]*entry{},
-		now:     time.Now,
+		limit:      limit,
+		burst:      burst,
+		ttl:        ttl,
+		maxEntries: defaultMaxEntries,
+		entries:    map[string]*entry{},
+		now:        time.Now,
 	}
 }
 
@@ -69,6 +87,12 @@ func (l *Limiter) Allow(key string) bool {
 
 	e, ok := l.entries[key]
 	if !ok {
+		if len(l.entries) >= l.maxEntries {
+			for victim := range l.entries {
+				delete(l.entries, victim)
+				break
+			}
+		}
 		e = &entry{limiter: rate.NewLimiter(l.limit, l.burst)}
 		l.entries[key] = e
 	}
@@ -76,14 +100,14 @@ func (l *Limiter) Allow(key string) bool {
 	return e.limiter.AllowN(now, 1)
 }
 
-// sweepLocked drops keys idle for longer than idleTTL, at most once per sweepEvery.
+// sweepLocked drops keys idle for longer than ttl, at most once per sweepEvery.
 func (l *Limiter) sweepLocked(now time.Time) {
 	if now.Sub(l.lastSweep) < sweepEvery {
 		return
 	}
 	l.lastSweep = now
 	for key, e := range l.entries {
-		if now.Sub(e.lastSeen) > idleTTL {
+		if now.Sub(e.lastSeen) > l.ttl {
 			delete(l.entries, key)
 		}
 	}
