@@ -16,6 +16,16 @@ import (
 	"github.com/usememos/memos/store"
 )
 
+// requireSpacesEnabled keeps Spaces closed until the Teams package gates them
+// (owner decision 2026-09-23). Creating a space or joining one is refused here
+// so the client flag (web/src/lib/features.ts) is not the only guard.
+func (s *APIV1Service) requireSpacesEnabled() error {
+	if s.Profile != nil && s.Profile.SpacesEnabled {
+		return nil
+	}
+	return status.Error(codes.FailedPrecondition, "spaces are not available yet")
+}
+
 func (s *APIV1Service) requireCurrentSpaceUser(ctx context.Context) (*store.User, error) {
 	user, err := s.fetchCurrentUser(ctx)
 	if err != nil {
@@ -87,6 +97,9 @@ func mapSpaceMutationError(err error, operation string) error {
 func (s *APIV1Service) CreateSpace(ctx context.Context, request *v1pb.CreateSpaceRequest) (*v1pb.Space, error) {
 	currentUser, err := s.requireCurrentSpaceUser(ctx)
 	if err != nil {
+		return nil, err
+	}
+	if err := s.requireSpacesEnabled(); err != nil {
 		return nil, err
 	}
 	if request.GetSpace() == nil {
@@ -263,6 +276,9 @@ func (s *APIV1Service) DeleteSpace(ctx context.Context, request *v1pb.DeleteSpac
 func (s *APIV1Service) CreateSpaceInvitation(ctx context.Context, request *v1pb.CreateSpaceInvitationRequest) (*v1pb.SpaceInvitation, error) {
 	currentUser, err := s.requireCurrentSpaceUser(ctx)
 	if err != nil {
+		return nil, err
+	}
+	if err := s.requireSpacesEnabled(); err != nil {
 		return nil, err
 	}
 	if request.GetSpaceInvitation() == nil {
@@ -528,6 +544,9 @@ func (s *APIV1Service) DeleteSpaceInvitation(ctx context.Context, request *v1pb.
 func (s *APIV1Service) AcceptSpaceInvitation(ctx context.Context, request *v1pb.AcceptSpaceInvitationRequest) (*v1pb.SpaceMember, error) {
 	currentUser, err := s.requireCurrentSpaceUser(ctx)
 	if err != nil {
+		return nil, err
+	}
+	if err := s.requireSpacesEnabled(); err != nil {
 		return nil, err
 	}
 	space, targetUser, _, invitation, err := s.resolveSpaceInvitationResource(ctx, request.Name, currentUser)

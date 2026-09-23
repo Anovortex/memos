@@ -4,6 +4,7 @@ import { Link, Outlet } from "react-router-dom";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { useSpaceContext } from "@/contexts/SpaceContext";
 import { hasConnectCode } from "@/lib/error";
+import { SPACES_ENABLED } from "@/lib/features";
 import NotFound from "@/pages/NotFound";
 import { useTranslate } from "@/utils/i18n";
 import { ROUTES } from "./routes";
@@ -12,7 +13,8 @@ import { ROUTES } from "./routes";
 export const SpaceRoute = () => {
   const t = useTranslate();
   const { selectedSpaceName, isSpaceReady, spaceError, retrySpace } = useSpaceContext();
-  if (!selectedSpaceName) return <NotFound />;
+  // Spaces stay hidden until the Teams gate exists.
+  if (!SPACES_ENABLED || !selectedSpaceName) return <NotFound />;
   if (isSpaceReady) return <Outlet />;
   const unavailable = hasConnectCode(spaceError, Code.NotFound, Code.PermissionDenied);
   return (

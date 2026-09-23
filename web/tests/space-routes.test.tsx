@@ -10,6 +10,9 @@ import Calendar from "@/pages/Calendar";
 import { buildCollectionPath, getSpaceSwitchPath, resolveCollectionRoute } from "@/router/routes";
 import { SpaceRoute } from "@/router/SpaceRoute";
 
+// Upstream's Spaces UI is hidden by default (lib/features.ts); these tests describe it switched on.
+vi.mock("@/lib/features", () => ({ SPACES_ENABLED: true }));
+
 const state = vi.hoisted(() => ({
   selectedSpaceName: "spaces/a",
   isSpaceReady: false,

@@ -45,6 +45,9 @@ type Profile struct {
 	// TrustedProxies lists the proxies whose forwarding headers identify the
 	// client: CIDRs, addresses, or the keywords "private" and "none".
 	TrustedProxies []string
+	// SpacesEnabled opens shared Spaces. Off by default until the Teams
+	// package gates them; the web build mirrors it in web/src/lib/features.ts.
+	SpacesEnabled bool
 }
 
 func checkDataDir(dataDir string) (string, error) {

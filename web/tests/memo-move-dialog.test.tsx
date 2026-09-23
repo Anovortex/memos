@@ -5,6 +5,9 @@ import MemoMoveDialog from "@/components/MemoActionMenu/MemoMoveDialog";
 import { MemoSchema, Visibility } from "@/types/proto/api/v1/memo_service_pb";
 import { SpaceSchema } from "@/types/proto/api/v1/space_service_pb";
 
+// Upstream's Spaces UI is hidden by default (lib/features.ts); these tests describe it switched on.
+vi.mock("@/lib/features", () => ({ SPACES_ENABLED: true }));
+
 const state = vi.hoisted(() => ({ update: vi.fn(), refetch: vi.fn(), user: "users/alice" }));
 vi.mock("@/hooks/useCurrentUser", () => ({ default: () => ({ name: state.user }) }));
 vi.mock("@/hooks/useMemoQueries", () => ({ useUpdateMemo: () => ({ mutateAsync: state.update, isPending: false }) }));

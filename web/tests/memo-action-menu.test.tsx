@@ -5,6 +5,9 @@ import MemoActionMenu from "@/components/MemoActionMenu";
 import { State } from "@/types/proto/api/v1/common_pb";
 import { MemoSchema } from "@/types/proto/api/v1/memo_service_pb";
 
+// Upstream's Spaces UI is hidden by default (lib/features.ts); these tests describe it switched on.
+vi.mock("@/lib/features", () => ({ SPACES_ENABLED: true }));
+
 const handlers = vi.hoisted(() => ({
   canMove: true,
   handleTogglePinMemoBtnClick: vi.fn(),

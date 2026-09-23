@@ -28,6 +28,7 @@ import {
   DropdownMenuSubTrigger,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { SPACES_ENABLED } from "@/lib/features";
 import { State } from "@/types/proto/api/v1/common_pb";
 import { useTranslate } from "@/utils/i18n";
 import { useMemoActionHandlers } from "./hooks";
@@ -153,7 +154,7 @@ const MemoActionMenu = (props: MemoActionMenuProps) => {
               {t("common.more")}
             </DropdownMenuSubTrigger>
             <DropdownMenuSubContent>
-              {canMove && (
+              {canMove && SPACES_ENABLED && (
                 <DropdownMenuItem onClick={() => setMoveDialogOpen(true)}>
                   <FolderInputIcon />
                   {t("memo.move.title")}

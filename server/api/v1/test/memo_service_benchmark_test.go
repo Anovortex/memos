@@ -91,12 +91,13 @@ func newTestingServiceForTB(tb testing.TB) *TestService {
 
 func getBenchmarkProfile(dataDir string) *profile.Profile {
 	return &profile.Profile{
-		Demo:        true,
-		Version:     version.GetCurrentVersion(),
-		InstanceURL: "http://localhost:8080",
-		Driver:      "sqlite",
-		DSN:         filepath.Join(dataDir, "bench.db"),
-		Data:        dataDir,
+		Demo:          true,
+		Version:       version.GetCurrentVersion(),
+		InstanceURL:   "http://localhost:8080",
+		Driver:        "sqlite",
+		DSN:           filepath.Join(dataDir, "bench.db"),
+		Data:          dataDir,
+		SpacesEnabled: true,
 	}
 }
 

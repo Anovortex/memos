@@ -67,6 +67,7 @@ func init() {
 	rootCmd.Flags().StringSlice("webhook-private-network-allowlist", nil, "private webhook destinations to allow (exact hostname, IP, or CIDR)")
 	rootCmd.Flags().String("log-level", "info", "log verbosity level (debug, info, warn, error)")
 	rootCmd.Flags().Bool("rate-limit", true, "enable request rate limiting")
+	rootCmd.Flags().Bool("spaces", false, "enable shared Spaces; off until the Teams package gates them")
 	rootCmd.Flags().Int64("free-tier-max-memos", 0, "max memos per user, 0 for unlimited")
 	rootCmd.Flags().Int64("free-tier-ai-tokens-per-day", 0, "max AI tokens per user per UTC day, 0 for unlimited")
 	rootCmd.Flags().StringSlice("trusted-proxies", []string{"private"}, "proxies whose forwarding headers identify the client: CIDRs, IPs, \"private\" (default; the loopback and private ranges), or \"none\" when the instance is reached without a header-rewriting proxy")
@@ -87,6 +88,7 @@ func init() {
 		"webhook-private-network-allowlist",
 		"log-level",
 		"rate-limit",
+		"spaces",
 		"trusted-proxies",
 		"free-tier-max-memos",
 		"free-tier-ai-tokens-per-day",
@@ -123,6 +125,7 @@ func runServer() error {
 		InstanceURL:            viper.GetString("instance-url"),
 		RateLimit:              viper.GetBool("rate-limit"),
 		TrustedProxies:         viper.GetStringSlice("trusted-proxies"),
+		SpacesEnabled:          viper.GetBool("spaces"),
 		FreeTierMaxMemos:       viper.GetInt64("free-tier-max-memos"),
 		FreeTierAITokensPerDay: viper.GetInt64("free-tier-ai-tokens-per-day"),
 		Version:                version.GetCurrentVersion(),

@@ -49,6 +49,8 @@ func NewTestService(t *testing.T) *TestService {
 		Driver:      "sqlite",
 		DSN:         ":memory:",
 		Data:        testStore.GetDataDir(),
+		// Spaces are off in production until the Teams gate exists; the suite exercises them on.
+		SpacesEnabled: true,
 	}
 
 	// Create APIV1Service with nil grpcServer since we're testing direct calls

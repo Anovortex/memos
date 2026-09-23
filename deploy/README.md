@@ -97,3 +97,15 @@ pg_restore --list ~/backups/memos/memos-*.dump | head
 
 Copy `~/backups/memos` off the host on a schedule (rsync over SSH or rclone).
 A backup that only lives on the machine it protects is not a backup.
+
+
+## Staging copy and upgrade rehearsal
+
+`staging/compose.yaml` runs a second, isolated stack on the same host (own
+Postgres and data volume, no tunnel, `127.0.0.1:5231`) sharing only the
+`secrets/` files. Use it to rehearse an upgrade on a copy of production before
+touching the live stack: restore the latest `backup.sh` dump into it, apply
+the bridge described in `docs/MIGRATION_UPGRADE_PATH.md` (the file's header
+lists the exact commands), then start the image under test and click through
+sign-in, invites, packages and the dashboard. Tear it down with
+`docker compose down -v` from `staging/`.
