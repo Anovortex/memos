@@ -19,6 +19,10 @@ export const extractMemoIdFromName = (name: string) => {
   return name.split(memoNamePrefix).pop() || "";
 };
 
+export const extractUsernameFromName = (name: string) => {
+  return name.startsWith(userNamePrefix) ? name.slice(userNamePrefix.length) : name;
+};
+
 export const extractIdentityProviderUidFromName = (name: string) => {
   return name.split(identityProviderNamePrefix).pop() || "";
 };
@@ -58,3 +62,7 @@ export const getVisibilityName = (visibility: Visibility): string => {
   }
   return name;
 };
+
+// Namespaces an editor draft cache key by Space, so drafts never bleed across contexts.
+// Memos (no Space selected) keeps the bare key it has always used.
+export const spaceScopedCacheKey = (baseKey: string, spaceName?: string): string => (spaceName ? `${baseKey}:${spaceName}` : baseKey);

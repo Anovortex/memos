@@ -4,6 +4,7 @@ import { useCallback } from "react";
 import toast from "react-hot-toast";
 import { useLocation } from "react-router-dom";
 import { useInstance } from "@/contexts/InstanceContext";
+import useCurrentUser from "@/hooks/useCurrentUser";
 import { memoKeys, useDeleteMemo, useUpdateMemo } from "@/hooks/useMemoQueries";
 import useNavigateTo from "@/hooks/useNavigateTo";
 import { userKeys } from "@/hooks/useUserQueries";
@@ -13,22 +14,27 @@ import { State } from "@/types/proto/api/v1/common_pb";
 import type { Memo } from "@/types/proto/api/v1/memo_service_pb";
 import { useTranslate } from "@/utils/i18n";
 import { checkAllTasks, uncheckAllTasks } from "@/utils/markdown-task-actions";
+import { canManageMemo } from "@/utils/user";
+import { isMemoDetailPath } from "../MemoView/navigation";
 
 interface UseMemoActionHandlersOptions {
   memo: Memo;
+  parentPage?: string;
   onEdit?: () => void;
   setDeleteDialogOpen: (open: boolean) => void;
 }
 
-export const useMemoActionHandlers = ({ memo, onEdit, setDeleteDialogOpen }: UseMemoActionHandlersOptions) => {
+export const useMemoActionHandlers = ({ memo, parentPage, onEdit, setDeleteDialogOpen }: UseMemoActionHandlersOptions) => {
   const t = useTranslate();
   const location = useLocation();
+  const currentUser = useCurrentUser();
+  const canMove = canManageMemo(memo, currentUser) && !location.pathname.startsWith(ROUTES.SHARED_MEMO);
   const navigateTo = useNavigateTo();
   const queryClient = useQueryClient();
   const { profile } = useInstance();
   const { mutateAsync: updateMemo } = useUpdateMemo();
   const { mutateAsync: deleteMemo } = useDeleteMemo();
-  const isInMemoDetailPage = location.pathname.startsWith(`/${memo.name}`);
+  const isInMemoDetailPage = isMemoDetailPath(location.pathname, memo.name);
 
   const memoUpdatedCallback = useCallback(() => {
     // Invalidate user stats to trigger refetch
@@ -142,14 +148,16 @@ export const useMemoActionHandlers = ({ memo, onEdit, setDeleteDialogOpen }: Use
     toast.success(t("message.deleted-successfully"));
     if (memo.parent) {
       queryClient.invalidateQueries({ queryKey: memoKeys.comments(memo.parent) });
+      queryClient.invalidateQueries({ queryKey: memoKeys.detail(memo.parent) });
     }
     if (isInMemoDetailPage) {
-      navigateTo(ROUTES.HOME);
+      navigateTo(parentPage || ROUTES.HOME);
     }
     memoUpdatedCallback();
-  }, [memo.name, memo.parent, t, isInMemoDetailPage, navigateTo, memoUpdatedCallback, deleteMemo, queryClient]);
+  }, [memo.name, memo.parent, t, isInMemoDetailPage, parentPage, navigateTo, memoUpdatedCallback, deleteMemo, queryClient]);
 
   return {
+    canMove,
     handleTogglePinMemoBtnClick,
     handleEditMemoClick,
     handleToggleMemoStatusClick,

@@ -5,7 +5,8 @@ import { type ReactNode, useEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { MapContainer, Marker, useMap, useMapEvents } from "react-leaflet";
 import { cn } from "@/lib/utils";
-import { defaultMarkerIcon, ThemedTileLayer } from "./map-utils";
+import { BasemapLayer } from "./BasemapLayer";
+import { defaultMarkerIcon, MinimalAttributionControl } from "./map-utils";
 import type { MapPoint } from "./types";
 
 const toLatLng = (point: MapPoint): LatLng => new LatLng(point.lat, point.lng);
@@ -19,7 +20,6 @@ interface LocationMarkerProps {
 
 const LocationMarker = ({ position: initialPosition, onChange, readonly: readOnly }: LocationMarkerProps) => {
   const [position, setPosition] = useState(initialPosition);
-  const initializedRef = useRef(false);
 
   const map = useMapEvents({
     click(e) {
@@ -28,18 +28,9 @@ const LocationMarker = ({ position: initialPosition, onChange, readonly: readOnl
       }
 
       setPosition(e.latlng);
-      map.locate();
       onChange(fromLatLng(e.latlng));
     },
-    locationfound() {},
   });
-
-  useEffect(() => {
-    if (!initializedRef.current) {
-      map.locate();
-      initializedRef.current = true;
-    }
-  }, [map]);
 
   useEffect(() => {
     if (initialPosition) {
@@ -50,7 +41,9 @@ const LocationMarker = ({ position: initialPosition, onChange, readonly: readOnl
     }
   }, [initialPosition, map]);
 
-  return position === undefined ? null : <Marker position={position} icon={defaultMarkerIcon}></Marker>;
+  return position === undefined ? null : (
+    <Marker position={position} icon={defaultMarkerIcon} interactive={false} keyboard={false}></Marker>
+  );
 };
 
 // Reusable glass-style button component
@@ -72,6 +65,7 @@ const GlassButton = ({ icon, onClick, ariaLabel, title }: GlassButtonProps) => {
         "inline-flex items-center justify-center h-8 w-8 rounded-lg",
         "border border-border/80 bg-background/88 text-foreground shadow-sm backdrop-blur-md",
         "hover:scale-105 hover:bg-background hover:shadow-md active:scale-95",
+        "focus-visible:ring-2 focus-visible:ring-primary/60 focus-visible:ring-offset-1 focus-visible:ring-offset-background",
       )}
     >
       {icon}
@@ -210,8 +204,8 @@ const noopOnLocationChange = () => {};
 
 const LocationPicker = ({ readonly: readOnly = false, latlng, onChange = noopOnLocationChange, className }: LocationPickerProps) => {
   const mapCenter = useMemo(() => toLatLng(latlng ?? DEFAULT_CENTER), [latlng?.lat, latlng?.lng]);
-  const markerPosition = mapCenter;
-  const statusLabel = readOnly ? "Pinned location" : latlng ? "Selected location" : "Choose a location";
+  const markerPosition = latlng ? mapCenter : undefined;
+  const statusLabel = latlng ? "Selected location" : "Choose a location";
 
   return (
     <div
@@ -221,24 +215,27 @@ const LocationPicker = ({ readonly: readOnly = false, latlng, onChange = noopOnL
       )}
     >
       <MapContainer
-        className="h-full w-full !bg-muted"
+        className="map-attribution-minimal h-full w-full !bg-muted"
         center={mapCenter}
         zoom={13}
         scrollWheelZoom={false}
         zoomControl={false}
         attributionControl={false}
       >
-        <ThemedTileLayer />
+        <MinimalAttributionControl />
+        <BasemapLayer />
         <LocationMarker position={markerPosition} readonly={readOnly} onChange={onChange} />
         <MapControls position={latlng} />
         <MapCleanup />
       </MapContainer>
 
-      <div className="pointer-events-none absolute left-3 top-3 z-[450] flex items-center gap-2">
-        <div className="rounded-full border border-border bg-background/92 px-2.5 py-1 text-[11px] font-medium tracking-[0.02em] text-foreground/80 shadow-sm backdrop-blur-sm">
-          {statusLabel}
+      {!readOnly && (
+        <div className="pointer-events-none absolute left-3 top-3 z-[450] flex items-center gap-2">
+          <div className="rounded-full border border-border bg-background/92 px-2.5 py-1 text-[11px] font-medium tracking-[0.02em] text-foreground/80 shadow-sm backdrop-blur-sm">
+            {statusLabel}
+          </div>
         </div>
-      </div>
+      )}
     </div>
   );
 };

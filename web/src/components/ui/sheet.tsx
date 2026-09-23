@@ -27,7 +27,7 @@ const SheetOverlay = React.forwardRef<HTMLDivElement, SheetPrimitive.Backdrop.Pr
       ref={ref}
       data-slot="sheet-overlay"
       className={cn(
-        "fixed inset-0 z-overlay bg-foreground/50 transition-opacity duration-300 data-starting-style:opacity-0 data-ending-style:opacity-0",
+        "fixed inset-0 z-overlay bg-overlay/50 transition-opacity duration-300 data-starting-style:opacity-0 data-ending-style:opacity-0",
         className,
       )}
       {...props}
@@ -58,12 +58,13 @@ const SheetContent = React.forwardRef<
           side === "bottom" && "inset-x-0 bottom-0 h-auto border-t data-starting-style:translate-y-full data-ending-style:translate-y-full",
           className,
         )}
-        initialFocus={false}
-        finalFocus={false}
         {...props}
       >
         {children}
-        <SheetPrimitive.Close className="ring-offset-background absolute top-4 right-4 rounded-xs opacity-60 transition-opacity hover:opacity-100 focus:ring-2 focus:ring-offset-2 focus:outline-hidden disabled:pointer-events-none">
+        <SheetPrimitive.Close
+          data-slot="sheet-close"
+          className="ring-offset-background absolute top-4 end-4 rounded-xs opacity-60 transition-opacity hover:opacity-100 focus:ring-2 focus:ring-offset-2 focus:outline-hidden disabled:pointer-events-none"
+        >
           <XIcon className="size-5" />
           <span className="sr-only">Close</span>
         </SheetPrimitive.Close>

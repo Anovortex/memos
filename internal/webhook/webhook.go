@@ -12,14 +12,13 @@ import (
 	"log/slog"
 	"net"
 	"net/http"
+	"net/netip"
 	"strconv"
 	"strings"
 	"time"
+	"uuid"
 
-	"github.com/google/uuid"
 	"github.com/pkg/errors"
-
-	v1pb "github.com/usememos/memos/proto/gen/api/v1"
 )
 
 var (
@@ -36,17 +35,17 @@ var (
 		},
 	}
 
-	asyncPostQueue = make(chan *WebhookRequestPayload, 128)
+	asyncPostQueue = make(chan *Request, 128)
 )
 
 func init() {
 	for range 4 {
 		go func() {
-			for payload := range asyncPostQueue {
-				if err := Post(payload); err != nil {
+			for request := range asyncPostQueue {
+				if err := Post(request); err != nil {
 					slog.Warn("Failed to dispatch webhook asynchronously",
-						slog.String("url", payload.URL),
-						slog.String("activityType", payload.ActivityType),
+						slog.String("url", request.URL),
+						slog.String("label", request.Label),
 						slog.Any("err", err))
 				}
 			}
@@ -55,38 +54,60 @@ func init() {
 }
 
 // safeDialContext is a net.Dialer.DialContext replacement that resolves the target
-// hostname and rejects any address that falls within a reserved/private IP range.
+// hostname, rejects disallowed reserved/private addresses, and dials an already
+// checked IP address so DNS cannot be rebound between validation and connection.
 func safeDialContext(ctx context.Context, network, addr string) (net.Conn, error) {
 	host, port, err := net.SplitHostPort(addr)
 	if err != nil {
 		return nil, errors.Errorf("webhook: invalid address %q", addr)
 	}
 
-	ips, err := net.DefaultResolver.LookupHost(ctx, host)
+	ips, err := net.DefaultResolver.LookupIPAddr(ctx, host)
 	if err != nil {
 		return nil, errors.Wrapf(err, "webhook: failed to resolve host %q", host)
 	}
 
-	for _, ipStr := range ips {
-		if ip := net.ParseIP(ipStr); ip != nil && isReservedIP(ip) {
+	validIPs := make([]net.IPAddr, 0, len(ips))
+	for _, ip := range ips {
+		if parsed, ok := netip.AddrFromSlice(ip.IP); !ok || !parsed.IsValid() {
+			continue
+		}
+		if isBlockedDestination(host, ip.IP) {
 			return nil, errors.Errorf("webhook: connection to reserved/private IP address is not allowed")
 		}
+		validIPs = append(validIPs, ip)
 	}
 
-	return (&net.Dialer{}).DialContext(ctx, network, net.JoinHostPort(host, port))
+	var dialErr error
+	dialer := &net.Dialer{}
+	for _, ip := range validIPs {
+		dialHost := ip.IP.String()
+		if ip.Zone != "" {
+			dialHost += "%" + ip.Zone
+		}
+		conn, err := dialer.DialContext(ctx, network, net.JoinHostPort(dialHost, port))
+		if err == nil {
+			return conn, nil
+		}
+		dialErr = err
+	}
+	if dialErr != nil {
+		return nil, errors.Wrapf(dialErr, "webhook: failed to connect to host %q", host)
+	}
+	return nil, errors.Errorf("webhook: host %q resolved to no IP addresses", host)
 }
 
-type WebhookRequestPayload struct {
-	// The target URL for the webhook request.
-	URL string `json:"url"`
-	// The type of activity that triggered this webhook.
-	ActivityType string `json:"activityType"`
-	// The resource name of the creator. Format: users/{user}
-	Creator string `json:"creator"`
-	// The memo that triggered this webhook (if applicable).
-	Memo *v1pb.Memo `json:"memo"`
-	// Optional signing secret for HMAC-SHA256 signature. Not serialized to JSON.
-	SigningSecret string `json:"-"`
+// Request is one webhook delivery: Payload is JSON-encoded and posted to URL,
+// signed with SigningSecret when one is set.
+type Request struct {
+	// URL is the destination endpoint.
+	URL string
+	// Label identifies the delivery in logs, for example an activity type.
+	Label string
+	// SigningSecret enables Standard Webhooks HMAC-SHA256 signing when non-empty.
+	SigningSecret string
+	// Payload is the value encoded as the JSON request body.
+	Payload any
 }
 
 // resolveSigningKey returns the raw HMAC key for a signing secret. Secrets using
@@ -116,9 +137,9 @@ func GenerateSigningSecret() (string, error) {
 	return "whsec_" + base64.StdEncoding.EncodeToString(buf), nil
 }
 
-// Post posts the message to webhook endpoint.
-func Post(requestPayload *WebhookRequestPayload) error {
-	body, err := json.Marshal(requestPayload)
+// Post delivers the request synchronously and returns the receiver's verdict.
+func Post(requestPayload *Request) error {
+	body, err := json.Marshal(requestPayload.Payload)
 	if err != nil {
 		return errors.Wrapf(err, "failed to marshal webhook request to %s", requestPayload.URL)
 	}
@@ -136,7 +157,7 @@ func Post(requestPayload *WebhookRequestPayload) error {
 			return errors.Wrapf(err, "failed to derive signing key for webhook to %s", requestPayload.URL)
 		}
 
-		msgID := "msg_" + uuid.New().String()
+		msgID := "msg_" + uuid.NewV4().String()
 		timestamp := strconv.FormatInt(time.Now().Unix(), 10)
 
 		mac := hmac.New(sha256.New, key)
@@ -179,11 +200,11 @@ func Post(requestPayload *WebhookRequestPayload) error {
 	return nil
 }
 
-// PostAsync posts the message to webhook endpoint asynchronously.
-// It enqueues the request for bounded asynchronous dispatch and does not wait for the response.
-func PostAsync(requestPayload *WebhookRequestPayload) {
+// PostAsync enqueues the request for bounded asynchronous delivery and does
+// not wait for the response.
+func PostAsync(requestPayload *Request) {
 	if requestPayload == nil {
-		slog.Warn("Dropped webhook dispatch because payload is nil")
+		slog.Warn("Dropped webhook dispatch because request is nil")
 		return
 	}
 	select {
@@ -191,6 +212,6 @@ func PostAsync(requestPayload *WebhookRequestPayload) {
 	default:
 		slog.Warn("Dropped webhook dispatch because the async queue is full",
 			slog.String("url", requestPayload.URL),
-			slog.String("activityType", requestPayload.ActivityType))
+			slog.String("label", requestPayload.Label))
 	}
 }

@@ -1,33 +1,25 @@
-import { lazy } from "react";
 import { createBrowserRouter, Navigate, type RouteObject } from "react-router-dom";
 import App from "@/App";
 import { ChunkLoadErrorFallback } from "@/components/ErrorBoundary";
 import MainLayout from "@/layouts/MainLayout";
 import RootLayout from "@/layouts/RootLayout";
-import { LandingRoute, RequireAuthRoute, RequireGuestRoute } from "./guards";
-import { ROUTES } from "./routes";
-
-// Wrap lazy imports to auto-reload on chunk load failure (e.g., after redeployment).
-function lazyWithReload<T extends React.ComponentType>(factory: () => Promise<{ default: T }>) {
-  return lazy(() =>
-    factory().catch((error) => {
-      const isChunkError =
-        error?.message?.includes("Failed to fetch dynamically imported module") ||
-        error?.message?.includes("Importing a module script failed");
-      const reloadKey = "chunk-reload";
-      if (isChunkError && !sessionStorage.getItem(reloadKey)) {
-        sessionStorage.setItem(reloadKey, "1");
-        window.location.reload();
-      }
-      throw error;
-    }),
-  );
-}
+import { lazyWithReload } from "@/utils/lazy";
+import {
+  LandingRoute,
+  RequireAuthRoute,
+  RequireFullInitializationRoute,
+  RequireGuestRoute,
+  RequireInstanceInitializationRoute,
+} from "./guards";
+import { CALENDAR_ROUTE_PATTERN, ROUTES, SPACE_ROUTE_PATTERN } from "./routes";
+import { SpaceRoute } from "./SpaceRoute";
 
 const AdminSignIn = lazyWithReload(() => import("@/pages/AdminSignIn"));
 const About = lazyWithReload(() => import("@/pages/About"));
 const Archived = lazyWithReload(() => import("@/pages/Archived"));
 const AuthCallback = lazyWithReload(() => import("@/pages/AuthCallback"));
+const MemoMap = lazyWithReload(() => import("@/pages/Map"));
+const Calendar = lazyWithReload(() => import("@/pages/Calendar"));
 const Explore = lazyWithReload(() => import("@/pages/Explore"));
 const ForgotPassword = lazyWithReload(() => import("@/pages/ForgotPassword"));
 const Home = lazyWithReload(() => import("@/pages/Home"));
@@ -38,7 +30,7 @@ const PermissionDenied = lazyWithReload(() => import("@/pages/PermissionDenied")
 const ResetPassword = lazyWithReload(() => import("@/pages/ResetPassword"));
 const Attachments = lazyWithReload(() => import("@/pages/Attachments"));
 const Setting = lazyWithReload(() => import("@/pages/Setting"));
-const Shortcuts = lazyWithReload(() => import("@/pages/Shortcuts"));
+const MemoViews = lazyWithReload(() => import("@/pages/MemoViews"));
 const SignIn = lazyWithReload(() => import("@/pages/SignIn"));
 const SignUp = lazyWithReload(() => import("@/pages/SignUp"));
 const UserProfile = lazyWithReload(() => import("@/pages/UserProfile"));
@@ -70,13 +62,18 @@ export const routeConfig: RouteObject[] = [
           // in, so this page must not be guest-only either.
           { path: "verify-email", element: <VerifyEmail /> },
           {
-            element: <RequireGuestRoute />,
+            element: <RequireInstanceInitializationRoute />,
             children: [
-              { path: "", element: <SignIn /> },
-              { path: "admin", element: <AdminSignIn /> },
-              { path: "signup", element: <SignUp /> },
-              { path: "forgot-password", element: <ForgotPassword /> },
-              { path: "reset-password", element: <ResetPassword /> },
+              {
+                element: <RequireGuestRoute />,
+                children: [
+                  { path: "", element: <SignIn /> },
+                  { path: "admin", element: <AdminSignIn /> },
+                  { path: "signup", element: <SignUp /> },
+                  { path: "forgot-password", element: <ForgotPassword /> },
+                  { path: "reset-password", element: <ResetPassword /> },
+                ],
+              },
             ],
           },
         ],
@@ -93,14 +90,21 @@ export const routeConfig: RouteObject[] = [
                 element: <LandingRoute />,
                 children: [{ index: true, element: <Home /> }],
               },
-              { path: Routes.ABOUT, element: <About /> },
+              {
+                element: <RequireInstanceInitializationRoute />,
+                children: [{ path: Routes.ABOUT, element: <About /> }],
+              },
               { path: Routes.EXPLORE, element: <Explore /> },
-              { path: "u/:username", element: <UserProfile /> },
+              { path: Routes.USER_PROFILE, element: <UserProfile /> },
               {
                 element: <RequireAuthRoute />,
                 children: [
                   { path: Routes.ARCHIVED, element: <Archived /> },
-                  { path: Routes.SHORTCUTS, element: <Shortcuts /> },
+                  { path: CALENDAR_ROUTE_PATTERN, element: <Calendar /> },
+                  {
+                    element: <RequireFullInitializationRoute />,
+                    children: [{ path: Routes.VIEWS, element: <MemoViews /> }],
+                  },
                 ],
               },
             ],
@@ -110,9 +114,36 @@ export const routeConfig: RouteObject[] = [
           {
             element: <RequireAuthRoute />,
             children: [
-              { path: Routes.ATTACHMENTS, element: <Attachments /> },
-              { path: Routes.INBOX, element: <Inboxes /> },
-              { path: Routes.SETTING, element: <Setting /> },
+              {
+                element: <RequireFullInitializationRoute />,
+                children: [
+                  {
+                    path: SPACE_ROUTE_PATTERN,
+                    children: [
+                      {
+                        element: <SpaceRoute />,
+                        children: [
+                          {
+                            element: <MainLayout />,
+                            children: [
+                              { index: true, element: <Home /> },
+                              { path: "explore", element: <Explore /> },
+                              { path: "calendar/:year?/:month?/:day?", element: <Calendar /> },
+                            ],
+                          },
+                          { path: "attachments", element: <Attachments /> },
+                          { path: "map", element: <MemoMap /> },
+                        ],
+                      },
+                      { path: "*", element: <NotFound /> },
+                    ],
+                  },
+                  { path: Routes.ATTACHMENTS, element: <Attachments /> },
+                  { path: Routes.MAP, element: <MemoMap /> },
+                  { path: Routes.INBOX, element: <Inboxes /> },
+                  { path: Routes.SETTING, element: <Setting /> },
+                ],
+              },
             ],
           },
           { path: "403", element: <PermissionDenied /> },

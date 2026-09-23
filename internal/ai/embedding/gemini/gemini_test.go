@@ -9,8 +9,8 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	"github.com/usememos/memos/internal/ai"
 	"github.com/usememos/memos/internal/ai/embedding"
+	"github.com/usememos/memos/provider/ai"
 )
 
 func newTestEmbedder(t *testing.T, handler http.HandlerFunc) *Embedder {

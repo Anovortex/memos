@@ -1,5 +1,9 @@
+import { create } from "@bufbuild/protobuf";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { cacheService } from "@/components/MemoEditor/services/cacheService";
+import { AttachmentSchema, MotionMediaFamily, MotionMediaRole, MotionMediaSchema } from "@/types/proto/api/v1/attachment_service_pb";
+
+import { LocationSchema } from "@/types/proto/api/v1/memo_service_pb";
 
 describe("memo editor cache", () => {
   beforeEach(() => {
@@ -39,6 +43,40 @@ describe("memo editor cache", () => {
     expect(cacheService.load(key)).toBe("- [ ] migrated task");
   });
 
+  it("round-trips uploaded attachment metadata with a structured draft", () => {
+    const key = cacheService.key("users/steven", "home-memo-editor");
+    const attachment = create(AttachmentSchema, {
+      name: "attachments/image-one",
+      filename: "garden.png",
+      externalLink: "https://cdn.example.com/garden.png",
+      type: "image/png",
+      size: 42n,
+      motionMedia: create(MotionMediaSchema, {
+        family: MotionMediaFamily.APPLE_LIVE_PHOTO,
+        role: MotionMediaRole.STILL,
+        groupId: "live-one",
+      }),
+    });
+
+    cacheService.saveNow(key, "![garden](/file/attachments/image-one)", [attachment]);
+
+    const restored = cacheService.loadDraft(key);
+    expect(restored.content).toBe("![garden](/file/attachments/image-one)");
+    expect(restored.attachments).toHaveLength(1);
+    expect(restored.attachments[0]).toMatchObject({
+      name: "attachments/image-one",
+      filename: "garden.png",
+      externalLink: "https://cdn.example.com/garden.png",
+      type: "image/png",
+      size: 42n,
+      motionMedia: {
+        family: MotionMediaFamily.APPLE_LIVE_PHOTO,
+        role: MotionMediaRole.STILL,
+        groupId: "live-one",
+      },
+    });
+  });
+
   it("keeps raw JSON markdown drafts intact", () => {
     const key = cacheService.key("users/steven", "home-memo-editor");
     const jsonDraft = '{"content":"not a cache envelope"}';
@@ -53,5 +91,25 @@ describe("memo editor cache", () => {
     localStorage.setItem(key, jsonDraft);
 
     expect(cacheService.load(key)).toBe(jsonDraft);
+  });
+
+  it("round-trips an edited or removed location and isolates Space drafts", () => {
+    const point = create(LocationSchema, { latitude: 0, longitude: 135, placeholder: "Cafe" });
+    cacheService.saveNow("map:space-a:point", "draft", [], point);
+    cacheService.saveNow("map:space-b:point", "draft", [], null);
+    expect(cacheService.loadDraft("map:space-a:point").location).toEqual(point);
+    expect(cacheService.loadDraft("map:space-b:point").location).toBeNull();
+    localStorage.setItem("legacy", JSON.stringify({ kind: "memos.editor-cache", version: 2, content: "old", attachments: [] }));
+    expect(cacheService.loadDraft("legacy").location).toBeUndefined();
+  });
+
+  it("keeps the cursor for the next editor mount", () => {
+    const key = cacheService.key("users/steven", "global-memo-editor");
+
+    cacheService.saveCursor(key, 9);
+
+    expect(cacheService.loadCursor(key)).toBe(9);
+    cacheService.clear(key);
+    expect(cacheService.loadCursor(key)).toBeUndefined();
   });
 });

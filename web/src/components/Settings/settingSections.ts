@@ -1,9 +1,12 @@
 import {
+  ArrowLeftRightIcon,
+  AstroidIcon,
   BarChart3Icon,
   CogIcon,
   DatabaseIcon,
   HeartHandshakeIcon,
   KeyIcon,
+  KeyRoundIcon,
   LibraryIcon,
   type LucideIcon,
   MailIcon,
@@ -14,14 +17,17 @@ import {
   WebhookIcon,
 } from "lucide-react";
 import { type ComponentType } from "react";
+import AccessTokenSection from "@/components/Settings/AccessTokenSection";
 import AISection from "@/components/Settings/AISection";
 import InstanceSection from "@/components/Settings/InstanceSection";
 import MemberSection from "@/components/Settings/MemberSection";
+import MemoExportSection from "@/components/Settings/MemoExportSection";
 import MemoRelatedSettings from "@/components/Settings/MemoRelatedSettings";
 import MyAccountSection from "@/components/Settings/MyAccountSection";
 import NotificationSection from "@/components/Settings/NotificationSection";
 import PreferencesSection from "@/components/Settings/PreferencesSection";
 import ResourceStatsSection from "@/components/Settings/ResourceStatsSection";
+import SpacesSection from "@/components/Settings/SpacesSection";
 import SSOSection from "@/components/Settings/SSOSection";
 import StorageSection from "@/components/Settings/StorageSection";
 import TagsSection from "@/components/Settings/TagsSection";
@@ -30,6 +36,9 @@ import { InstanceSetting_Key } from "@/types/proto/api/v1/instance_service_pb";
 
 export type SettingSectionKey =
   | "my-account"
+  | "memo-export"
+  | "spaces"
+  | "access-token"
   | "preference"
   | "webhook"
   | "member"
@@ -60,6 +69,20 @@ export const SETTINGS_SECTIONS: SettingSectionDefinition[] = [
     labelKey: "setting.my-account.label",
     icon: UserIcon,
     component: MyAccountSection,
+  },
+  {
+    key: "spaces",
+    scope: "basic",
+    labelKey: "setting.spaces.label",
+    icon: AstroidIcon,
+    component: SpacesSection,
+  },
+  {
+    key: "access-token",
+    scope: "basic",
+    labelKey: "setting.access-token.label",
+    icon: KeyRoundIcon,
+    component: AccessTokenSection,
   },
   {
     key: "preference",
@@ -102,6 +125,13 @@ export const SETTINGS_SECTIONS: SettingSectionDefinition[] = [
     labelKey: "setting.tags.label",
     icon: TagsIcon,
     component: TagsSection,
+  },
+  {
+    key: "memo-export",
+    scope: "basic",
+    labelKey: "setting.memo-export.label",
+    icon: ArrowLeftRightIcon,
+    component: MemoExportSection,
   },
   {
     key: "storage",

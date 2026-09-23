@@ -1,13 +1,16 @@
 import { create } from "@bufbuild/protobuf";
 import { FieldMaskSchema } from "@bufbuild/protobuf/wkt";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { shortcutServiceClient, userServiceClient } from "@/connect";
+import { type QueryClient, queryOptions, useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { userServiceClient } from "@/connect";
 import useCurrentUser from "@/hooks/useCurrentUser";
-import { buildUserSettingName } from "@/lib/resource-names";
+import { buildUserSettingName, userNamePrefix } from "@/lib/resource-names";
+import { mergeTagCounts } from "@/lib/tag";
 import {
   type ListAllUserStatsRequest,
   ListAllUserStatsRequestSchema,
   User,
+  UserNotification,
+  UserNotification_Status,
   UserSetting,
   UserSetting_GeneralSetting,
   UserSetting_Key,
@@ -16,6 +19,7 @@ import {
 } from "@/types/proto/api/v1/user_service_pb";
 
 const BATCH_GET_USERS_LIMIT = 100;
+const USER_PROFILE_STALE_TIME = 1000 * 60 * 5;
 type ListAllUserStatsQuery = Pick<ListAllUserStatsRequest, "state" | "filter">;
 
 // Query keys factory
@@ -24,38 +28,41 @@ export const userKeys = {
   details: () => [...userKeys.all, "detail"] as const,
   detail: (name: string) => [...userKeys.details(), name] as const,
   stats: () => [...userKeys.all, "stats"] as const,
-  userStats: (name: string) => [...userKeys.stats(), name] as const,
+  userStats: (name: string, filter?: string) =>
+    filter ? ([...userKeys.stats(), name, filter] as const) : ([...userKeys.stats(), name] as const),
   allUserStats: (request: Partial<ListAllUserStatsQuery>) => [...userKeys.stats(), "all", request] as const,
   currentUser: () => [...userKeys.all, "current"] as const,
-  shortcuts: () => [...userKeys.all, "shortcuts"] as const,
+  memoViews: (parent?: string) => [...userKeys.all, "memoViews", parent] as const,
   notifications: () => [...userKeys.all, "notifications"] as const,
   byNames: (names: string[]) => [...userKeys.all, "byNames", ...[...names].sort()] as const,
   byUsernames: (usernames: string[]) => [...userKeys.all, "byUsernames", ...[...usernames].sort()] as const,
 };
 
+export const userDetailQueryOptions = (name: string) =>
+  queryOptions({
+    queryKey: userKeys.detail(name),
+    queryFn: () => userServiceClient.getUser({ name }),
+    staleTime: USER_PROFILE_STALE_TIME,
+  });
+
 export function useUser(name: string, options?: { enabled?: boolean }) {
   return useQuery({
-    queryKey: userKeys.detail(name),
-    queryFn: async () => {
-      const user = await userServiceClient.getUser({ name });
-      return user;
-    },
+    ...userDetailQueryOptions(name),
     enabled: options?.enabled ?? true,
-    staleTime: 1000 * 60 * 5, // 5 minutes - user profiles don't change often
   });
 }
 
-export function useUserStats(username?: string) {
+export function useUserStats(username?: string, options?: { enabled?: boolean; filter?: string }) {
   return useQuery({
-    queryKey: username ? userKeys.userStats(username) : userKeys.stats(),
+    queryKey: username ? userKeys.userStats(username, options?.filter) : userKeys.stats(),
     queryFn: async () => {
       if (!username) {
         throw new Error("Username is required");
       }
-      const stats = await userServiceClient.getUserStats({ name: username });
+      const stats = await userServiceClient.getUserStats({ name: username, filter: options?.filter });
       return stats;
     },
-    enabled: !!username,
+    enabled: !!username && (options?.enabled ?? true),
   });
 }
 
@@ -70,13 +77,15 @@ export function useAllUserStats(request: Partial<ListAllUserStatsQuery> = {}, op
   });
 }
 
-export function useShortcuts() {
+export function useMemoViews(parent?: string) {
   return useQuery({
-    queryKey: userKeys.shortcuts(),
+    queryKey: userKeys.memoViews(parent),
     queryFn: async () => {
-      const { shortcuts } = await shortcutServiceClient.listShortcuts({});
-      return shortcuts;
+      if (!parent) return [];
+      const { memoViews } = await userServiceClient.listMemoViews({ parent });
+      return memoViews;
     },
+    enabled: !!parent,
   });
 }
 
@@ -94,6 +103,46 @@ export function useNotifications() {
     },
     enabled: !!currentUser?.name,
     staleTime: 1000 * 30, // 30 seconds - notifications should update frequently
+  });
+}
+
+const updateCachedNotifications = (queryClient: QueryClient, update: (notifications: UserNotification[]) => UserNotification[]) => {
+  const notifications = queryClient.getQueryData<UserNotification[]>(userKeys.notifications());
+  if (notifications !== undefined) {
+    queryClient.setQueryData<UserNotification[]>(userKeys.notifications(), update(notifications));
+  }
+};
+
+export function useArchiveNotification() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (name: string) =>
+      userServiceClient.updateUserNotification({
+        notification: { name, status: UserNotification_Status.ARCHIVED },
+        updateMask: create(FieldMaskSchema, { paths: ["status"] }),
+      }),
+    onSuccess: (updated) => {
+      updateCachedNotifications(queryClient, (notifications) =>
+        notifications.map((notification) => (notification.name === updated.name ? updated : notification)),
+      );
+      void queryClient.invalidateQueries({ queryKey: userKeys.notifications() });
+    },
+  });
+}
+
+export function useDeleteNotification() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (name: string) => {
+      await userServiceClient.deleteUserNotification({ name });
+      return name;
+    },
+    onSuccess: (name) => {
+      updateCachedNotifications(queryClient, (notifications) => notifications.filter((notification) => notification.name !== name));
+      void queryClient.invalidateQueries({ queryKey: userKeys.notifications() });
+    },
   });
 }
 
@@ -116,20 +165,12 @@ export function useTagCounts(forCurrentUser = false) {
         const { stats } = await userServiceClient.listAllUserStats({});
 
         // Aggregate tag counts from all users
-        const tagCount: Record<string, number> = {};
-        for (const userStats of stats) {
-          if (userStats.tagCount) {
-            for (const [tag, count] of Object.entries(userStats.tagCount)) {
-              tagCount[tag] = (tagCount[tag] || 0) + count;
-            }
-          }
-        }
-        return tagCount;
+        return mergeTagCounts(...stats.map((userStats) => userStats.tagCount));
       }
     },
     select: (data) => {
       if (forCurrentUser) {
-        return (data as UserStats).tagCount || {};
+        return mergeTagCounts((data as UserStats).tagCount);
       }
       return data as Record<string, number>;
     },
@@ -176,12 +217,9 @@ export function useUserSettings(parent?: string) {
   return useQuery({
     queryKey: [...userKeys.all, "settings", parent],
     queryFn: async () => {
-      if (!parent) return { settings: [], shortcuts: [] };
-      const [{ settings }, { shortcuts }] = await Promise.all([
-        userServiceClient.listUserSettings({ parent }),
-        shortcutServiceClient.listShortcuts({ parent }),
-      ]);
-      return { settings, shortcuts };
+      if (!parent) return { settings: [] };
+      const { settings } = await userServiceClient.listUserSettings({ parent });
+      return { settings };
     },
     enabled: !!parent,
   });
@@ -254,8 +292,9 @@ export function useUpdateUserGeneralSetting(currentUserName?: string) {
 }
 
 // Hook to fetch multiple users by names (returns Map<name, User>)
-export function useUsersByNames(names: string[]) {
-  const enabled = names.length > 0;
+export function useUsersByNames(names: string[], options?: { enabled?: boolean }) {
+  const queryClient = useQueryClient();
+  const enabled = (options?.enabled ?? true) && names.length > 0;
   const uniqueNames = Array.from(new Set(names));
 
   return useQuery({
@@ -264,7 +303,7 @@ export function useUsersByNames(names: string[]) {
       const users = await Promise.all(
         uniqueNames.map(async (name) => {
           try {
-            const user = await userServiceClient.getUser({ name });
+            const user = await queryClient.fetchQuery(userDetailQueryOptions(name));
             return { name, user };
           } catch {
             return { name, user: undefined };
@@ -279,25 +318,44 @@ export function useUsersByNames(names: string[]) {
       return userMap;
     },
     enabled,
-    staleTime: 1000 * 60 * 5, // 5 minutes - user profiles don't change often
+    staleTime: USER_PROFILE_STALE_TIME,
   });
 }
 
 // Hook to fetch multiple users by usernames (returns Map<username, User>)
 export function useUsersByUsernames(usernames: string[], options?: { enabled?: boolean }) {
+  const queryClient = useQueryClient();
   const enabled = (options?.enabled ?? true) && usernames.length > 0;
   const uniqueUsernames = Array.from(new Set(usernames));
 
   return useQuery({
     queryKey: userKeys.byUsernames(uniqueUsernames),
     queryFn: async () => {
+      const usersByUsername = new Map<string, User>();
+      const missingUsernames: string[] = [];
+      for (const username of uniqueUsernames) {
+        const detailKey = userKeys.detail(`${userNamePrefix}${username}`);
+        const cachedUser = queryClient.getQueryData<User>(detailKey);
+        const cachedState = queryClient.getQueryState(detailKey);
+        const cacheIsFresh = cachedState ? Date.now() - cachedState.dataUpdatedAt < USER_PROFILE_STALE_TIME : false;
+        if (cachedUser && cacheIsFresh) {
+          usersByUsername.set(username, cachedUser);
+        } else {
+          missingUsernames.push(username);
+        }
+      }
+
       const batches = [];
-      for (let i = 0; i < uniqueUsernames.length; i += BATCH_GET_USERS_LIMIT) {
-        batches.push(uniqueUsernames.slice(i, i + BATCH_GET_USERS_LIMIT));
+      for (let i = 0; i < missingUsernames.length; i += BATCH_GET_USERS_LIMIT) {
+        batches.push(missingUsernames.slice(i, i + BATCH_GET_USERS_LIMIT));
       }
 
       const responses = await Promise.all(batches.map((batch) => userServiceClient.batchGetUsers({ usernames: batch })));
-      const usersByUsername = new Map(responses.flatMap((response) => response.users).map((user) => [user.username, user] as const));
+      const users = responses.flatMap((response) => response.users);
+      for (const user of users) {
+        usersByUsername.set(user.username, user);
+        queryClient.setQueryData(userKeys.detail(user.name), user);
+      }
 
       const userMap = new Map<string, User | undefined>();
       for (const username of uniqueUsernames) {
@@ -306,6 +364,6 @@ export function useUsersByUsernames(usernames: string[], options?: { enabled?: b
       return userMap;
     },
     enabled,
-    staleTime: 1000 * 60 * 5,
+    staleTime: USER_PROFILE_STALE_TIME,
   });
 }

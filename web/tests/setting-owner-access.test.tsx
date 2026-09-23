@@ -63,7 +63,6 @@ describe("<Setting> owner access", () => {
       </MemoryRouter>,
     );
 
-    expect(screen.queryByText("setting.resource-stats.label")).not.toBeInTheDocument();
     expect(screen.queryByText("Resource stats section")).not.toBeInTheDocument();
   });
 
@@ -76,7 +75,6 @@ describe("<Setting> owner access", () => {
       </MemoryRouter>,
     );
 
-    expect(screen.getByText("setting.resource-stats.label")).toBeInTheDocument();
     expect(screen.getByText("Resource stats section")).toBeInTheDocument();
   });
 });

@@ -10,12 +10,12 @@ import (
 
 	"github.com/pkg/errors"
 
-	"github.com/usememos/memos/internal/ai"
 	aiembedding "github.com/usememos/memos/internal/ai/embedding"
 	"github.com/usememos/memos/internal/ai/embedding/gemini"
 	"github.com/usememos/memos/internal/plan"
 	"github.com/usememos/memos/internal/profile"
 	storepb "github.com/usememos/memos/proto/gen/store"
+	"github.com/usememos/memos/provider/ai"
 	"github.com/usememos/memos/store"
 )
 

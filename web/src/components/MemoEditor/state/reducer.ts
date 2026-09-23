@@ -7,15 +7,21 @@ export function editorReducer(state: EditorState, action: EditorAction): EditorS
       return {
         ...state,
         content: action.payload.content,
+        contentSource: "external",
         metadata: action.payload.metadata,
         timestamps: action.payload.timestamps,
       };
 
-    case "UPDATE_CONTENT":
+    case "UPDATE_CONTENT": {
+      if (state.content === action.payload.content && state.contentSource === action.payload.source) {
+        return state;
+      }
       return {
         ...state,
-        content: action.payload,
+        content: action.payload.content,
+        contentSource: action.payload.source,
       };
+    }
 
     case "SET_METADATA":
       return {
@@ -65,6 +71,15 @@ export function editorReducer(state: EditorState, action: EditorAction): EditorS
         },
       };
 
+    case "SET_PENDING_INLINE_IMAGE_INSERTIONS":
+      return {
+        ...state,
+        ui: {
+          ...state.ui,
+          pendingInlineImageInsertions: action.payload,
+        },
+      };
+
     case "SET_TIMESTAMPS":
       return {
         ...state,
@@ -80,8 +95,22 @@ export function editorReducer(state: EditorState, action: EditorAction): EditorS
         recorderBusy: action.payload,
       };
 
+    case "SET_JUST_SAVED":
+      return {
+        ...state,
+        ui: {
+          ...state.ui,
+          justSaved: action.payload,
+        },
+      };
+
     case "RESET":
       return createInitialState();
+
+    case "ACCEPT_SUGGESTION":
+      return state.acceptedSuggestionIds.includes(action.payload)
+        ? state
+        : { ...state, acceptedSuggestionIds: [...state.acceptedSuggestionIds, action.payload] };
 
     default:
       return state;

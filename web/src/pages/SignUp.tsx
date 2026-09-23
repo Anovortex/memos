@@ -6,6 +6,7 @@ import { toast } from "react-hot-toast";
 import { useSearchParams } from "react-router-dom";
 import { setAccessToken } from "@/auth-state";
 import AuthPageLayout, { AuthChip, AuthEmptyState, AuthLinkPrompt, AuthOptionsLoading } from "@/components/AuthPageLayout";
+import ChallengeWidget, { CHALLENGE_TOKEN_HEADER } from "@/components/ChallengeWidget";
 import CredentialFields from "@/components/CredentialFields";
 import IdentityProviderButtons from "@/components/IdentityProviderButtons";
 import { Button } from "@/components/ui/button";
@@ -15,7 +16,7 @@ import { useInstance } from "@/contexts/InstanceContext";
 import { useIdentityProviderList } from "@/hooks/useIdentityProviderQueries";
 import useLoading from "@/hooks/useLoading";
 import useNavigateTo from "@/hooks/useNavigateTo";
-import { handleError } from "@/lib/error";
+import { ERROR_REASON_CHALLENGE_REQUIRED, handleError, hasErrorReason } from "@/lib/error";
 import { ROUTES } from "@/router/routes";
 import { User_Role, UserSchema } from "@/types/proto/api/v1/user_service_pb";
 import { AUTH_REDIRECT_PARAM, appendSearchParams, getSafeRedirectPath } from "@/utils/auth-redirect";
@@ -29,6 +30,8 @@ const SignUp = () => {
   const [username, setUsername] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [challengeToken, setChallengeToken] = useState<string | null>(null);
+  const [challengeResetKey, setChallengeResetKey] = useState(0);
   const { initialize: initAuth } = useAuth();
   const { generalSetting: instanceGeneralSetting, profile, initialize: initInstance } = useInstance();
   const [searchParams] = useSearchParams();
@@ -76,13 +79,19 @@ const SignUp = () => {
         password,
         role: User_Role.USER,
       });
-      await userServiceClient.createUser({ user });
-      const response = await authServiceClient.signIn({
-        credentials: {
-          case: "passwordCredentials",
-          value: { username, password },
+      // The token is spent by createUser; the sign-in that follows is not a
+      // credential guess, and the server does not ask for a second one there.
+      const callOptions = challengeToken ? { headers: { [CHALLENGE_TOKEN_HEADER]: challengeToken } } : undefined;
+      await userServiceClient.createUser({ user }, callOptions);
+      const response = await authServiceClient.signIn(
+        {
+          credentials: {
+            case: "passwordCredentials",
+            value: { username, password },
+          },
         },
-      });
+        callOptions,
+      );
       // Store access token from login response
       if (response.accessToken) {
         setAccessToken(response.accessToken, response.accessTokenExpiresAt ? timestampDate(response.accessTokenExpiresAt) : undefined);
@@ -93,6 +102,9 @@ const SignUp = () => {
       await initInstance();
       navigateTo(redirectTarget || ROUTES.HOME, { replace: true });
     } catch (error: unknown) {
+      if (hasErrorReason(error, ERROR_REASON_CHALLENGE_REQUIRED)) {
+        setChallengeResetKey((key) => key + 1);
+      }
       handleError(error, toast.error, {
         fallbackMessage: "Sign up failed",
       });
@@ -113,6 +125,7 @@ const SignUp = () => {
         onEmailChange={setEmail}
         onPasswordChange={setPassword}
       />
+      {!needsSetup && <ChallengeWidget onToken={setChallengeToken} resetKey={challengeResetKey} />}
       <Button type="submit" disabled={actionBtnLoadingState.isLoading}>
         {needsSetup ? t("auth.create-admin-account") : t("common.sign-up")}
         {actionBtnLoadingState.isLoading && <LoaderIcon className="ml-1 h-4 w-auto animate-spin opacity-60" />}

@@ -9,6 +9,7 @@ import { findTagMetadata } from "@/lib/tag";
 import { cn } from "@/lib/utils";
 import { Routes } from "@/router";
 import { useMemoViewContext } from "../MemoView/MemoViewContext";
+import { isMemoResourcePath, withMemoFilter } from "../MemoView/navigation";
 
 interface TagProps extends React.HTMLAttributes<HTMLSpanElement> {
   node?: Element; // AST node from react-markdown
@@ -43,12 +44,8 @@ export const Tag: React.FC<TagProps> = ({ "data-tag": dataTag, children, classNa
     e.stopPropagation();
 
     // If the tag is clicked in a memo detail page, we should navigate to the memo list page.
-    if (location.pathname.startsWith("/m")) {
-      const pathname = parentPage || Routes.HOME;
-      const searchParams = new URLSearchParams();
-
-      searchParams.set("filter", stringifyFilters([{ factor: "tagSearch", value: tag }]));
-      navigateTo(`${pathname}?${searchParams.toString()}`);
+    if (isMemoResourcePath(location.pathname)) {
+      navigateTo(withMemoFilter(parentPage || Routes.HOME, stringifyFilters([{ factor: "tagSearch", value: tag }])));
       return;
     }
 

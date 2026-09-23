@@ -12,8 +12,8 @@ import (
 	"github.com/pkg/errors"
 	"google.golang.org/genai"
 
-	"github.com/usememos/memos/internal/ai"
 	"github.com/usememos/memos/internal/ai/embedding"
+	"github.com/usememos/memos/provider/ai"
 )
 
 const (
