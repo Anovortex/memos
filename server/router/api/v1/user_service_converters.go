@@ -90,6 +90,8 @@ func convertSettingKeyToStore(key string) (storepb.UserSetting_Key, error) {
 		return storepb.UserSetting_WEBHOOKS, nil
 	case v1pb.UserSetting_Key_name[int32(v1pb.UserSetting_TAGS)]:
 		return storepb.UserSetting_TAGS, nil
+	case v1pb.UserSetting_Key_name[int32(v1pb.UserSetting_PACKAGE)]:
+		return storepb.UserSetting_PACKAGE, nil
 	default:
 		return storepb.UserSetting_KEY_UNSPECIFIED, errors.Errorf("unknown setting key: %s", key)
 	}
@@ -106,6 +108,8 @@ func convertSettingKeyFromStore(key storepb.UserSetting_Key) string {
 		return v1pb.UserSetting_Key_name[int32(v1pb.UserSetting_WEBHOOKS)]
 	case storepb.UserSetting_TAGS:
 		return v1pb.UserSetting_Key_name[int32(v1pb.UserSetting_TAGS)]
+	case storepb.UserSetting_PACKAGE:
+		return v1pb.UserSetting_Key_name[int32(v1pb.UserSetting_PACKAGE)]
 	default:
 		return "unknown"
 	}
@@ -171,6 +175,10 @@ func convertUserSettingFromStore(storeSetting *storepb.UserSetting, user *store.
 			setting.Value = &v1pb.UserSetting_TagsSetting_{
 				TagsSetting: &v1pb.UserSetting_TagsSetting{Tags: map[string]*v1pb.UserSetting_TagMetadata{}},
 			}
+		case storepb.UserSetting_PACKAGE:
+			setting.Value = &v1pb.UserSetting_PackageSetting_{
+				PackageSetting: convertUserPackageSettingFromStore(nil),
+			}
 		default:
 			return nil
 		}
@@ -221,11 +229,27 @@ func convertUserSettingFromStore(storeSetting *storepb.UserSetting, user *store.
 		setting.Value = &v1pb.UserSetting_TagsSetting_{
 			TagsSetting: convertUserTagsSettingFromStore(storeSetting.GetTags()),
 		}
+	case storepb.UserSetting_PACKAGE:
+		setting.Value = &v1pb.UserSetting_PackageSetting_{
+			PackageSetting: convertUserPackageSettingFromStore(storeSetting.GetPackage()),
+		}
 	default:
 		return nil
 	}
 
 	return setting
+}
+
+// convertUserPackageSettingFromStore maps the store package to the API one; a
+// user with no package is on Free. The two Plan enums share their values.
+func convertUserPackageSettingFromStore(pkg *storepb.PackageUserSetting) *v1pb.UserSetting_PackageSetting {
+	if pkg == nil {
+		return &v1pb.UserSetting_PackageSetting{Plan: v1pb.UserSetting_PackageSetting_FREE}
+	}
+	return &v1pb.UserSetting_PackageSetting{
+		Plan:       v1pb.UserSetting_PackageSetting_Plan(pkg.Plan),
+		ExpireTime: pkg.ExpireTime,
+	}
 }
 
 // convertUserSettingToStore converts API UserSetting to store UserSetting.
@@ -274,6 +298,17 @@ func convertUserSettingToStore(apiSetting *v1pb.UserSetting, userID int32, key s
 			}
 		} else {
 			return nil, errors.Errorf("tags setting is required")
+		}
+	case storepb.UserSetting_PACKAGE:
+		pkg := apiSetting.GetPackageSetting()
+		if pkg == nil {
+			return nil, errors.Errorf("package setting is required")
+		}
+		storeSetting.Value = &storepb.UserSetting_Package{
+			Package: &storepb.PackageUserSetting{
+				Plan:       storepb.PackageUserSetting_Plan(pkg.Plan),
+				ExpireTime: pkg.ExpireTime,
+			},
 		}
 	default:
 		return nil, errors.Errorf("unsupported setting key: %v", key)

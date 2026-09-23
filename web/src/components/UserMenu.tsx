@@ -4,6 +4,7 @@ import {
   GlobeIcon,
   InfoIcon,
   LogOutIcon,
+  MailPlusIcon,
   PaletteIcon,
   SettingsIcon,
   SquareUserIcon,
@@ -11,14 +12,17 @@ import {
 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import useCurrentUser from "@/hooks/useCurrentUser";
+import { useDialog } from "@/hooks/useDialog";
 import { useSSEConnectionStatus } from "@/hooks/useLiveMemoRefresh";
 import useNavigateTo from "@/hooks/useNavigateTo";
 import { useUpdateUserGeneralSetting } from "@/hooks/useUserQueries";
 import { cn } from "@/lib/utils";
 import { Routes } from "@/router";
 import { getLocaleWithFallback, loadLocale, useTranslate } from "@/utils/i18n";
+import { isTeamsActive } from "@/utils/plan";
 import { getThemeWithFallback, loadTheme, THEME_OPTIONS } from "@/utils/theme";
 import { isSuperUser } from "@/utils/user";
+import InviteUserDialog from "./InviteUserDialog";
 import { LocaleSearchList } from "./LocalePicker";
 import UserAvatar from "./UserAvatar";
 import {
@@ -41,13 +45,17 @@ const UserMenu = (props: Props) => {
   const t = useTranslate();
   const navigateTo = useNavigateTo();
   const currentUser = useCurrentUser();
-  const { userGeneralSetting, refetchSettings, logout } = useAuth();
+  const { userGeneralSetting, userPackageSetting, refetchSettings, logout } = useAuth();
   const { mutate: updateUserGeneralSetting } = useUpdateUserGeneralSetting(currentUser?.name);
   const sseStatus = useSSEConnectionStatus();
   const currentLocale = getLocaleWithFallback(userGeneralSetting?.locale);
   const currentTheme = getThemeWithFallback(userGeneralSetting?.theme);
-  // Profile and archive are note surfaces; the operator has none.
+  // Profile, archive and member invites are member surfaces; the operator
+  // invites from the dashboard instead.
   const operator = isSuperUser(currentUser);
+  // A member invites only while on Teams; the server checks the same thing.
+  const canInvite = !operator && isTeamsActive(userPackageSetting);
+  const inviteDialog = useDialog();
 
   const handleLocaleChange = async (locale: Locale) => {
     if (!currentUser) return;
@@ -106,95 +114,104 @@ const UserMenu = (props: Props) => {
   };
 
   return (
-    <DropdownMenu>
-      <DropdownMenuTrigger
-        nativeButton={false}
-        disabled={!currentUser}
-        render={
-          <div
-            className={cn("w-auto flex flex-row justify-start items-center cursor-pointer text-foreground", collapsed ? "px-1" : "px-3")}
-          />
-        }
-      >
-        <div className="relative shrink-0">
-          {currentUser?.avatarUrl ? (
-            <UserAvatar avatarUrl={currentUser?.avatarUrl} />
-          ) : (
-            <User2Icon className="w-6 mx-auto h-auto text-muted-foreground" />
+    <>
+      <DropdownMenu>
+        <DropdownMenuTrigger
+          nativeButton={false}
+          disabled={!currentUser}
+          render={
+            <div
+              className={cn("w-auto flex flex-row justify-start items-center cursor-pointer text-foreground", collapsed ? "px-1" : "px-3")}
+            />
+          }
+        >
+          <div className="relative shrink-0">
+            {currentUser?.avatarUrl ? (
+              <UserAvatar avatarUrl={currentUser?.avatarUrl} />
+            ) : (
+              <User2Icon className="w-6 mx-auto h-auto text-muted-foreground" />
+            )}
+            {sseStatus !== "connected" && (
+              <Tooltip>
+                <TooltipTrigger
+                  render={
+                    <span
+                      className={cn(
+                        "absolute -bottom-0.5 -right-0.5 size-2.5 rounded-full border-2 border-background",
+                        sseStatus === "connecting" ? "bg-muted-foreground animate-pulse" : "bg-destructive",
+                      )}
+                    />
+                  }
+                />
+                <TooltipContent side="right">{t(`live-update.${sseStatus}` as Parameters<typeof t>[0])}</TooltipContent>
+              </Tooltip>
+            )}
+          </div>
+          {!collapsed && (
+            <span className="ml-2 text-lg font-medium text-foreground grow truncate">
+              {currentUser?.displayName || currentUser?.username}
+            </span>
           )}
-          {sseStatus !== "connected" && (
-            <Tooltip>
-              <TooltipTrigger
-                render={
-                  <span
-                    className={cn(
-                      "absolute -bottom-0.5 -right-0.5 size-2.5 rounded-full border-2 border-background",
-                      sseStatus === "connecting" ? "bg-muted-foreground animate-pulse" : "bg-destructive",
-                    )}
-                  />
-                }
-              />
-              <TooltipContent side="right">{t(`live-update.${sseStatus}` as Parameters<typeof t>[0])}</TooltipContent>
-            </Tooltip>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent align="start">
+          {!operator && (
+            <DropdownMenuItem onClick={() => navigateTo(`/u/${encodeURIComponent(currentUser?.username ?? "")}`)}>
+              <SquareUserIcon className="size-4 text-muted-foreground" />
+              {t("common.profile")}
+            </DropdownMenuItem>
           )}
-        </div>
-        {!collapsed && (
-          <span className="ml-2 text-lg font-medium text-foreground grow truncate">
-            {currentUser?.displayName || currentUser?.username}
-          </span>
-        )}
-      </DropdownMenuTrigger>
-      <DropdownMenuContent align="start">
-        {!operator && (
-          <DropdownMenuItem onClick={() => navigateTo(`/u/${encodeURIComponent(currentUser?.username ?? "")}`)}>
-            <SquareUserIcon className="size-4 text-muted-foreground" />
-            {t("common.profile")}
+          {!operator && (
+            <DropdownMenuItem onClick={() => navigateTo(Routes.ARCHIVED)}>
+              <ArchiveIcon className="size-4 text-muted-foreground" />
+              {t("common.archived")}
+            </DropdownMenuItem>
+          )}
+          {canInvite && (
+            <DropdownMenuItem onClick={inviteDialog.open}>
+              <MailPlusIcon className="size-4 text-muted-foreground" />
+              {t("setting.member.invite")}
+            </DropdownMenuItem>
+          )}
+          <DropdownMenuItem onClick={() => navigateTo(Routes.ABOUT)}>
+            <InfoIcon className="size-4 text-muted-foreground" />
+            {t("common.about")}
           </DropdownMenuItem>
-        )}
-        {!operator && (
-          <DropdownMenuItem onClick={() => navigateTo(Routes.ARCHIVED)}>
-            <ArchiveIcon className="size-4 text-muted-foreground" />
-            {t("common.archived")}
+          <DropdownMenuSub>
+            <DropdownMenuSubTrigger>
+              <GlobeIcon className="size-4 text-muted-foreground" />
+              {t("common.language")}
+            </DropdownMenuSubTrigger>
+            <DropdownMenuSubContent className="max-h-[min(24rem,var(--available-height))] overflow-y-auto p-0">
+              <LocaleSearchList value={currentLocale} onChange={handleLocaleChange} className="w-64" />
+            </DropdownMenuSubContent>
+          </DropdownMenuSub>
+          <DropdownMenuSub>
+            <DropdownMenuSubTrigger>
+              <PaletteIcon className="size-4 text-muted-foreground" />
+              {t("setting.preference.theme")}
+            </DropdownMenuSubTrigger>
+            <DropdownMenuSubContent>
+              {THEME_OPTIONS.map((option) => (
+                <DropdownMenuItem key={option.value} onClick={() => handleThemeChange(option.value)}>
+                  {currentTheme === option.value && <CheckIcon className="w-4 h-auto" />}
+                  {currentTheme !== option.value && <span className="w-4" />}
+                  {option.label}
+                </DropdownMenuItem>
+              ))}
+            </DropdownMenuSubContent>
+          </DropdownMenuSub>
+          <DropdownMenuItem onClick={() => navigateTo(Routes.SETTING)}>
+            <SettingsIcon className="size-4 text-muted-foreground" />
+            {t("common.settings")}
           </DropdownMenuItem>
-        )}
-        <DropdownMenuItem onClick={() => navigateTo(Routes.ABOUT)}>
-          <InfoIcon className="size-4 text-muted-foreground" />
-          {t("common.about")}
-        </DropdownMenuItem>
-        <DropdownMenuSub>
-          <DropdownMenuSubTrigger>
-            <GlobeIcon className="size-4 text-muted-foreground" />
-            {t("common.language")}
-          </DropdownMenuSubTrigger>
-          <DropdownMenuSubContent className="max-h-[min(24rem,var(--available-height))] overflow-y-auto p-0">
-            <LocaleSearchList value={currentLocale} onChange={handleLocaleChange} className="w-64" />
-          </DropdownMenuSubContent>
-        </DropdownMenuSub>
-        <DropdownMenuSub>
-          <DropdownMenuSubTrigger>
-            <PaletteIcon className="size-4 text-muted-foreground" />
-            {t("setting.preference.theme")}
-          </DropdownMenuSubTrigger>
-          <DropdownMenuSubContent>
-            {THEME_OPTIONS.map((option) => (
-              <DropdownMenuItem key={option.value} onClick={() => handleThemeChange(option.value)}>
-                {currentTheme === option.value && <CheckIcon className="w-4 h-auto" />}
-                {currentTheme !== option.value && <span className="w-4" />}
-                {option.label}
-              </DropdownMenuItem>
-            ))}
-          </DropdownMenuSubContent>
-        </DropdownMenuSub>
-        <DropdownMenuItem onClick={() => navigateTo(Routes.SETTING)}>
-          <SettingsIcon className="size-4 text-muted-foreground" />
-          {t("common.settings")}
-        </DropdownMenuItem>
-        <DropdownMenuItem onClick={handleSignOut}>
-          <LogOutIcon className="size-4 text-muted-foreground" />
-          {t("common.sign-out")}
-        </DropdownMenuItem>
-      </DropdownMenuContent>
-    </DropdownMenu>
+          <DropdownMenuItem onClick={handleSignOut}>
+            <LogOutIcon className="size-4 text-muted-foreground" />
+            {t("common.sign-out")}
+          </DropdownMenuItem>
+        </DropdownMenuContent>
+      </DropdownMenu>
+      {canInvite && <InviteUserDialog open={inviteDialog.isOpen} onOpenChange={inviteDialog.setOpen} />}
+    </>
   );
 };
 

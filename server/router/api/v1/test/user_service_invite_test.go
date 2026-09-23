@@ -11,6 +11,7 @@ import (
 	"github.com/stretchr/testify/require"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
+	"google.golang.org/protobuf/types/known/timestamppb"
 
 	apiv1 "github.com/usememos/memos/proto/gen/api/v1"
 	storepb "github.com/usememos/memos/proto/gen/store"
@@ -29,9 +30,22 @@ func closeRegistration(ctx context.Context, t *testing.T, ts *TestService) {
 	require.NoError(t, err)
 }
 
-func inviteTokenFor(t *testing.T, ts *TestService, email string) string {
+// grantTeams puts a user on the Teams package, lapsing at expire (nil = never).
+func grantTeams(ctx context.Context, t *testing.T, ts *TestService, userID int32, expire *timestamppb.Timestamp) {
 	t.Helper()
-	token, _, err := auth.GenerateInviteToken(email, []byte(ts.Secret))
+	_, err := ts.Store.UpsertUserSetting(ctx, &storepb.UserSetting{
+		UserId: userID,
+		Key:    storepb.UserSetting_PACKAGE,
+		Value: &storepb.UserSetting_Package{
+			Package: &storepb.PackageUserSetting{Plan: storepb.PackageUserSetting_TEAMS, ExpireTime: expire},
+		},
+	})
+	require.NoError(t, err)
+}
+
+func inviteTokenFor(t *testing.T, ts *TestService, email, role string) string {
+	t.Helper()
+	token, _, err := auth.GenerateInviteToken(email, role, []byte(ts.Secret))
 	require.NoError(t, err)
 	return token
 }
@@ -68,7 +82,7 @@ func TestInvitedSignUp(t *testing.T) {
 		require.NoError(t, err)
 		closeRegistration(ctx, t, ts)
 
-		token := inviteTokenFor(t, ts, "alice@example.com")
+		token := inviteTokenFor(t, ts, "alice@example.com", auth.InviteRoleUser)
 		user, err := signUpWithInvite(ctx, ts, "alice", "Alice@Example.com", "password123", token)
 		require.NoError(t, err)
 		require.Equal(t, apiv1.User_USER, user.Role)
@@ -82,7 +96,7 @@ func TestInvitedSignUp(t *testing.T) {
 		require.NoError(t, err)
 		closeRegistration(ctx, t, ts)
 
-		token := inviteTokenFor(t, ts, "alice@example.com")
+		token := inviteTokenFor(t, ts, "alice@example.com", auth.InviteRoleUser)
 		_, err = signUpWithInvite(ctx, ts, "bob", "bob@example.com", "password123", token)
 		require.Equal(t, codes.PermissionDenied, status.Code(err))
 		require.Contains(t, err.Error(), "different email")
@@ -95,7 +109,7 @@ func TestInvitedSignUp(t *testing.T) {
 		require.NoError(t, err)
 		closeRegistration(ctx, t, ts)
 
-		parts := strings.Split(inviteTokenFor(t, ts, "alice@example.com"), ".")
+		parts := strings.Split(inviteTokenFor(t, ts, "alice@example.com", auth.InviteRoleUser), ".")
 		require.Len(t, parts, 3)
 		parts[2] = "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
 		_, err = signUpWithInvite(ctx, ts, "alice", "alice@example.com", "password123", strings.Join(parts, "."))
@@ -131,7 +145,20 @@ func TestInvitedSignUp(t *testing.T) {
 		require.Contains(t, err.Error(), "invalid or has expired")
 	})
 
-	t.Run("invite does not bypass password sign-up being off", func(t *testing.T) {
+	t.Run("an operator invite creates an ADMIN on a closed instance", func(t *testing.T) {
+		ts := NewTestService(t)
+		defer ts.Cleanup()
+		_, err := ts.CreateHostUser(ctx, "admin")
+		require.NoError(t, err)
+		closeRegistration(ctx, t, ts)
+
+		token := inviteTokenFor(t, ts, "op@example.com", auth.InviteRoleAdmin)
+		user, err := signUpWithInvite(ctx, ts, "op", "op@example.com", "password123", token)
+		require.NoError(t, err)
+		require.Equal(t, apiv1.User_ADMIN, user.Role)
+	})
+
+	t.Run("invite does not bypass password sign-up being off, even for an operator", func(t *testing.T) {
 		ts := NewTestService(t)
 		defer ts.Cleanup()
 		_, err := ts.CreateHostUser(ctx, "admin")
@@ -144,7 +171,7 @@ func TestInvitedSignUp(t *testing.T) {
 		})
 		require.NoError(t, err)
 
-		token := inviteTokenFor(t, ts, "alice@example.com")
+		token := inviteTokenFor(t, ts, "alice@example.com", auth.InviteRoleAdmin)
 		_, err = signUpWithInvite(ctx, ts, "alice", "alice@example.com", "password123", token)
 		require.Equal(t, codes.PermissionDenied, status.Code(err))
 		require.Contains(t, err.Error(), "password signup is not allowed")
@@ -156,7 +183,7 @@ func TestInvitedSignUp(t *testing.T) {
 		_, err := ts.CreateHostUser(ctx, "admin")
 		require.NoError(t, err)
 
-		token := inviteTokenFor(t, ts, "alice@example.com")
+		token := inviteTokenFor(t, ts, "alice@example.com", auth.InviteRoleUser)
 		user, err := signUpWithInvite(ctx, ts, "alice", "alice@example.com", "password123", token)
 		require.NoError(t, err)
 		require.Equal(t, apiv1.User_USER, user.Role)
@@ -178,7 +205,7 @@ func TestInvitedSignUp(t *testing.T) {
 
 		preview, err := ts.Service.CreateUser(ctx, &apiv1.CreateUserRequest{
 			User:         &apiv1.User{Username: "alice", Email: "alice@example.com", Password: "password123"},
-			InviteToken:  inviteTokenFor(t, ts, "alice@example.com"),
+			InviteToken:  inviteTokenFor(t, ts, "alice@example.com", auth.InviteRoleUser),
 			ValidateOnly: true,
 		})
 		require.NoError(t, err)
@@ -197,17 +224,48 @@ func TestCreateUserInvite(t *testing.T) {
 		require.Equal(t, codes.Unauthenticated, status.Code(err))
 	})
 
-	t.Run("non-admin is PermissionDenied", func(t *testing.T) {
+	t.Run("member on Free is PermissionDenied", func(t *testing.T) {
 		ts := NewTestService(t)
 		defer ts.Cleanup()
 		member, err := ts.CreateRegularUser(ctx, "member")
 		require.NoError(t, err)
 
-		_, err = ts.Service.CreateUserInvite(ts.CreateUserContext(ctx, member.ID), &apiv1.CreateUserInviteRequest{Email: "alice@example.com"})
+		_, err = ts.Service.CreateUserInvite(ts.CreateUserContext(ctx, member.ID), &apiv1.CreateUserInviteRequest{Email: "friend@example.com"})
+		require.Equal(t, codes.PermissionDenied, status.Code(err))
+		require.Contains(t, err.Error(), "Teams")
+	})
+
+	t.Run("member whose Teams package lapsed is PermissionDenied", func(t *testing.T) {
+		ts := NewTestService(t)
+		defer ts.Cleanup()
+		member, err := ts.CreateRegularUser(ctx, "member")
+		require.NoError(t, err)
+		grantTeams(ctx, t, ts, member.ID, timestamppb.New(time.Now().Add(-time.Minute)))
+
+		_, err = ts.Service.CreateUserInvite(ts.CreateUserContext(ctx, member.ID), &apiv1.CreateUserInviteRequest{Email: "friend@example.com"})
 		require.Equal(t, codes.PermissionDenied, status.Code(err))
 	})
 
-	t.Run("admin gets a link whose token parses back to the email", func(t *testing.T) {
+	t.Run("member on Teams gets a member invite", func(t *testing.T) {
+		ts := NewTestService(t)
+		defer ts.Cleanup()
+		member, err := ts.CreateRegularUser(ctx, "member")
+		require.NoError(t, err)
+		grantTeams(ctx, t, ts, member.ID, timestamppb.New(time.Now().Add(24*time.Hour)))
+
+		invite, err := ts.Service.CreateUserInvite(ts.CreateUserContext(ctx, member.ID), &apiv1.CreateUserInviteRequest{Email: "friend@example.com"})
+		require.NoError(t, err)
+		claims, err := auth.ParseInviteToken(invite.Token, []byte(ts.Secret))
+		require.NoError(t, err)
+		require.Equal(t, auth.InviteRoleUser, claims.Role)
+
+		closeRegistration(ctx, t, ts)
+		user, err := signUpWithInvite(ctx, ts, "friend", "friend@example.com", "password123", invite.Token)
+		require.NoError(t, err)
+		require.Equal(t, apiv1.User_USER, user.Role)
+	})
+
+	t.Run("operator gets an operator invite whose token parses back to the email", func(t *testing.T) {
 		ts := NewTestService(t)
 		defer ts.Cleanup()
 		admin, err := ts.CreateHostUser(ctx, "admin")
@@ -227,12 +285,13 @@ func TestCreateUserInvite(t *testing.T) {
 		claims, err := auth.ParseInviteToken(invite.Token, []byte(ts.Secret))
 		require.NoError(t, err)
 		require.Equal(t, "alice@example.com", claims.Email)
+		require.Equal(t, auth.InviteRoleAdmin, claims.Role)
 
-		// The link works end to end on a closed instance.
+		// The link works end to end on a closed instance and creates an operator.
 		closeRegistration(ctx, t, ts)
 		user, err := signUpWithInvite(ctx, ts, "alice", "alice@example.com", "password123", parsed.Query().Get("invite"))
 		require.NoError(t, err)
-		require.Equal(t, apiv1.User_USER, user.Role)
+		require.Equal(t, apiv1.User_ADMIN, user.Role)
 	})
 
 	t.Run("invalid or missing email is InvalidArgument", func(t *testing.T) {
@@ -286,5 +345,6 @@ func TestCreateUserInvite(t *testing.T) {
 		require.Contains(t, (*sent)[0].Subject, "invited")
 		require.Contains(t, (*sent)[0].Body, invite.Link)
 		require.Contains(t, (*sent)[0].Body, "admin")
+		require.Contains(t, (*sent)[0].Body, "as an operator")
 	})
 }

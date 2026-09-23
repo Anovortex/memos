@@ -4,6 +4,7 @@ import { describe, expect, it, vi } from "vitest";
 import InviteUserDialog from "@/components/InviteUserDialog";
 
 const mocks = vi.hoisted(() => ({
+  currentUser: { name: "users/noviledger", role: 2 },
   createUserInvite: vi.fn(),
   copy: vi.fn(),
   toastSuccess: vi.fn(),
@@ -14,6 +15,7 @@ vi.mock("copy-to-clipboard", () => ({ default: mocks.copy }));
 vi.mock("react-hot-toast", () => ({ toast: { success: mocks.toastSuccess, error: mocks.toastError } }));
 vi.mock("@/connect", () => ({ userServiceClient: { createUserInvite: mocks.createUserInvite } }));
 vi.mock("@/utils/i18n", () => ({ useTranslate: () => (key: string) => key }));
+vi.mock("@/hooks/useCurrentUser", () => ({ default: () => mocks.currentUser }));
 
 const link = "https://notes.example.com/auth/signup?invite=token";
 
@@ -33,6 +35,24 @@ const requestInvite = async () => {
 };
 
 describe("<InviteUserDialog>", () => {
+  it("tells the operator the link creates an operator", () => {
+    mocks.currentUser = { name: "users/noviledger", role: 2 };
+
+    render(<InviteUserDialog open onOpenChange={vi.fn()} />);
+
+    expect(screen.getByText("setting.member.invite-operator-title")).toBeInTheDocument();
+    expect(screen.getByText("setting.member.invite-operator-description")).toBeInTheDocument();
+  });
+
+  it("tells a member the link creates a member", () => {
+    mocks.currentUser = { name: "users/alice", role: 1 };
+
+    render(<InviteUserDialog open onOpenChange={vi.fn()} />);
+
+    expect(screen.getByText("setting.member.invite-title")).toBeInTheDocument();
+    expect(screen.getByText("setting.member.invite-description")).toBeInTheDocument();
+  });
+
   it("requests an invite for the email and shows the emailed link", async () => {
     mocks.createUserInvite.mockResolvedValue(invite(true));
 

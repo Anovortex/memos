@@ -110,7 +110,7 @@ const Dashboard = () => {
             </Button>
             <Button size="sm" onClick={inviteDialog.open}>
               <MailPlusIcon className="size-4" />
-              {t("dashboard.invite")}
+              {t("setting.member.invite-operator")}
             </Button>
           </div>
         </header>

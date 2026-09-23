@@ -3,10 +3,14 @@ package test
 import (
 	"context"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/require"
 	colorpb "google.golang.org/genproto/googleapis/type/color"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 	"google.golang.org/protobuf/types/known/fieldmaskpb"
+	"google.golang.org/protobuf/types/known/timestamppb"
 
 	apiv1 "github.com/usememos/memos/proto/gen/api/v1"
 	storepb "github.com/usememos/memos/proto/gen/store"
@@ -203,4 +207,93 @@ func TestUserTagSettingsPermissionDeniedForOtherUser(t *testing.T) {
 	})
 	require.Error(t, err)
 	require.Contains(t, err.Error(), "permission denied")
+}
+
+func TestUserPackageSetting(t *testing.T) {
+	ctx := context.Background()
+	ts := NewTestService(t)
+	defer ts.Cleanup()
+
+	admin, err := ts.CreateHostUser(ctx, "admin")
+	require.NoError(t, err)
+	member, err := ts.CreateRegularUser(ctx, "member")
+	require.NoError(t, err)
+	other, err := ts.CreateRegularUser(ctx, "other")
+	require.NoError(t, err)
+	adminCtx := ts.CreateUserContext(ctx, admin.ID)
+	memberCtx := ts.CreateUserContext(ctx, member.ID)
+	otherCtx := ts.CreateUserContext(ctx, other.ID)
+	name := "users/member/settings/PACKAGE"
+	expire := timestamppb.New(time.Date(2027, 1, 1, 0, 0, 0, 0, time.UTC))
+	packageUpdate := func(plan apiv1.UserSetting_PackageSetting_Plan, paths ...string) *apiv1.UpdateUserSettingRequest {
+		return &apiv1.UpdateUserSettingRequest{
+			Setting: &apiv1.UserSetting{
+				Name: name,
+				Value: &apiv1.UserSetting_PackageSetting_{
+					PackageSetting: &apiv1.UserSetting_PackageSetting{Plan: plan, ExpireTime: expire},
+				},
+			},
+			UpdateMask: &fieldmaskpb.FieldMask{Paths: paths},
+		}
+	}
+
+	t.Run("a member with no package reads Free", func(t *testing.T) {
+		setting, err := ts.Service.GetUserSetting(memberCtx, &apiv1.GetUserSettingRequest{Name: name})
+		require.NoError(t, err)
+		require.Equal(t, apiv1.UserSetting_PackageSetting_FREE, setting.GetPackageSetting().Plan)
+		require.Nil(t, setting.GetPackageSetting().ExpireTime)
+	})
+
+	t.Run("a member cannot set their own package", func(t *testing.T) {
+		_, err := ts.Service.UpdateUserSetting(memberCtx, packageUpdate(apiv1.UserSetting_PackageSetting_TEAMS, "plan"))
+		require.Equal(t, codes.PermissionDenied, status.Code(err))
+		require.Contains(t, err.Error(), "operator")
+	})
+
+	t.Run("the operator sets Teams with an expiry", func(t *testing.T) {
+		setting, err := ts.Service.UpdateUserSetting(adminCtx, packageUpdate(apiv1.UserSetting_PackageSetting_TEAMS, "plan", "expire_time"))
+		require.NoError(t, err)
+		require.Equal(t, apiv1.UserSetting_PackageSetting_TEAMS, setting.GetPackageSetting().Plan)
+		require.True(t, expire.AsTime().Equal(setting.GetPackageSetting().ExpireTime.AsTime()))
+
+		mine, err := ts.Service.GetUserSetting(memberCtx, &apiv1.GetUserSettingRequest{Name: name})
+		require.NoError(t, err)
+		require.Equal(t, apiv1.UserSetting_PackageSetting_TEAMS, mine.GetPackageSetting().Plan)
+
+		listed, err := ts.Service.ListUserSettings(memberCtx, &apiv1.ListUserSettingsRequest{Parent: "users/member"})
+		require.NoError(t, err)
+		var found bool
+		for _, s := range listed.Settings {
+			if s.GetPackageSetting() != nil {
+				found = true
+				require.Equal(t, apiv1.UserSetting_PackageSetting_TEAMS, s.GetPackageSetting().Plan)
+			}
+		}
+		require.True(t, found, "package listed with the member's own settings")
+	})
+
+	t.Run("the operator reads a member's package, another member cannot", func(t *testing.T) {
+		setting, err := ts.Service.GetUserSetting(adminCtx, &apiv1.GetUserSettingRequest{Name: name})
+		require.NoError(t, err)
+		require.Equal(t, apiv1.UserSetting_PackageSetting_TEAMS, setting.GetPackageSetting().Plan)
+
+		_, err = ts.Service.GetUserSetting(otherCtx, &apiv1.GetUserSettingRequest{Name: name})
+		require.Equal(t, codes.PermissionDenied, status.Code(err))
+		_, err = ts.Service.GetUserSetting(otherCtx, &apiv1.GetUserSettingRequest{Name: "users/member/settings/GENERAL"})
+		require.Equal(t, codes.PermissionDenied, status.Code(err), "operator exception is for the package only")
+	})
+
+	t.Run("a mask of plan only keeps the expiry", func(t *testing.T) {
+		setting, err := ts.Service.UpdateUserSetting(adminCtx, packageUpdate(apiv1.UserSetting_PackageSetting_FREE, "plan"))
+		require.NoError(t, err)
+		require.Equal(t, apiv1.UserSetting_PackageSetting_FREE, setting.GetPackageSetting().Plan)
+		require.NotNil(t, setting.GetPackageSetting().ExpireTime)
+	})
+
+	t.Run("an unknown plan or mask path is InvalidArgument", func(t *testing.T) {
+		_, err := ts.Service.UpdateUserSetting(adminCtx, packageUpdate(apiv1.UserSetting_PackageSetting_PLAN_UNSPECIFIED, "plan"))
+		require.Equal(t, codes.InvalidArgument, status.Code(err))
+		_, err = ts.Service.UpdateUserSetting(adminCtx, packageUpdate(apiv1.UserSetting_PackageSetting_TEAMS, "tags"))
+		require.Equal(t, codes.InvalidArgument, status.Code(err))
+	})
 }

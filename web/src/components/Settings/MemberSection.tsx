@@ -19,6 +19,7 @@ import { User, User_Role } from "@/types/proto/api/v1/user_service_pb";
 import { useTranslate } from "@/utils/i18n";
 import CreateUserDialog from "../CreateUserDialog";
 import InviteUserDialog from "../InviteUserDialog";
+import SetPackageDialog from "../SetPackageDialog";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "../ui/dropdown-menu";
 import SettingSection from "./SettingSection";
 import SettingTable from "./SettingTable";
@@ -31,6 +32,8 @@ const MemberSection = () => {
   const createDialog = useDialog();
   const editDialog = useDialog();
   const inviteDialog = useDialog();
+  const packageDialog = useDialog();
+  const [packageUser, setPackageUser] = useState<User | undefined>();
   const [editingUser, setEditingUser] = useState<User | undefined>();
   const sortedUsers = useMemo(() => sortBy(users, "id"), [users]);
   const [archiveTarget, setArchiveTarget] = useState<User | undefined>(undefined);
@@ -46,6 +49,11 @@ const MemberSection = () => {
   const handleEditUser = (user: User) => {
     setEditingUser(user);
     editDialog.open();
+  };
+
+  const handleSetPackage = (user: User) => {
+    setPackageUser(user);
+    packageDialog.open();
   };
 
   const handleArchiveUserClick = (user: User) => {
@@ -114,7 +122,7 @@ const MemberSection = () => {
         <>
           <Button variant="outline" onClick={inviteDialog.open}>
             <MailPlusIcon className="w-4 h-4 mr-2" />
-            {t("setting.member.invite")}
+            {t("setting.member.invite-operator")}
           </Button>
           <Button onClick={handleCreateUser}>
             <PlusIcon className="w-4 h-4 mr-2" />
@@ -181,6 +189,9 @@ const MemberSection = () => {
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="end" sideOffset={2}>
                     <DropdownMenuItem onClick={() => handleEditUser(user)}>{t("common.update")}</DropdownMenuItem>
+                    {user.role === User_Role.USER && (
+                      <DropdownMenuItem onClick={() => handleSetPackage(user)}>{t("setting.member.package")}</DropdownMenuItem>
+                    )}
                     {user.state === State.NORMAL ? (
                       <DropdownMenuItem onClick={() => handleArchiveUserClick(user)}>{t("setting.member.archive-member")}</DropdownMenuItem>
                     ) : (
@@ -200,6 +211,8 @@ const MemberSection = () => {
         emptyMessage={t("setting.member.no-members-found")}
         getRowKey={(user) => user.name}
       />
+
+      <SetPackageDialog user={packageUser} open={packageDialog.isOpen} onOpenChange={packageDialog.setOpen} />
 
       {/* Create User Dialog */}
       <CreateUserDialog open={createDialog.isOpen} onOpenChange={createDialog.setOpen} onSuccess={refetchUsers} />

@@ -28,15 +28,15 @@ func (s *APIV1Service) GetUserSetting(ctx context.Context, request *v1pb.GetUser
 		return nil, status.Errorf(codes.Unauthenticated, "user not authenticated")
 	}
 
-	// Only allow user to get their own settings
-	if currentUser.ID != userID {
-		return nil, status.Errorf(codes.PermissionDenied, "permission denied")
-	}
-
 	// Convert setting key string to store enum
 	storeKey, err := convertSettingKeyToStore(settingKey)
 	if err != nil {
 		return nil, status.Errorf(codes.InvalidArgument, "invalid setting key: %v", err)
+	}
+
+	// Users read their own settings; the operator may also read any user's package.
+	if currentUser.ID != userID && !(storeKey == storepb.UserSetting_PACKAGE && currentUser.Role == store.RoleAdmin) {
+		return nil, status.Errorf(codes.PermissionDenied, "permission denied")
 	}
 
 	userSetting, err := s.Store.GetUserSetting(ctx, &store.FindUserSetting{
@@ -66,19 +66,24 @@ func (s *APIV1Service) UpdateUserSetting(ctx context.Context, request *v1pb.Upda
 		return nil, status.Errorf(codes.Unauthenticated, "user not authenticated")
 	}
 
-	// Only allow user to update their own settings
-	if currentUser.ID != userID {
+	// Convert setting key string to store enum
+	storeKey, err := convertSettingKeyToStore(settingKey)
+	if err != nil {
+		return nil, status.Errorf(codes.InvalidArgument, "invalid setting key: %v", err)
+	}
+
+	// Users update their own settings, except the package, which only the
+	// operator sets, for any user.
+	if storeKey == storepb.UserSetting_PACKAGE {
+		if currentUser.Role != store.RoleAdmin {
+			return nil, status.Errorf(codes.PermissionDenied, "only the operator can set a package")
+		}
+	} else if currentUser.ID != userID {
 		return nil, status.Errorf(codes.PermissionDenied, "permission denied")
 	}
 
 	if request.UpdateMask == nil || len(request.UpdateMask.Paths) == 0 {
 		return nil, status.Errorf(codes.InvalidArgument, "update mask is empty")
-	}
-
-	// Convert setting key string to store enum
-	storeKey, err := convertSettingKeyToStore(settingKey)
-	if err != nil {
-		return nil, status.Errorf(codes.InvalidArgument, "invalid setting key: %v", err)
 	}
 
 	var updatedSetting *v1pb.UserSetting
@@ -150,6 +155,33 @@ func (s *APIV1Service) UpdateUserSetting(ctx context.Context, request *v1pb.Upda
 			Value: &v1pb.UserSetting_TagsSetting_{
 				TagsSetting: incomingTags,
 			},
+		}
+	case storepb.UserSetting_PACKAGE:
+		incoming := request.Setting.GetPackageSetting()
+		if incoming == nil {
+			return nil, status.Errorf(codes.InvalidArgument, "package setting is required")
+		}
+		existing, err := s.Store.GetUserPackage(ctx, userID)
+		if err != nil {
+			return nil, status.Errorf(codes.Internal, "failed to get user package: %v", err)
+		}
+		updated := convertUserPackageSettingFromStore(existing)
+		for _, field := range request.UpdateMask.Paths {
+			switch field {
+			case "plan":
+				updated.Plan = incoming.Plan
+			case "expire_time":
+				updated.ExpireTime = incoming.ExpireTime
+			default:
+				return nil, status.Errorf(codes.InvalidArgument, "unsupported update mask path for package setting: %s", field)
+			}
+		}
+		if updated.Plan != v1pb.UserSetting_PackageSetting_FREE && updated.Plan != v1pb.UserSetting_PackageSetting_TEAMS {
+			return nil, status.Errorf(codes.InvalidArgument, "plan must be FREE or TEAMS")
+		}
+		updatedSetting = &v1pb.UserSetting{
+			Name:  request.Setting.Name,
+			Value: &v1pb.UserSetting_PackageSetting_{PackageSetting: updated},
 		}
 	default:
 		return nil, status.Errorf(codes.InvalidArgument, "setting type %s should not be updated via UpdateUserSetting", storeKey.String())

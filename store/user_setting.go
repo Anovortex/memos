@@ -472,6 +472,12 @@ func convertUserSettingFromRaw(raw *UserSetting) (*storepb.UserSetting, error) {
 			return nil, errors.Wrap(err, "unmarshal password reset user setting")
 		}
 		userSetting.Value = &storepb.UserSetting_PasswordReset{PasswordReset: passwordReset}
+	case storepb.UserSetting_PACKAGE:
+		pkg := &storepb.PackageUserSetting{}
+		if err := protojsonUnmarshaler.Unmarshal([]byte(raw.Value), pkg); err != nil {
+			return nil, errors.Wrap(err, "unmarshal package user setting")
+		}
+		userSetting.Value = &storepb.UserSetting_Package{Package: pkg}
 	default:
 		return nil, nil
 	}
@@ -537,6 +543,12 @@ func convertUserSettingToRaw(userSetting *storepb.UserSetting) (*UserSetting, er
 		value, err := protojson.Marshal(userSetting.GetPasswordReset())
 		if err != nil {
 			return nil, errors.Wrap(err, "marshal password reset user setting")
+		}
+		raw.Value = string(value)
+	case storepb.UserSetting_PACKAGE:
+		value, err := protojson.Marshal(userSetting.GetPackage())
+		if err != nil {
+			return nil, errors.Wrap(err, "marshal package user setting")
 		}
 		raw.Value = string(value)
 	default:
@@ -615,6 +627,21 @@ func (s *Store) SetUserPasswordReset(ctx context.Context, userID int32, reset *s
 		Value:  &storepb.UserSetting_PasswordReset{PasswordReset: reset},
 	})
 	return err
+}
+
+// GetUserPackage returns the operator-set package, or nil when none was set.
+func (s *Store) GetUserPackage(ctx context.Context, userID int32) (*storepb.PackageUserSetting, error) {
+	userSetting, err := s.GetUserSetting(ctx, &FindUserSetting{
+		UserID: &userID,
+		Key:    storepb.UserSetting_PACKAGE,
+	})
+	if err != nil {
+		return nil, err
+	}
+	if userSetting == nil {
+		return nil, nil
+	}
+	return userSetting.GetPackage(), nil
 }
 
 // ClearUserPasswordReset removes the pending password reset challenge.

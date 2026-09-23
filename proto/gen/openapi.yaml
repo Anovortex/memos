@@ -4198,6 +4198,8 @@ components:
                     $ref: '#/components/schemas/UserSetting_WebhooksSetting'
                 tagsSetting:
                     $ref: '#/components/schemas/UserSetting_TagsSetting'
+                packageSetting:
+                    $ref: '#/components/schemas/UserSetting_PackageSetting'
             description: User settings message
         UserSetting_GeneralSetting:
             type: object
@@ -4215,6 +4217,23 @@ components:
                          This references a CSS file in the web/public/themes/ directory.
                          If not set, the default theme will be used.
             description: General user settings configuration.
+        UserSetting_PackageSetting:
+            type: object
+            properties:
+                plan:
+                    enum:
+                        - PLAN_UNSPECIFIED
+                        - FREE
+                        - TEAMS
+                    type: string
+                    format: enum
+                expireTime:
+                    type: string
+                    description: When the plan lapses back to FREE. Unset means it does not lapse.
+                    format: date-time
+            description: |-
+                Operator-set package: the plan and when it lapses. Members can read
+                 their own package; only the operator can update it.
         UserSetting_TagMetadata:
             type: object
             properties:

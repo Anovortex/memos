@@ -7,6 +7,7 @@ import type { Shortcut } from "@/types/proto/api/v1/shortcut_service_pb";
 import type {
   User,
   UserSetting_GeneralSetting,
+  UserSetting_PackageSetting,
   UserSetting_TagsSetting,
   UserSetting_WebhooksSetting,
 } from "@/types/proto/api/v1/user_service_pb";
@@ -16,6 +17,7 @@ interface AuthState {
   userGeneralSetting: UserSetting_GeneralSetting | undefined;
   userWebhooksSetting: UserSetting_WebhooksSetting | undefined;
   userTagsSetting: UserSetting_TagsSetting | undefined;
+  userPackageSetting: UserSetting_PackageSetting | undefined;
   shortcuts: Shortcut[];
   isInitialized: boolean;
   isLoading: boolean;
@@ -36,6 +38,7 @@ const UNAUTHENTICATED_STATE: AuthState = {
   userGeneralSetting: undefined,
   userWebhooksSetting: undefined,
   userTagsSetting: undefined,
+  userPackageSetting: undefined,
   shortcuts: [],
   isInitialized: true,
   isLoading: false,
@@ -48,6 +51,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     userGeneralSetting: undefined,
     userWebhooksSetting: undefined,
     userTagsSetting: undefined,
+    userPackageSetting: undefined,
     shortcuts: [],
     isInitialized: false,
     isLoading: true,
@@ -62,11 +66,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const generalSetting = settings.find((s) => s.value.case === "generalSetting");
     const webhooksSetting = settings.find((s) => s.value.case === "webhooksSetting");
     const tagsSetting = settings.find((s) => s.value.case === "tagsSetting");
+    const packageSetting = settings.find((s) => s.value.case === "packageSetting");
 
     return {
       userGeneralSetting: generalSetting?.value.case === "generalSetting" ? generalSetting.value.value : undefined,
       userWebhooksSetting: webhooksSetting?.value.case === "webhooksSetting" ? webhooksSetting.value.value : undefined,
       userTagsSetting: tagsSetting?.value.case === "tagsSetting" ? tagsSetting.value.value : undefined,
+      userPackageSetting: packageSetting?.value.case === "packageSetting" ? packageSetting.value.value : undefined,
       shortcuts,
     };
   }, []);

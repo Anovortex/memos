@@ -7,10 +7,12 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { userServiceClient } from "@/connect";
+import useCurrentUser from "@/hooks/useCurrentUser";
 import useLoading from "@/hooks/useLoading";
 import { handleError } from "@/lib/error";
 import { UserInvite } from "@/types/proto/api/v1/user_service_pb";
 import { useTranslate } from "@/utils/i18n";
+import { isSuperUser } from "@/utils/user";
 
 interface Props {
   open: boolean;
@@ -19,9 +21,11 @@ interface Props {
 
 const FORM_ID = "invite-user-form";
 
-// Issues an invite link for one email address and shows it for copying.
+// Issues an invite link for one email address and shows it for copying. The
+// link grants the inviter's own role, so the copy says which account it makes.
 function InviteUserDialog({ open, onOpenChange }: Props) {
   const t = useTranslate();
+  const operator = isSuperUser(useCurrentUser());
   const requestState = useLoading(false);
   const [email, setEmail] = useState("");
   const [invite, setInvite] = useState<UserInvite | undefined>();
@@ -66,8 +70,10 @@ function InviteUserDialog({ open, onOpenChange }: Props) {
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-md">
         <DialogHeader>
-          <DialogTitle>{t("setting.member.invite-title")}</DialogTitle>
-          <DialogDescription>{t("setting.member.invite-description")}</DialogDescription>
+          <DialogTitle>{operator ? t("setting.member.invite-operator-title") : t("setting.member.invite-title")}</DialogTitle>
+          <DialogDescription>
+            {operator ? t("setting.member.invite-operator-description") : t("setting.member.invite-description")}
+          </DialogDescription>
         </DialogHeader>
         {invite ? (
           <div className="flex flex-col gap-3">

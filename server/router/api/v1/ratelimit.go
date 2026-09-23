@@ -22,6 +22,7 @@ const (
 	FlowVerifyUser RateLimitFlow = "verify-user" // user ID
 	FlowSearchUser RateLimitFlow = "search-user" // user ID
 	FlowTokenIP    RateLimitFlow = "token-ip"    // client address; VerifyEmail and ResetPassword
+	FlowInviteUser RateLimitFlow = "invite-user" // user ID
 )
 
 // RateLimits maps each flow to its limiter. A nil map, or a missing flow,
@@ -38,6 +39,7 @@ func DefaultRateLimits() RateLimits {
 		FlowResetEmail: ratelimit.New(ratelimit.PerHour(3), 3),
 		FlowVerifyUser: ratelimit.New(ratelimit.PerHour(3), 3),
 		FlowSearchUser: ratelimit.New(ratelimit.PerMinute(30), 30),
+		FlowInviteUser: ratelimit.New(ratelimit.PerHour(20), 20),
 		// Tokens are ~190 bits, so this is a backstop, not the defense.
 		FlowTokenIP: ratelimit.New(ratelimit.PerHour(30), 30),
 	}

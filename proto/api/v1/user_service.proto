@@ -474,6 +474,7 @@ message UserSetting {
     GeneralSetting general_setting = 2;
     WebhooksSetting webhooks_setting = 5;
     TagsSetting tags_setting = 6;
+    PackageSetting package_setting = 7;
   }
 
   // Enumeration of user setting keys.
@@ -485,6 +486,8 @@ message UserSetting {
     WEBHOOKS = 4;
     // TAGS is the key for per-user tag metadata.
     TAGS = 5;
+    // PACKAGE is the key for the operator-set plan and expiry.
+    PACKAGE = 6;
   }
 
   // General user settings configuration.
@@ -519,6 +522,19 @@ message UserSetting {
   message WebhooksSetting {
     // List of user webhooks.
     repeated UserWebhook webhooks = 1;
+  }
+
+  // Operator-set package: the plan and when it lapses. Members can read
+  // their own package; only the operator can update it.
+  message PackageSetting {
+    enum Plan {
+      PLAN_UNSPECIFIED = 0;
+      FREE = 1;
+      TEAMS = 2;
+    }
+    Plan plan = 1 [(google.api.field_behavior) = OPTIONAL];
+    // When the plan lapses back to FREE. Unset means it does not lapse.
+    google.protobuf.Timestamp expire_time = 2 [(google.api.field_behavior) = OPTIONAL];
   }
 }
 

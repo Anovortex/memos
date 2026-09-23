@@ -5,12 +5,14 @@ import (
 	"fmt"
 	"net/url"
 	"strings"
+	"time"
 
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 	"google.golang.org/protobuf/types/known/timestamppb"
 
 	"github.com/usememos/memos/internal/email"
+	"github.com/usememos/memos/internal/plan"
 	v1pb "github.com/usememos/memos/proto/gen/api/v1"
 	"github.com/usememos/memos/server/auth"
 	"github.com/usememos/memos/store"
@@ -19,8 +21,10 @@ import (
 // inviteSignupPath is the frontend route that reads the invite query param.
 const inviteSignupPath = "/auth/signup"
 
-// CreateUserInvite issues a signed invite link for one email address.
-// Administrators only. The link is always returned so the operator can share
+// CreateUserInvite issues a signed invite link for one email address. The
+// operator may always invite; a member may invite while on an active Teams
+// package. The link grants the caller's own role: operators invite operators,
+// members invite members. The link is always returned so the caller can share
 // it; when SMTP is configured it is also emailed to the invitee.
 func (s *APIV1Service) CreateUserInvite(ctx context.Context, request *v1pb.CreateUserInviteRequest) (*v1pb.UserInvite, error) {
 	currentUser, err := s.fetchCurrentUser(ctx)
@@ -30,8 +34,17 @@ func (s *APIV1Service) CreateUserInvite(ctx context.Context, request *v1pb.Creat
 	if currentUser == nil {
 		return nil, status.Errorf(codes.Unauthenticated, "user not authenticated")
 	}
+	if err := s.RateLimits.check(FlowInviteUser, fmt.Sprint(currentUser.ID)); err != nil {
+		return nil, err
+	}
 	if currentUser.Role != store.RoleAdmin {
-		return nil, status.Errorf(codes.PermissionDenied, "permission denied")
+		pkg, err := s.Store.GetUserPackage(ctx, currentUser.ID)
+		if err != nil {
+			return nil, status.Errorf(codes.Internal, "failed to get user package: %v", err)
+		}
+		if plan.Effective(pkg, time.Now()) != plan.TierTeams {
+			return nil, status.Errorf(codes.PermissionDenied, "invites are part of the Teams package")
+		}
 	}
 
 	address := normalizeEmail(request.GetEmail())
@@ -51,7 +64,7 @@ func (s *APIV1Service) CreateUserInvite(ctx context.Context, request *v1pb.Creat
 		return nil, status.Errorf(codes.FailedPrecondition, "instance URL is not configured")
 	}
 
-	token, expiresAt, err := auth.GenerateInviteToken(address, []byte(s.Secret))
+	token, expiresAt, err := auth.GenerateInviteToken(address, string(currentUser.Role), []byte(s.Secret))
 	if err != nil {
 		return nil, status.Errorf(codes.Internal, "failed to generate invite token")
 	}
@@ -70,11 +83,15 @@ func (s *APIV1Service) CreateUserInvite(ctx context.Context, request *v1pb.Creat
 		}
 		return nil, err
 	}
+	invitation := "has invited you to join Noviledger Notes."
+	if currentUser.Role == store.RoleAdmin {
+		invitation = "has invited you to help run Noviledger Notes as an operator."
+	}
 	body := []string{
 		"Hi,",
 		"",
-		fmt.Sprintf("%s runs Noviledger Notes and has invited you to create an account", displayName(currentUser)),
-		"with this email address. Open the link below to sign up. It expires in 7 days.",
+		fmt.Sprintf("%s %s", displayName(currentUser), invitation),
+		"Open the link below to create your account with this email address. It expires in 7 days.",
 		"",
 		invite.Link,
 		"",
