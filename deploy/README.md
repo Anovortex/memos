@@ -67,3 +67,33 @@ separate database. Do not copy its live data volume as a backup. Back up
 `memos-production_memos_data` separately because a database dump does not
 contain locally stored attachments. A coordinated stopped-volume snapshot or
 PostgreSQL PITR setup is also valid when accompanied by a tested restore plan.
+
+## Backups
+
+`backup.sh` writes a `pg_dump -Fc` of the database and a tar.gz of the Memos
+data directory (attachments), each with a `.sha256` sidecar, into
+`~/backups/memos`, and prunes files older than 14 days. It runs `pg_dump`
+inside the postgres container, so the host needs no PostgreSQL client. On a
+rootless Podman host it reads the bind-mounted data directory through
+`podman unshare`.
+
+Install the nightly timer as the deploy user (units assume the checkout at
+`~/repos/memos`; edit the paths in `memos-backup.service` otherwise):
+
+```bash
+install -Dm644 deploy/memos-backup.service deploy/memos-backup.timer -t ~/.config/systemd/user/
+systemctl --user daemon-reload
+systemctl --user enable --now memos-backup.timer
+loginctl enable-linger "$USER"      # so the timer runs without a login session
+```
+
+Run it once by hand and verify the dump is restorable:
+
+```bash
+systemctl --user start memos-backup.service
+journalctl --user -u memos-backup.service -n 20
+pg_restore --list ~/backups/memos/memos-*.dump | head
+```
+
+Copy `~/backups/memos` off the host on a schedule (rsync over SSH or rclone).
+A backup that only lives on the machine it protects is not a backup.

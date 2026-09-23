@@ -1,0 +1,11 @@
+# systemd --user unit. Adjust the paths if the deployment lives elsewhere.
+#   install -Dm644 memos-backup.service memos-backup.timer -t ~/.config/systemd/user/
+#   systemctl --user daemon-reload && systemctl --user enable --now memos-backup.timer
+[Unit]
+Description=Back up Memos (PostgreSQL dump + data directory)
+
+[Service]
+Type=oneshot
+Environment=COMPOSE_DIR=%h/repos/memos/deploy
+Environment=BACKUP_DIR=%h/backups/memos
+ExecStart=%h/repos/memos/deploy/backup.sh
