@@ -18,7 +18,9 @@ const Setting = () => {
   const isHost = user?.role === User_Role.ADMIN;
 
   const sectionGroups = useMemo(() => {
-    const visibleSections = SETTINGS_SECTIONS.filter((section) => section.scope === "basic" || isHost);
+    const visibleSections = SETTINGS_SECTIONS.filter(
+      (section) => section.scope === "basic" || (section.scope === "member" && !isHost) || (section.scope === "admin" && isHost),
+    );
     return {
       admin: visibleSections.filter((section) => section.scope === "admin"),
       all: visibleSections,

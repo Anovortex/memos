@@ -10,6 +10,7 @@ import {
   type LucideIcon,
   MailIcon,
   Settings2Icon,
+  SparklesIcon,
   TagsIcon,
   UserIcon,
   UsersIcon,
@@ -24,6 +25,7 @@ import MemoExportSection from "@/components/Settings/MemoExportSection";
 import MemoRelatedSettings from "@/components/Settings/MemoRelatedSettings";
 import MyAccountSection from "@/components/Settings/MyAccountSection";
 import NotificationSection from "@/components/Settings/NotificationSection";
+import PlanSection from "@/components/Settings/PlanSection";
 import PreferencesSection from "@/components/Settings/PreferencesSection";
 import SpacesSection from "@/components/Settings/SpacesSection";
 import SSOSection from "@/components/Settings/SSOSection";
@@ -35,6 +37,7 @@ import { InstanceSetting_Key } from "@/types/proto/api/v1/instance_service_pb";
 
 export type SettingSectionKey =
   | "my-account"
+  | "plan"
   | "memo-export"
   | "spaces"
   | "access-token"
@@ -49,7 +52,8 @@ export type SettingSectionKey =
   | "tags"
   | "ai";
 
-type SettingSectionScope = "basic" | "admin";
+// "member" sections are basic sections that only members (not the operator) get.
+type SettingSectionScope = "basic" | "member" | "admin";
 
 export interface SettingSectionDefinition {
   key: SettingSectionKey;
@@ -67,6 +71,13 @@ const ALL_SETTINGS_SECTIONS: SettingSectionDefinition[] = [
     labelKey: "setting.my-account.label",
     icon: UserIcon,
     component: MyAccountSection,
+  },
+  {
+    key: "plan",
+    scope: "member",
+    labelKey: "setting.plan.label",
+    icon: SparklesIcon,
+    component: PlanSection,
   },
   {
     key: "spaces",

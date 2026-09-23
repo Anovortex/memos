@@ -19,7 +19,8 @@ import { User, User_Role } from "@/types/proto/api/v1/user_service_pb";
 import { useTranslate } from "@/utils/i18n";
 import CreateUserDialog from "../CreateUserDialog";
 import InviteUserDialog from "../InviteUserDialog";
-import SetPackageDialog from "../SetPackageDialog";
+import PlanBadge from "../PlanBadge";
+import SetPlanDialog from "../SetPlanDialog";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "../ui/dropdown-menu";
 import SettingSection from "./SettingSection";
 import SettingTable from "./SettingTable";
@@ -168,6 +169,7 @@ const MemberSection = () => {
                   <Badge variant={user.state === State.ARCHIVED ? "outline" : "default"} className="rounded-full px-2.5 py-0.5">
                     {user.state === State.ARCHIVED ? t("setting.member.archived") : t("setting.member.active")}
                   </Badge>
+                  {user.role === User_Role.USER && <PlanBadge userName={user.name} />}
                 </div>
                 {user.email ? (
                   <div className="flex flex-wrap gap-2">
@@ -190,7 +192,7 @@ const MemberSection = () => {
                   <DropdownMenuContent align="end" sideOffset={2}>
                     <DropdownMenuItem onClick={() => handleEditUser(user)}>{t("common.update")}</DropdownMenuItem>
                     {user.role === User_Role.USER && (
-                      <DropdownMenuItem onClick={() => handleSetPackage(user)}>{t("setting.member.package")}</DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => handleSetPackage(user)}>{t("setting.member.plan")}</DropdownMenuItem>
                     )}
                     {user.state === State.NORMAL ? (
                       <DropdownMenuItem onClick={() => handleArchiveUserClick(user)}>{t("setting.member.archive-member")}</DropdownMenuItem>
@@ -212,7 +214,7 @@ const MemberSection = () => {
         getRowKey={(user) => user.name}
       />
 
-      <SetPackageDialog user={packageUser} open={packageDialog.isOpen} onOpenChange={packageDialog.setOpen} />
+      <SetPlanDialog user={packageUser} open={packageDialog.isOpen} onOpenChange={packageDialog.setOpen} />
 
       {/* Create User Dialog */}
       <CreateUserDialog open={createDialog.isOpen} onOpenChange={createDialog.setOpen} onSuccess={refetchUsers} />

@@ -749,8 +749,9 @@ message UserSetting {
     repeated UserWebhook webhooks = 1;
   }
 
-  // Operator-set package: the plan and when it lapses. Members can read
-  // their own package; only the operator can update it.
+  // The member's plan ("plan" in the UI): what the operator granted, when it
+  // lapses, and what the member asked for. Members read their own; only the
+  // operator sets plan and expiry.
   message PackageSetting {
     enum Plan {
       PLAN_UNSPECIFIED = 0;
@@ -760,6 +761,9 @@ message UserSetting {
     Plan plan = 1 [(google.api.field_behavior) = OPTIONAL];
     // When the plan lapses back to FREE. Unset means it does not lapse.
     google.protobuf.Timestamp expire_time = 2 [(google.api.field_behavior) = OPTIONAL];
+    // The plan the member asked for. A member may update only this field, on
+    // their own setting; the operator's next plan change answers it.
+    Plan requested_plan = 3 [(google.api.field_behavior) = OPTIONAL];
   }
 }
 

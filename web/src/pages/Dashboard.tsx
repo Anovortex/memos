@@ -3,8 +3,10 @@ import { MailPlusIcon, RefreshCwIcon, UsersIcon } from "lucide-react";
 import { useMemo } from "react";
 import { Link } from "react-router-dom";
 import InviteUserDialog from "@/components/InviteUserDialog";
+import PlanBadge from "@/components/PlanBadge";
 import { SettingList, SettingListItem } from "@/components/Settings/SettingList";
 import { Button } from "@/components/ui/button";
+import useCurrentUser from "@/hooks/useCurrentUser";
 import { useDialog } from "@/hooks/useDialog";
 import { instanceKeys, useInstanceStats } from "@/hooks/useInstanceQueries";
 import { cn } from "@/lib/utils";
@@ -61,6 +63,7 @@ const StatTile = ({ label, value, hint, className }: StatTileProps) => (
 
 const Dashboard = () => {
   const t = useTranslate();
+  const currentUser = useCurrentUser();
   const queryClient = useQueryClient();
   const inviteDialog = useDialog();
   const { data, isLoading, isError, isFetching } = useInstanceStats();
@@ -168,7 +171,12 @@ const Dashboard = () => {
               return (
                 <SettingListItem
                   key={item.name}
-                  label={`@${username}`}
+                  label={
+                    <span className="flex flex-wrap items-center gap-2">
+                      @{username}
+                      {item.name !== currentUser?.name && <PlanBadge userName={item.name} />}
+                    </span>
+                  }
                   description={activity}
                   controlClassName="w-full justify-end sm:w-auto"
                 >

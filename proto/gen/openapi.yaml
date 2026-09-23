@@ -5468,9 +5468,20 @@ components:
                     type: string
                     description: When the plan lapses back to FREE. Unset means it does not lapse.
                     format: date-time
+                requestedPlan:
+                    enum:
+                        - PLAN_UNSPECIFIED
+                        - FREE
+                        - TEAMS
+                    type: string
+                    description: |-
+                        The plan the member asked for. A member may update only this field, on
+                         their own setting; the operator's next plan change answers it.
+                    format: enum
             description: |-
-                Operator-set package: the plan and when it lapses. Members can read
-                 their own package; only the operator can update it.
+                The member's plan ("plan" in the UI): what the operator granted, when it
+                 lapses, and what the member asked for. Members read their own; only the
+                 operator sets plan and expiry.
         UserSetting_TagMetadata:
             type: object
             properties:

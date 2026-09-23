@@ -72,13 +72,11 @@ func (s *APIV1Service) UpdateUserSetting(ctx context.Context, request *v1pb.Upda
 		return nil, status.Errorf(codes.InvalidArgument, "invalid setting key: %v", err)
 	}
 
-	// Users update their own settings, except the package, which only the
-	// operator sets, for any user.
-	if storeKey == storepb.UserSetting_PACKAGE {
-		if currentUser.Role != store.RoleAdmin {
-			return nil, status.Errorf(codes.PermissionDenied, "only the operator can set a package")
-		}
-	} else if currentUser.ID != userID {
+	// Users update their own settings. The plan record is the exception: the
+	// operator writes it for any user, and a member may only file a request on
+	// their own (the per-field checks below enforce which fields).
+	operator := currentUser.Role == store.RoleAdmin
+	if currentUser.ID != userID && !(storeKey == storepb.UserSetting_PACKAGE && operator) {
 		return nil, status.Errorf(codes.PermissionDenied, "permission denied")
 	}
 
@@ -171,15 +169,28 @@ func (s *APIV1Service) UpdateUserSetting(ctx context.Context, request *v1pb.Upda
 		for _, field := range request.UpdateMask.Paths {
 			switch field {
 			case "plan":
+				if !operator {
+					return nil, status.Errorf(codes.PermissionDenied, "only the operator can set a plan")
+				}
 				updated.Plan = incoming.Plan
+				// The operator's decision answers whatever was requested.
+				updated.RequestedPlan = v1pb.UserSetting_PackageSetting_PLAN_UNSPECIFIED
 			case "expire_time":
+				if !operator {
+					return nil, status.Errorf(codes.PermissionDenied, "only the operator can set a plan")
+				}
 				updated.ExpireTime = incoming.ExpireTime
+			case "requested_plan":
+				updated.RequestedPlan = incoming.RequestedPlan
 			default:
-				return nil, status.Errorf(codes.InvalidArgument, "unsupported update mask path for package setting: %s", field)
+				return nil, status.Errorf(codes.InvalidArgument, "unsupported update mask path for plan setting: %s", field)
 			}
 		}
 		if updated.Plan != v1pb.UserSetting_PackageSetting_FREE && updated.Plan != v1pb.UserSetting_PackageSetting_TEAMS {
 			return nil, status.Errorf(codes.InvalidArgument, "plan must be FREE or TEAMS")
+		}
+		if _, known := v1pb.UserSetting_PackageSetting_Plan_name[int32(updated.RequestedPlan)]; !known {
+			return nil, status.Errorf(codes.InvalidArgument, "requested plan must be FREE, TEAMS or unset")
 		}
 		updatedSetting = &v1pb.UserSetting{
 			Name:  request.Setting.Name,

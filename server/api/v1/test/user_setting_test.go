@@ -298,10 +298,35 @@ func TestUserPackageSetting(t *testing.T) {
 		require.Nil(t, setting.GetPackageSetting().ExpireTime)
 	})
 
-	t.Run("a member cannot set their own package", func(t *testing.T) {
+	t.Run("a member cannot set their own plan or expiry", func(t *testing.T) {
 		_, err := ts.Service.UpdateUserSetting(memberCtx, packageUpdate(apiv1.UserSetting_PackageSetting_TEAMS, "plan"))
 		require.Equal(t, codes.PermissionDenied, status.Code(err))
 		require.Contains(t, err.Error(), "operator")
+		_, err = ts.Service.UpdateUserSetting(memberCtx, packageUpdate(apiv1.UserSetting_PackageSetting_TEAMS, "expire_time"))
+		require.Equal(t, codes.PermissionDenied, status.Code(err))
+	})
+
+	t.Run("a member may request a plan on their own record only", func(t *testing.T) {
+		request := &apiv1.UpdateUserSettingRequest{
+			Setting: &apiv1.UserSetting{
+				Name: name,
+				Value: &apiv1.UserSetting_PackageSetting_{
+					PackageSetting: &apiv1.UserSetting_PackageSetting{RequestedPlan: apiv1.UserSetting_PackageSetting_TEAMS},
+				},
+			},
+			UpdateMask: &fieldmaskpb.FieldMask{Paths: []string{"requested_plan"}},
+		}
+		setting, err := ts.Service.UpdateUserSetting(memberCtx, request)
+		require.NoError(t, err)
+		require.Equal(t, apiv1.UserSetting_PackageSetting_TEAMS, setting.GetPackageSetting().RequestedPlan)
+		require.Equal(t, apiv1.UserSetting_PackageSetting_FREE, setting.GetPackageSetting().Plan, "the plan itself is untouched")
+
+		_, err = ts.Service.UpdateUserSetting(otherCtx, request)
+		require.Equal(t, codes.PermissionDenied, status.Code(err), "another member cannot file it")
+
+		seen, err := ts.Service.GetUserSetting(adminCtx, &apiv1.GetUserSettingRequest{Name: name})
+		require.NoError(t, err)
+		require.Equal(t, apiv1.UserSetting_PackageSetting_TEAMS, seen.GetPackageSetting().RequestedPlan, "the operator sees the request")
 	})
 
 	t.Run("the operator sets Teams with an expiry", func(t *testing.T) {
@@ -309,6 +334,7 @@ func TestUserPackageSetting(t *testing.T) {
 		require.NoError(t, err)
 		require.Equal(t, apiv1.UserSetting_PackageSetting_TEAMS, setting.GetPackageSetting().Plan)
 		require.True(t, expire.AsTime().Equal(setting.GetPackageSetting().ExpireTime.AsTime()))
+		require.Equal(t, apiv1.UserSetting_PackageSetting_PLAN_UNSPECIFIED, setting.GetPackageSetting().RequestedPlan, "the decision answers the request")
 
 		mine, err := ts.Service.GetUserSetting(memberCtx, &apiv1.GetUserSettingRequest{Name: name})
 		require.NoError(t, err)

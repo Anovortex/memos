@@ -21,10 +21,10 @@ interface Props {
   onOpenChange: (open: boolean) => void;
 }
 
-const FORM_ID = "set-package-form";
+const FORM_ID = "set-plan-form";
 const PLAN_OPTIONS = [
-  { value: UserSetting_PackageSetting_Plan.FREE, labelKey: "setting.member.package-free" },
-  { value: UserSetting_PackageSetting_Plan.TEAMS, labelKey: "setting.member.package-teams" },
+  { value: UserSetting_PackageSetting_Plan.FREE, labelKey: "setting.member.plan-free" },
+  { value: UserSetting_PackageSetting_Plan.TEAMS, labelKey: "setting.member.plan-teams" },
 ] as const;
 
 // The native date input speaks "YYYY-MM-DD" in the operator's local calendar;
@@ -37,13 +37,14 @@ const endOfDay = (value: string): Date => {
   return new Date(year, month - 1, day, 23, 59, 59);
 };
 
-// Lets the operator put a member on Free or Teams, with an optional lapse date.
-function SetPackageDialog({ user, open, onOpenChange }: Props) {
+// Lets the operator put a member on the Free or Teams plan, with an optional lapse date.
+function SetPlanDialog({ user, open, onOpenChange }: Props) {
   const t = useTranslate();
   const requestState = useLoading(false);
   const { mutateAsync: updateUserSetting } = useUpdateUserSetting();
   const [plan, setPlan] = useState<UserSetting_PackageSetting_Plan>(UserSetting_PackageSetting_Plan.FREE);
   const [expiry, setExpiry] = useState("");
+  const [requested, setRequested] = useState<UserSetting_PackageSetting_Plan>(UserSetting_PackageSetting_Plan.PLAN_UNSPECIFIED);
   const settingName = user ? buildUserSettingName(user.name, UserSetting_Key.PACKAGE) : "";
 
   // Show the member's current package every time the dialog opens.
@@ -59,7 +60,11 @@ function SetPackageDialog({ user, open, onOpenChange }: Props) {
           return;
         }
         const current = setting.value.value;
-        setPlan(current.plan === UserSetting_PackageSetting_Plan.TEAMS ? current.plan : UserSetting_PackageSetting_Plan.FREE);
+        setRequested(current.requestedPlan);
+        // Start from what the member asked for, when they asked for anything.
+        const preselected =
+          current.requestedPlan !== UserSetting_PackageSetting_Plan.PLAN_UNSPECIFIED ? current.requestedPlan : current.plan;
+        setPlan(preselected === UserSetting_PackageSetting_Plan.TEAMS ? preselected : UserSetting_PackageSetting_Plan.FREE);
         setExpiry(current.expireTime ? toDateInput(timestampDate(current.expireTime)) : "");
       })
       .catch((error: unknown) => handleError(error, toast.error, { context: "Load package" }));
@@ -86,7 +91,7 @@ function SetPackageDialog({ user, open, onOpenChange }: Props) {
         updateMask: ["plan", "expire_time"],
       });
       requestState.setFinish();
-      toast.success(t("setting.member.package-updated"));
+      toast.success(t("setting.member.plan-updated"));
       onOpenChange(false);
     } catch (error: unknown) {
       handleError(error, toast.error, {
@@ -100,12 +105,19 @@ function SetPackageDialog({ user, open, onOpenChange }: Props) {
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-md">
         <DialogHeader>
-          <DialogTitle>{t("setting.member.package-title", { username: user?.username ?? "" })}</DialogTitle>
-          <DialogDescription>{t("setting.member.package-description")}</DialogDescription>
+          <DialogTitle>{t("setting.member.plan-title", { username: user?.username ?? "" })}</DialogTitle>
+          <DialogDescription>{t("setting.member.plan-description")}</DialogDescription>
         </DialogHeader>
         <form id={FORM_ID} className="grid gap-4" onSubmit={handleSubmit}>
+          {requested !== UserSetting_PackageSetting_Plan.PLAN_UNSPECIFIED && (
+            <p className="rounded-md bg-muted/60 px-3 py-2 text-sm text-foreground">
+              {t("setting.member.plan-requested", {
+                plan: t(PLAN_OPTIONS.find((option) => option.value === requested)?.labelKey ?? "setting.member.plan-free"),
+              })}
+            </p>
+          )}
           <div className="grid gap-2">
-            <Label>{t("setting.member.package-plan")}</Label>
+            <Label>{t("setting.member.plan-choice")}</Label>
             <RadioGroup
               value={String(plan)}
               onValueChange={(value) => setPlan(Number(value) as UserSetting_PackageSetting_Plan)}
@@ -120,9 +132,9 @@ function SetPackageDialog({ user, open, onOpenChange }: Props) {
             </RadioGroup>
           </div>
           <div className="grid gap-2">
-            <Label htmlFor="package-expiry">{t("setting.member.package-expires")}</Label>
+            <Label htmlFor="package-expiry">{t("setting.member.plan-expires")}</Label>
             <Input id="package-expiry" type="date" value={expiry} onChange={(e) => setExpiry(e.target.value)} />
-            <p className="text-xs text-muted-foreground">{t("setting.member.package-no-expiry")}</p>
+            <p className="text-xs text-muted-foreground">{t("setting.member.plan-no-expiry")}</p>
           </div>
         </form>
         <DialogFooter>
@@ -138,4 +150,4 @@ function SetPackageDialog({ user, open, onOpenChange }: Props) {
   );
 }
 
-export default SetPackageDialog;
+export default SetPlanDialog;

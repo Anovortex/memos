@@ -15,6 +15,14 @@ vi.mock("@/components/InviteUserDialog", () => ({
   default: () => null,
 }));
 
+vi.mock("@/components/PlanBadge", () => ({
+  default: () => <span>plan badge</span>,
+}));
+
+vi.mock("@/hooks/useCurrentUser", () => ({
+  default: () => ({ name: "users/noviledger" }),
+}));
+
 vi.mock("@/hooks/useInstanceQueries", () => ({
   instanceKeys: { stats: () => ["instance", "stats"] },
   useInstanceStats: () => ({
@@ -69,7 +77,12 @@ describe("<Dashboard>", () => {
       </MemoryRouter>,
     );
 
-    expect(screen.getAllByText(/^@/).map((element) => element.textContent)).toEqual(["@bob", "@alice", "@noviledger"]);
+    expect(screen.getAllByText(/^@/).map((element) => element.textContent?.replace("plan badge", "").trim())).toEqual([
+      "@bob",
+      "@alice",
+      "@noviledger",
+    ]);
+    expect(screen.getAllByText("plan badge")).toHaveLength(2);
     expect(screen.getByText("2 memos")).toBeInTheDocument();
     expect(screen.getByText("1 attachment · 5 B")).toBeInTheDocument();
     expect(screen.getByText("dashboard.manage-members").closest("a")).toHaveAttribute("href", "/setting#member");

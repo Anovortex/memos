@@ -857,7 +857,9 @@ type PackageUserSetting struct {
 	state protoimpl.MessageState  `protogen:"open.v1"`
 	Plan  PackageUserSetting_Plan `protobuf:"varint,1,opt,name=plan,proto3,enum=memos.store.PackageUserSetting_Plan" json:"plan,omitempty"`
 	// When the plan lapses back to FREE; unset means it does not lapse.
-	ExpireTime    *timestamppb.Timestamp `protobuf:"bytes,2,opt,name=expire_time,json=expireTime,proto3" json:"expire_time,omitempty"`
+	ExpireTime *timestamppb.Timestamp `protobuf:"bytes,2,opt,name=expire_time,json=expireTime,proto3" json:"expire_time,omitempty"`
+	// The plan the member asked the operator for; PLAN_UNSPECIFIED when none is pending.
+	RequestedPlan PackageUserSetting_Plan `protobuf:"varint,3,opt,name=requested_plan,json=requestedPlan,proto3,enum=memos.store.PackageUserSetting_Plan" json:"requested_plan,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -904,6 +906,13 @@ func (x *PackageUserSetting) GetExpireTime() *timestamppb.Timestamp {
 		return x.ExpireTime
 	}
 	return nil
+}
+
+func (x *PackageUserSetting) GetRequestedPlan() PackageUserSetting_Plan {
+	if x != nil {
+		return x.RequestedPlan
+	}
+	return PackageUserSetting_PLAN_UNSPECIFIED
 }
 
 type RefreshTokensUserSetting_RefreshToken struct {
@@ -1492,11 +1501,12 @@ const file_store_user_setting_proto_rawDesc = "" +
 	"\n" +
 	"token_hash\x18\x01 \x01(\tR\ttokenHash\x129\n" +
 	"\n" +
-	"expires_at\x18\x02 \x01(\v2\x1a.google.protobuf.TimestampR\texpiresAt\"\xbe\x01\n" +
+	"expires_at\x18\x02 \x01(\v2\x1a.google.protobuf.TimestampR\texpiresAt\"\x8b\x02\n" +
 	"\x12PackageUserSetting\x128\n" +
 	"\x04plan\x18\x01 \x01(\x0e2$.memos.store.PackageUserSetting.PlanR\x04plan\x12;\n" +
 	"\vexpire_time\x18\x02 \x01(\v2\x1a.google.protobuf.TimestampR\n" +
-	"expireTime\"1\n" +
+	"expireTime\x12K\n" +
+	"\x0erequested_plan\x18\x03 \x01(\x0e2$.memos.store.PackageUserSetting.PlanR\rrequestedPlan\"1\n" +
 	"\x04Plan\x12\x14\n" +
 	"\x10PLAN_UNSPECIFIED\x10\x00\x12\b\n" +
 	"\x04FREE\x10\x01\x12\t\n" +
@@ -1563,19 +1573,20 @@ var file_store_user_setting_proto_depIdxs = []int32{
 	21, // 18: memos.store.PasswordResetUserSetting.expires_at:type_name -> google.protobuf.Timestamp
 	1,  // 19: memos.store.PackageUserSetting.plan:type_name -> memos.store.PackageUserSetting.Plan
 	21, // 20: memos.store.PackageUserSetting.expire_time:type_name -> google.protobuf.Timestamp
-	4,  // 21: memos.store.TagsUserSetting.TagsEntry.value:type_name -> memos.store.UserTagMetadata
-	21, // 22: memos.store.RefreshTokensUserSetting.RefreshToken.expires_at:type_name -> google.protobuf.Timestamp
-	21, // 23: memos.store.RefreshTokensUserSetting.RefreshToken.created_at:type_name -> google.protobuf.Timestamp
-	15, // 24: memos.store.RefreshTokensUserSetting.RefreshToken.client_info:type_name -> memos.store.RefreshTokensUserSetting.ClientInfo
-	21, // 25: memos.store.PersonalAccessTokensUserSetting.PersonalAccessToken.expires_at:type_name -> google.protobuf.Timestamp
-	21, // 26: memos.store.PersonalAccessTokensUserSetting.PersonalAccessToken.created_at:type_name -> google.protobuf.Timestamp
-	21, // 27: memos.store.PersonalAccessTokensUserSetting.PersonalAccessToken.last_used_at:type_name -> google.protobuf.Timestamp
-	18, // 28: memos.store.MemoViewsUserSetting.MemoView.icon:type_name -> memos.store.MemoViewsUserSetting.MemoView.Icon
-	29, // [29:29] is the sub-list for method output_type
-	29, // [29:29] is the sub-list for method input_type
-	29, // [29:29] is the sub-list for extension type_name
-	29, // [29:29] is the sub-list for extension extendee
-	0,  // [0:29] is the sub-list for field type_name
+	1,  // 21: memos.store.PackageUserSetting.requested_plan:type_name -> memos.store.PackageUserSetting.Plan
+	4,  // 22: memos.store.TagsUserSetting.TagsEntry.value:type_name -> memos.store.UserTagMetadata
+	21, // 23: memos.store.RefreshTokensUserSetting.RefreshToken.expires_at:type_name -> google.protobuf.Timestamp
+	21, // 24: memos.store.RefreshTokensUserSetting.RefreshToken.created_at:type_name -> google.protobuf.Timestamp
+	15, // 25: memos.store.RefreshTokensUserSetting.RefreshToken.client_info:type_name -> memos.store.RefreshTokensUserSetting.ClientInfo
+	21, // 26: memos.store.PersonalAccessTokensUserSetting.PersonalAccessToken.expires_at:type_name -> google.protobuf.Timestamp
+	21, // 27: memos.store.PersonalAccessTokensUserSetting.PersonalAccessToken.created_at:type_name -> google.protobuf.Timestamp
+	21, // 28: memos.store.PersonalAccessTokensUserSetting.PersonalAccessToken.last_used_at:type_name -> google.protobuf.Timestamp
+	18, // 29: memos.store.MemoViewsUserSetting.MemoView.icon:type_name -> memos.store.MemoViewsUserSetting.MemoView.Icon
+	30, // [30:30] is the sub-list for method output_type
+	30, // [30:30] is the sub-list for method input_type
+	30, // [30:30] is the sub-list for extension type_name
+	30, // [30:30] is the sub-list for extension extendee
+	0,  // [0:30] is the sub-list for field type_name
 }
 
 func init() { file_store_user_setting_proto_init() }

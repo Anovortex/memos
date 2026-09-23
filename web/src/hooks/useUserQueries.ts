@@ -226,6 +226,19 @@ export function useUserSettings(parent?: string) {
 }
 
 // Hook to update user setting
+// The user's plan record (Free/Teams, expiry, pending request). Members read
+// their own; the operator reads any member's. Undefined until loaded or when
+// the user has no record, which the UI treats as Free.
+// ponytail: one request per listed member; add a list endpoint if Members grows past a screenful.
+export function useUserPlan(userName?: string) {
+  return useQuery({
+    queryKey: [...userKeys.all, "plan", userName],
+    queryFn: () => userServiceClient.getUserSetting({ name: buildUserSettingName(userName as string, UserSetting_Key.PACKAGE) }),
+    enabled: !!userName,
+    select: (setting) => (setting.value.case === "packageSetting" ? setting.value.value : undefined),
+  });
+}
+
 export function useUpdateUserSetting() {
   const queryClient = useQueryClient();
 
@@ -239,6 +252,7 @@ export function useUpdateUserSetting() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: [...userKeys.all, "settings"] });
+      queryClient.invalidateQueries({ queryKey: [...userKeys.all, "plan"] });
     },
   });
 }
@@ -287,6 +301,7 @@ export function useUpdateUserGeneralSetting(currentUserName?: string) {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: [...userKeys.all, "settings"] });
+      queryClient.invalidateQueries({ queryKey: [...userKeys.all, "plan"] });
     },
   });
 }

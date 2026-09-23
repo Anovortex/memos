@@ -242,7 +242,7 @@ const SettingsSidebarContent = () => {
   // The operator dashboard shows this list as its sidebar; only the settings page has a current row.
   const onSettings = Boolean(matchPath(ROUTES.SETTING, location.pathname));
   const currentSection = onSettings ? location.hash.slice(1) || DEFAULT_SETTING_SECTION : "";
-  const basic = SETTINGS_SECTIONS.filter((section) => section.scope === "basic");
+  const basic = SETTINGS_SECTIONS.filter((section) => section.scope === "basic" || (section.scope === "member" && !isHost));
   const admin = SETTINGS_SECTIONS.filter((section) => section.scope === "admin");
   const renderSections = (sections: typeof SETTINGS_SECTIONS) =>
     sections.map((section) => (

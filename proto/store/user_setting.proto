@@ -189,4 +189,6 @@ message PackageUserSetting {
   Plan plan = 1;
   // When the plan lapses back to FREE; unset means it does not lapse.
   google.protobuf.Timestamp expire_time = 2;
+  // The plan the member asked the operator for; PLAN_UNSPECIFIED when none is pending.
+  Plan requested_plan = 3;
 }
