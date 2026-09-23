@@ -44,6 +44,16 @@ service UserService {
     option (google.api.method_signature) = "user";
   }
 
+  // CreateUserInvite issues a signed invite link for one email address.
+  // Administrators only. The link lets a closed instance accept a sign-up
+  // for that address through CreateUser.
+  rpc CreateUserInvite(CreateUserInviteRequest) returns (UserInvite) {
+    option (google.api.http) = {
+      post: "/api/v1/users:invite"
+      body: "*"
+    };
+  }
+
   // UpdateUser updates a user.
   rpc UpdateUser(UpdateUserRequest) returns (User) {
     option (google.api.http) = {
@@ -327,6 +337,32 @@ message CreateUserRequest {
   // Optional. An idempotency token that can be used to ensure that multiple
   // requests to create a user have the same result.
   string request_id = 4 [(google.api.field_behavior) = OPTIONAL];
+
+  // Optional. Token from an invite link; lets a closed instance accept the
+  // invited email.
+  string invite_token = 5 [(google.api.field_behavior) = OPTIONAL];
+}
+
+message CreateUserInviteRequest {
+  // Required. The email address to invite.
+  string email = 1 [(google.api.field_behavior) = REQUIRED];
+}
+
+message UserInvite {
+  // The invited email address, normalized.
+  string email = 1;
+
+  // The signed invite token.
+  string token = 2;
+
+  // The sign-up link carrying the token.
+  string link = 3;
+
+  // When the invite expires.
+  google.protobuf.Timestamp expire_time = 4;
+
+  // Whether the invite was emailed to the address.
+  bool email_sent = 5;
 }
 
 message UpdateUserRequest {

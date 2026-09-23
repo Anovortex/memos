@@ -127,6 +127,14 @@ func (s *ConnectServiceHandler) CreateUser(ctx context.Context, req *connect.Req
 	return connect.NewResponse(resp), nil
 }
 
+func (s *ConnectServiceHandler) CreateUserInvite(ctx context.Context, req *connect.Request[v1pb.CreateUserInviteRequest]) (*connect.Response[v1pb.UserInvite], error) {
+	resp, err := s.APIV1Service.CreateUserInvite(ctx, req.Msg)
+	if err != nil {
+		return nil, convertGRPCError(err)
+	}
+	return connect.NewResponse(resp), nil
+}
+
 func (s *ConnectServiceHandler) UpdateUser(ctx context.Context, req *connect.Request[v1pb.UpdateUserRequest]) (*connect.Response[v1pb.User], error) {
 	resp, err := s.APIV1Service.UpdateUser(ctx, req.Msg)
 	if err != nil {
