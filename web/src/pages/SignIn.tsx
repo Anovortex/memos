@@ -12,7 +12,7 @@ import { useTranslate } from "@/utils/i18n";
 
 const SignIn = () => {
   const t = useTranslate();
-  const { generalSetting: instanceGeneralSetting } = useInstance();
+  const { generalSetting: instanceGeneralSetting, profile } = useInstance();
   const [searchParams] = useSearchParams();
   const { identityProviderList, isLoading: identityProvidersLoading } = useIdentityProviderList();
   const redirectTarget = getSafeRedirectPath(searchParams.get(AUTH_REDIRECT_PARAM));
@@ -52,7 +52,7 @@ const SignIn = () => {
               {t("auth.forgot-password")}
             </Link>
           )}
-          {passwordAuthAllowed && !instanceGeneralSetting.disallowUserRegistration && (
+          {passwordAuthAllowed && !instanceGeneralSetting.disallowUserRegistration && profile.instanceUrl !== "" && (
             <AuthLinkPrompt prompt={t("auth.sign-up-tip")} to={signUpPath} label={t("common.sign-up")} />
           )}
         </>

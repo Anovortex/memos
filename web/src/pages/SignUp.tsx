@@ -36,8 +36,10 @@ const SignUp = () => {
   const signInPath = appendSearchParams(ROUTES.AUTH, searchParams);
 
   const passwordAuthAllowed = !instanceGeneralSetting.disallowPasswordAuth;
-  const registrationOpen = !instanceGeneralSetting.disallowUserRegistration;
   const needsSetup = profile.needsSetup;
+  // A private instance (no instance URL) only accepts the first-run account;
+  // the server rejects every later anonymous sign-up.
+  const registrationOpen = !instanceGeneralSetting.disallowUserRegistration && (needsSetup || profile.instanceUrl !== "");
   // Provider buttons only render on the SSO-provisioned branch below; skip the request elsewhere.
   const { identityProviderList, isLoading: identityProvidersLoading } = useIdentityProviderList(
     !needsSetup && registrationOpen && !passwordAuthAllowed,

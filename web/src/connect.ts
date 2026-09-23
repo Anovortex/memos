@@ -170,9 +170,11 @@ const authInterceptor: Interceptor = (next) => async (req) => {
       setAuthorizationHeader(req, newToken);
       req.header.set(RETRY_HEADER, RETRY_HEADER_VALUE);
       return await next(req);
-    } catch (refreshError) {
+    } catch {
       redirectOnAuthFailure();
-      throw refreshError;
+      // Surface the request's own error: "refresh token not found" from the
+      // retry would hide why the call was rejected in the first place.
+      throw error;
     }
   }
 };
