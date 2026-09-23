@@ -268,3 +268,43 @@ func TestSearchMemosRequiresVerifiedEmail(t *testing.T) {
 	_, err = ts.Service.SearchMemos(ts.CreateUserContext(ctx, admin.ID), &apiv1.SearchMemosRequest{Query: "anything"})
 	require.NoError(t, err, "admins are exempt")
 }
+
+func disablePasswordAuth(ctx context.Context, t *testing.T, ts *TestService) {
+	t.Helper()
+	_, err := ts.Store.UpsertInstanceSetting(ctx, &storepb.InstanceSetting{
+		Key: storepb.InstanceSettingKey_GENERAL,
+		Value: &storepb.InstanceSetting_GeneralSetting{
+			GeneralSetting: &storepb.InstanceGeneralSetting{DisallowPasswordAuth: true},
+		},
+	})
+	require.NoError(t, err)
+}
+
+func TestPasswordResetRespectsDisallowPasswordAuth(t *testing.T) {
+	ctx := context.Background()
+	ts := NewTestService(t)
+	defer ts.Cleanup()
+	sent := enableAuthEmail(ctx, t, ts)
+	createVerifiedPasswordUser(ctx, t, ts, "sso-only", "oldpassword1")
+
+	// A link issued while password auth was on cannot be redeemed after it is off.
+	_, err := ts.Service.RequestPasswordReset(ctx, &apiv1.RequestPasswordResetRequest{Email: "sso-only@example.com"})
+	require.NoError(t, err)
+	require.Len(t, *sent, 1)
+	_, token := linkParams(t, (*sent)[0], "/auth/reset-password")
+	disablePasswordAuth(ctx, t, ts)
+	_, err = ts.Service.ResetPassword(ctx, &apiv1.ResetPasswordRequest{Name: "users/sso-only", Token: token, NewPassword: "newpassword1"})
+	require.Equal(t, codes.FailedPrecondition, status.Code(err))
+
+	// New requests for regular users are silently dropped.
+	_, err = ts.Service.RequestPasswordReset(ctx, &apiv1.RequestPasswordResetRequest{Email: "sso-only@example.com"})
+	require.NoError(t, err)
+	require.Len(t, *sent, 1, "no reset email for a regular user when password auth is off")
+
+	// Administrators keep password sign-in, so they keep password recovery.
+	_, err = ts.CreateHostUser(ctx, "owner")
+	require.NoError(t, err)
+	_, err = ts.Service.RequestPasswordReset(ctx, &apiv1.RequestPasswordResetRequest{Email: "owner@example.com"})
+	require.NoError(t, err)
+	require.Len(t, *sent, 2)
+}

@@ -124,3 +124,19 @@ func TestRateLimits(t *testing.T) {
 		}
 	})
 }
+
+func TestTokenEndpointsAreLimitedPerClientAddress(t *testing.T) {
+	ctx := context.Background()
+	ts := NewTestService(t)
+	defer ts.Cleanup()
+	_, err := ts.CreateRegularUser(ctx, "victim")
+	require.NoError(t, err)
+	ts.Service.RateLimits = apiv1server.RateLimits{apiv1server.FlowTokenIP: onePerHour()}
+
+	_, err = ts.Service.VerifyEmail(fromIP(ctx, "203.0.113.1"), &apiv1.VerifyEmailRequest{Name: "users/victim", Token: "guess"})
+	require.Equal(t, codes.InvalidArgument, status.Code(err))
+	_, err = ts.Service.ResetPassword(fromIP(ctx, "203.0.113.1"), &apiv1.ResetPasswordRequest{Name: "users/victim", Token: "guess", NewPassword: "newpassword1"})
+	require.Equal(t, codes.ResourceExhausted, status.Code(err), "verify and reset share one per-address budget")
+	_, err = ts.Service.VerifyEmail(fromIP(ctx, "203.0.113.2"), &apiv1.VerifyEmailRequest{Name: "users/victim", Token: "guess"})
+	require.Equal(t, codes.InvalidArgument, status.Code(err))
+}

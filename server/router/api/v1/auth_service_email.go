@@ -229,6 +229,9 @@ func (s *APIV1Service) SendEmailVerification(ctx context.Context, _ *v1pb.SendEm
 
 // VerifyEmail consumes a verification token from an emailed link.
 func (s *APIV1Service) VerifyEmail(ctx context.Context, request *v1pb.VerifyEmailRequest) (*emptypb.Empty, error) {
+	if err := s.RateLimits.check(FlowTokenIP, clientIP(ctx)); err != nil {
+		return nil, err
+	}
 	user, err := ResolveUserByName(ctx, s.Store, request.GetName())
 	if err != nil || user == nil {
 		return nil, status.Errorf(codes.InvalidArgument, invalidLinkMessage)
@@ -287,6 +290,14 @@ func (s *APIV1Service) RequestPasswordReset(ctx context.Context, request *v1pb.R
 	if !verified {
 		return &emptypb.Empty{}, nil
 	}
+	passwordAuthOff, err := s.passwordAuthDisabledFor(ctx, user)
+	if err != nil {
+		return nil, err
+	}
+	if passwordAuthOff {
+		// A password would be unusable; stay silent like the other no-send paths.
+		return &emptypb.Empty{}, nil
+	}
 
 	token, hash, err := newAuthToken()
 	if err != nil {
@@ -321,6 +332,9 @@ func (s *APIV1Service) RequestPasswordReset(ctx context.Context, request *v1pb.R
 // ResetPassword sets a new password from a reset link and signs out every
 // existing session of that user.
 func (s *APIV1Service) ResetPassword(ctx context.Context, request *v1pb.ResetPasswordRequest) (*emptypb.Empty, error) {
+	if err := s.RateLimits.check(FlowTokenIP, clientIP(ctx)); err != nil {
+		return nil, err
+	}
 	if err := validatePassword(request.GetNewPassword()); err != nil {
 		return nil, status.Errorf(codes.InvalidArgument, "%v", err)
 	}
@@ -334,6 +348,13 @@ func (s *APIV1Service) ResetPassword(ctx context.Context, request *v1pb.ResetPas
 	}
 	if reset == nil || !tokenMatches(reset.TokenHash, request.GetToken()) || expired(reset.ExpiresAt) {
 		return nil, status.Errorf(codes.InvalidArgument, invalidLinkMessage)
+	}
+	passwordAuthOff, err := s.passwordAuthDisabledFor(ctx, user)
+	if err != nil {
+		return nil, err
+	}
+	if passwordAuthOff {
+		return nil, status.Errorf(codes.FailedPrecondition, "password sign-in is disabled on this instance")
 	}
 
 	passwordHash, err := bcrypt.GenerateFromPassword([]byte(request.GetNewPassword()), bcrypt.DefaultCost)
@@ -360,4 +381,14 @@ func (s *APIV1Service) ResetPassword(ctx context.Context, request *v1pb.ResetPas
 		return nil, status.Errorf(codes.Internal, "failed to revoke sessions")
 	}
 	return &emptypb.Empty{}, nil
+}
+
+// passwordAuthDisabledFor mirrors SignIn: password auth may be switched off for
+// regular users while administrators keep it.
+func (s *APIV1Service) passwordAuthDisabledFor(ctx context.Context, user *store.User) (bool, error) {
+	generalSetting, err := s.Store.GetInstanceGeneralSetting(ctx)
+	if err != nil {
+		return false, status.Errorf(codes.Internal, "failed to get instance general setting")
+	}
+	return generalSetting.DisallowPasswordAuth && user.Role != store.RoleAdmin, nil
 }
