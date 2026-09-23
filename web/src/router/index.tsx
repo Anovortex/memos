@@ -10,6 +10,7 @@ import {
   RequireFullInitializationRoute,
   RequireGuestRoute,
   RequireInstanceInitializationRoute,
+  RequireOperatorRoute,
 } from "./guards";
 import { CALENDAR_ROUTE_PATTERN, ROUTES, SPACE_ROUTE_PATTERN } from "./routes";
 import { SpaceRoute } from "./SpaceRoute";
@@ -20,6 +21,7 @@ const Archived = lazyWithReload(() => import("@/pages/Archived"));
 const AuthCallback = lazyWithReload(() => import("@/pages/AuthCallback"));
 const MemoMap = lazyWithReload(() => import("@/pages/Map"));
 const Calendar = lazyWithReload(() => import("@/pages/Calendar"));
+const Dashboard = lazyWithReload(() => import("@/pages/Dashboard"));
 const Explore = lazyWithReload(() => import("@/pages/Explore"));
 const ForgotPassword = lazyWithReload(() => import("@/pages/ForgotPassword"));
 const Home = lazyWithReload(() => import("@/pages/Home"));
@@ -142,6 +144,10 @@ export const routeConfig: RouteObject[] = [
                   { path: Routes.MAP, element: <MemoMap /> },
                   { path: Routes.INBOX, element: <Inboxes /> },
                   { path: Routes.SETTING, element: <Setting /> },
+                  {
+                    element: <RequireOperatorRoute />,
+                    children: [{ path: Routes.DASHBOARD, element: <Dashboard /> }],
+                  },
                 ],
               },
             ],

@@ -234,13 +234,10 @@ const SettingsSidebarContent = () => {
   const location = useLocation();
   const user = useCurrentUser();
   const { setMobileOpen } = useAppSidebar();
-  const { profile } = useInstance();
   const isHost = user?.role === User_Role.ADMIN;
-  // The resource dashboard is restricted to the instance owner (the first admin).
-  const isOwner = isHost && profile.admin?.name === user?.name;
   const currentSection = location.hash.slice(1) || DEFAULT_SETTING_SECTION;
   const basic = SETTINGS_SECTIONS.filter((section) => section.scope === "basic");
-  const admin = SETTINGS_SECTIONS.filter((section) => section.scope === "admin" && (section.key !== "resource-stats" || isOwner));
+  const admin = SETTINGS_SECTIONS.filter((section) => section.scope === "admin");
   const renderSections = (sections: typeof SETTINGS_SECTIONS) =>
     sections.map((section) => (
       <Link

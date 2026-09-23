@@ -50,6 +50,8 @@ const (
 	ScopeTokenIP Scope = "token_ip"
 	// ScopeSearchUser counts semantic search queries per user.
 	ScopeSearchUser Scope = "search_user"
+	// ScopeInviteUser counts invite links issued per user.
+	ScopeInviteUser Scope = "invite_user"
 )
 
 // Rule is the limit for one scope: at most Limit units within Window.
@@ -88,6 +90,7 @@ func DefaultPolicy() Policy {
 		ScopeEmailVerifyUser:    {Limit: 3, Window: time.Hour},
 		ScopeTokenIP:            {Limit: 30, Window: time.Hour},
 		ScopeSearchUser:         {Limit: 30, Window: time.Minute},
+		ScopeInviteUser:         {Limit: 20, Window: time.Hour},
 	}
 }
 

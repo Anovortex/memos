@@ -2,7 +2,13 @@ import { isValidElement } from "react";
 import { matchRoutes, type RouteObject } from "react-router-dom";
 import { describe, expect, it } from "vitest";
 import { ROUTES, routeConfig } from "@/router";
-import { RequireAuthRoute, RequireFullInitializationRoute, RequireGuestRoute, RequireInstanceInitializationRoute } from "@/router/guards";
+import {
+  RequireAuthRoute,
+  RequireFullInitializationRoute,
+  RequireGuestRoute,
+  RequireInstanceInitializationRoute,
+  RequireOperatorRoute,
+} from "@/router/guards";
 import { CALENDAR_ROUTE_PATTERN, SPACE_ROUTE_PATTERN } from "@/router/routes";
 import { SpaceRoute } from "@/router/SpaceRoute";
 
@@ -72,7 +78,15 @@ describe("router configuration", () => {
   });
 
   it("wraps authenticated-only pages in RequireAuthRoute", () => {
-    for (const path of [ROUTES.ARCHIVED, CALENDAR_ROUTE_PATTERN, ROUTES.VIEWS, ROUTES.ATTACHMENTS, ROUTES.INBOX, ROUTES.SETTING]) {
+    for (const path of [
+      ROUTES.ARCHIVED,
+      CALENDAR_ROUTE_PATTERN,
+      ROUTES.VIEWS,
+      ROUTES.ATTACHMENTS,
+      ROUTES.INBOX,
+      ROUTES.SETTING,
+      ROUTES.DASHBOARD,
+    ]) {
       expect(hasAncestorOfType(routeConfig, path, RequireAuthRoute)).toBe(true);
     }
   });
@@ -92,6 +106,11 @@ describe("router configuration", () => {
     for (const path of [ROUTES.EXPLORE, ROUTES.ARCHIVED, CALENDAR_ROUTE_PATTERN, "memos/:uid", "memos/shares/:token", "u/:username"]) {
       expect(hasAncestorOfType(routeConfig, path, RequireFullInitializationRoute)).toBe(false);
     }
+  });
+
+  it("reserves the dashboard for the operator", () => {
+    expect(hasAncestorOfType(routeConfig, ROUTES.DASHBOARD, RequireOperatorRoute)).toBe(true);
+    expect(hasAncestorOfType(routeConfig, ROUTES.SETTING, RequireOperatorRoute)).toBe(false);
   });
 
   it("leaves public pages outside RequireAuthRoute", () => {

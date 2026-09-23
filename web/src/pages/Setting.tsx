@@ -13,21 +13,17 @@ import { User_Role } from "@/types/proto/api/v1/user_service_pb";
 const Setting = () => {
   const location = useLocation();
   const user = useCurrentUser();
-  const { profile, fetchSettings } = useInstance();
+  const { fetchSettings } = useInstance();
   const [selectedSection, setSelectedSection] = useState<SettingSectionKey>(DEFAULT_SETTING_SECTION);
   const isHost = user?.role === User_Role.ADMIN;
-  // The resource dashboard is restricted to the instance owner (the first admin).
-  const isOwner = isHost && profile.admin?.name === user?.name;
 
   const sectionGroups = useMemo(() => {
-    const visibleSections = SETTINGS_SECTIONS.filter(
-      (section) => section.scope === "basic" || (isHost && (section.key !== "resource-stats" || isOwner)),
-    );
+    const visibleSections = SETTINGS_SECTIONS.filter((section) => section.scope === "basic" || isHost);
     return {
       admin: visibleSections.filter((section) => section.scope === "admin"),
       all: visibleSections,
     };
-  }, [isHost, isOwner]);
+  }, [isHost]);
 
   const visibleSectionKeys = useMemo(() => new Set(sectionGroups.all.map((section) => section.key)), [sectionGroups.all]);
 

@@ -46,6 +46,16 @@ service UserService {
     option (google.api.method_signature) = "user,user_id";
   }
 
+  // CreateUserInvite issues a signed invite link for one email address.
+  // Administrators only. The link lets a closed instance accept a sign-up
+  // for that address through CreateUser.
+  rpc CreateUserInvite(CreateUserInviteRequest) returns (UserInvite) {
+    option (google.api.http) = {
+      post: "/api/v1/users:invite"
+      body: "*"
+    };
+  }
+
   // UpdateUser updates a user.
   rpc UpdateUser(UpdateUserRequest) returns (User) {
     option (google.api.http) = {
@@ -392,6 +402,32 @@ message CreateUserRequest {
   // Optional. An idempotency token that can be used to ensure that multiple
   // requests to create a user have the same result.
   string request_id = 4 [(google.api.field_behavior) = OPTIONAL];
+
+  // Optional. Token from an invite link; lets a closed instance accept the
+  // invited email.
+  string invite_token = 5 [(google.api.field_behavior) = OPTIONAL];
+}
+
+message CreateUserInviteRequest {
+  // Required. The email address to invite.
+  string email = 1 [(google.api.field_behavior) = REQUIRED];
+}
+
+message UserInvite {
+  // The invited email address, normalized.
+  string email = 1;
+
+  // The signed invite token.
+  string token = 2;
+
+  // The sign-up link carrying the token.
+  string link = 3;
+
+  // When the invite expires.
+  google.protobuf.Timestamp expire_time = 4;
+
+  // Whether the invite was emailed to the address.
+  bool email_sent = 5;
 }
 
 message UpdateUserRequest {
@@ -661,6 +697,7 @@ message UserSetting {
     GeneralSetting general_setting = 2;
     WebhooksSetting webhooks_setting = 5;
     TagsSetting tags_setting = 6;
+    PackageSetting package_setting = 7;
   }
 
   // Enumeration of user setting keys.
@@ -672,6 +709,8 @@ message UserSetting {
     WEBHOOKS = 4;
     // TAGS is the key for per-user tag metadata.
     TAGS = 5;
+    // PACKAGE is the key for the operator-set plan and expiry.
+    PACKAGE = 6;
   }
 
   // General user settings configuration.
@@ -708,6 +747,19 @@ message UserSetting {
   message WebhooksSetting {
     // List of user webhooks.
     repeated UserWebhook webhooks = 1;
+  }
+
+  // Operator-set package: the plan and when it lapses. Members can read
+  // their own package; only the operator can update it.
+  message PackageSetting {
+    enum Plan {
+      PLAN_UNSPECIFIED = 0;
+      FREE = 1;
+      TEAMS = 2;
+    }
+    Plan plan = 1 [(google.api.field_behavior) = OPTIONAL];
+    // When the plan lapses back to FREE. Unset means it does not lapse.
+    google.protobuf.Timestamp expire_time = 2 [(google.api.field_behavior) = OPTIONAL];
   }
 }
 

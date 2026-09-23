@@ -12,6 +12,7 @@ import useLoading from "@/hooks/useLoading";
 import useNavigateTo from "@/hooks/useNavigateTo";
 import { ERROR_REASON_CHALLENGE_REQUIRED, handleError, hasErrorReason } from "@/lib/error";
 import { ROUTES } from "@/router/routes";
+import { User_Role } from "@/types/proto/api/v1/user_service_pb";
 import { useTranslate } from "@/utils/i18n";
 
 interface PasswordSignInFormProps {
@@ -55,7 +56,9 @@ function PasswordSignInForm({ redirectPath }: PasswordSignInFormProps) {
         setAccessToken(response.accessToken, response.accessTokenExpiresAt ? timestampDate(response.accessTokenExpiresAt) : undefined);
       }
       await initialize();
-      navigateTo(redirectPath || ROUTES.HOME, { replace: true });
+      // Without an explicit target the operator lands on the dashboard.
+      const isOperator = response.user?.role === User_Role.ADMIN;
+      navigateTo(redirectPath || (isOperator ? ROUTES.DASHBOARD : ROUTES.HOME), { replace: true });
     } catch (error: unknown) {
       if (hasErrorReason(error, ERROR_REASON_CHALLENGE_REQUIRED)) {
         setChallengeResetKey((key) => key + 1);

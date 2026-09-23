@@ -25,6 +25,7 @@ const (
 	UserService_BatchGetUsers_FullMethodName               = "/memos.api.v1.UserService/BatchGetUsers"
 	UserService_GetUser_FullMethodName                     = "/memos.api.v1.UserService/GetUser"
 	UserService_CreateUser_FullMethodName                  = "/memos.api.v1.UserService/CreateUser"
+	UserService_CreateUserInvite_FullMethodName            = "/memos.api.v1.UserService/CreateUserInvite"
 	UserService_UpdateUser_FullMethodName                  = "/memos.api.v1.UserService/UpdateUser"
 	UserService_DeleteUser_FullMethodName                  = "/memos.api.v1.UserService/DeleteUser"
 	UserService_ListAllUserStats_FullMethodName            = "/memos.api.v1.UserService/ListAllUserStats"
@@ -69,6 +70,10 @@ type UserServiceClient interface {
 	GetUser(ctx context.Context, in *GetUserRequest, opts ...grpc.CallOption) (*User, error)
 	// CreateUser creates a new user.
 	CreateUser(ctx context.Context, in *CreateUserRequest, opts ...grpc.CallOption) (*User, error)
+	// CreateUserInvite issues a signed invite link for one email address.
+	// Administrators only. The link lets a closed instance accept a sign-up
+	// for that address through CreateUser.
+	CreateUserInvite(ctx context.Context, in *CreateUserInviteRequest, opts ...grpc.CallOption) (*UserInvite, error)
 	// UpdateUser updates a user.
 	UpdateUser(ctx context.Context, in *UpdateUserRequest, opts ...grpc.CallOption) (*User, error)
 	// DeleteUser deletes a user.
@@ -186,6 +191,16 @@ func (c *userServiceClient) CreateUser(ctx context.Context, in *CreateUserReques
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(User)
 	err := c.cc.Invoke(ctx, UserService_CreateUser_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *userServiceClient) CreateUserInvite(ctx context.Context, in *CreateUserInviteRequest, opts ...grpc.CallOption) (*UserInvite, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(UserInvite)
+	err := c.cc.Invoke(ctx, UserService_CreateUserInvite_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
@@ -495,6 +510,10 @@ type UserServiceServer interface {
 	GetUser(context.Context, *GetUserRequest) (*User, error)
 	// CreateUser creates a new user.
 	CreateUser(context.Context, *CreateUserRequest) (*User, error)
+	// CreateUserInvite issues a signed invite link for one email address.
+	// Administrators only. The link lets a closed instance accept a sign-up
+	// for that address through CreateUser.
+	CreateUserInvite(context.Context, *CreateUserInviteRequest) (*UserInvite, error)
 	// UpdateUser updates a user.
 	UpdateUser(context.Context, *UpdateUserRequest) (*User, error)
 	// DeleteUser deletes a user.
@@ -589,6 +608,9 @@ func (UnimplementedUserServiceServer) GetUser(context.Context, *GetUserRequest) 
 }
 func (UnimplementedUserServiceServer) CreateUser(context.Context, *CreateUserRequest) (*User, error) {
 	return nil, status.Error(codes.Unimplemented, "method CreateUser not implemented")
+}
+func (UnimplementedUserServiceServer) CreateUserInvite(context.Context, *CreateUserInviteRequest) (*UserInvite, error) {
+	return nil, status.Error(codes.Unimplemented, "method CreateUserInvite not implemented")
 }
 func (UnimplementedUserServiceServer) UpdateUser(context.Context, *UpdateUserRequest) (*User, error) {
 	return nil, status.Error(codes.Unimplemented, "method UpdateUser not implemented")
@@ -766,6 +788,24 @@ func _UserService_CreateUser_Handler(srv interface{}, ctx context.Context, dec f
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(UserServiceServer).CreateUser(ctx, req.(*CreateUserRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _UserService_CreateUserInvite_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(CreateUserInviteRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(UserServiceServer).CreateUserInvite(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: UserService_CreateUserInvite_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(UserServiceServer).CreateUserInvite(ctx, req.(*CreateUserInviteRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -1314,6 +1354,10 @@ var UserService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "CreateUser",
 			Handler:    _UserService_CreateUser_Handler,
+		},
+		{
+			MethodName: "CreateUserInvite",
+			Handler:    _UserService_CreateUserInvite_Handler,
 		},
 		{
 			MethodName: "UpdateUser",

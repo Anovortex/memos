@@ -44,6 +44,9 @@ const (
 	UserServiceGetUserProcedure = "/memos.api.v1.UserService/GetUser"
 	// UserServiceCreateUserProcedure is the fully-qualified name of the UserService's CreateUser RPC.
 	UserServiceCreateUserProcedure = "/memos.api.v1.UserService/CreateUser"
+	// UserServiceCreateUserInviteProcedure is the fully-qualified name of the UserService's
+	// CreateUserInvite RPC.
+	UserServiceCreateUserInviteProcedure = "/memos.api.v1.UserService/CreateUserInvite"
 	// UserServiceUpdateUserProcedure is the fully-qualified name of the UserService's UpdateUser RPC.
 	UserServiceUpdateUserProcedure = "/memos.api.v1.UserService/UpdateUser"
 	// UserServiceDeleteUserProcedure is the fully-qualified name of the UserService's DeleteUser RPC.
@@ -139,6 +142,10 @@ type UserServiceClient interface {
 	GetUser(context.Context, *connect.Request[v1.GetUserRequest]) (*connect.Response[v1.User], error)
 	// CreateUser creates a new user.
 	CreateUser(context.Context, *connect.Request[v1.CreateUserRequest]) (*connect.Response[v1.User], error)
+	// CreateUserInvite issues a signed invite link for one email address.
+	// Administrators only. The link lets a closed instance accept a sign-up
+	// for that address through CreateUser.
+	CreateUserInvite(context.Context, *connect.Request[v1.CreateUserInviteRequest]) (*connect.Response[v1.UserInvite], error)
 	// UpdateUser updates a user.
 	UpdateUser(context.Context, *connect.Request[v1.UpdateUserRequest]) (*connect.Response[v1.User], error)
 	// DeleteUser deletes a user.
@@ -247,6 +254,12 @@ func NewUserServiceClient(httpClient connect.HTTPClient, baseURL string, opts ..
 			httpClient,
 			baseURL+UserServiceCreateUserProcedure,
 			connect.WithSchema(userServiceMethods.ByName("CreateUser")),
+			connect.WithClientOptions(opts...),
+		),
+		createUserInvite: connect.NewClient[v1.CreateUserInviteRequest, v1.UserInvite](
+			httpClient,
+			baseURL+UserServiceCreateUserInviteProcedure,
+			connect.WithSchema(userServiceMethods.ByName("CreateUserInvite")),
 			connect.WithClientOptions(opts...),
 		),
 		updateUser: connect.NewClient[v1.UpdateUserRequest, v1.User](
@@ -432,6 +445,7 @@ type userServiceClient struct {
 	batchGetUsers               *connect.Client[v1.BatchGetUsersRequest, v1.BatchGetUsersResponse]
 	getUser                     *connect.Client[v1.GetUserRequest, v1.User]
 	createUser                  *connect.Client[v1.CreateUserRequest, v1.User]
+	createUserInvite            *connect.Client[v1.CreateUserInviteRequest, v1.UserInvite]
 	updateUser                  *connect.Client[v1.UpdateUserRequest, v1.User]
 	deleteUser                  *connect.Client[v1.DeleteUserRequest, emptypb.Empty]
 	listAllUserStats            *connect.Client[v1.ListAllUserStatsRequest, v1.ListAllUserStatsResponse]
@@ -481,6 +495,11 @@ func (c *userServiceClient) GetUser(ctx context.Context, req *connect.Request[v1
 // CreateUser calls memos.api.v1.UserService.CreateUser.
 func (c *userServiceClient) CreateUser(ctx context.Context, req *connect.Request[v1.CreateUserRequest]) (*connect.Response[v1.User], error) {
 	return c.createUser.CallUnary(ctx, req)
+}
+
+// CreateUserInvite calls memos.api.v1.UserService.CreateUserInvite.
+func (c *userServiceClient) CreateUserInvite(ctx context.Context, req *connect.Request[v1.CreateUserInviteRequest]) (*connect.Response[v1.UserInvite], error) {
+	return c.createUserInvite.CallUnary(ctx, req)
 }
 
 // UpdateUser calls memos.api.v1.UserService.UpdateUser.
@@ -639,6 +658,10 @@ type UserServiceHandler interface {
 	GetUser(context.Context, *connect.Request[v1.GetUserRequest]) (*connect.Response[v1.User], error)
 	// CreateUser creates a new user.
 	CreateUser(context.Context, *connect.Request[v1.CreateUserRequest]) (*connect.Response[v1.User], error)
+	// CreateUserInvite issues a signed invite link for one email address.
+	// Administrators only. The link lets a closed instance accept a sign-up
+	// for that address through CreateUser.
+	CreateUserInvite(context.Context, *connect.Request[v1.CreateUserInviteRequest]) (*connect.Response[v1.UserInvite], error)
 	// UpdateUser updates a user.
 	UpdateUser(context.Context, *connect.Request[v1.UpdateUserRequest]) (*connect.Response[v1.User], error)
 	// DeleteUser deletes a user.
@@ -743,6 +766,12 @@ func NewUserServiceHandler(svc UserServiceHandler, opts ...connect.HandlerOption
 		UserServiceCreateUserProcedure,
 		svc.CreateUser,
 		connect.WithSchema(userServiceMethods.ByName("CreateUser")),
+		connect.WithHandlerOptions(opts...),
+	)
+	userServiceCreateUserInviteHandler := connect.NewUnaryHandler(
+		UserServiceCreateUserInviteProcedure,
+		svc.CreateUserInvite,
+		connect.WithSchema(userServiceMethods.ByName("CreateUserInvite")),
 		connect.WithHandlerOptions(opts...),
 	)
 	userServiceUpdateUserHandler := connect.NewUnaryHandler(
@@ -929,6 +958,8 @@ func NewUserServiceHandler(svc UserServiceHandler, opts ...connect.HandlerOption
 			userServiceGetUserHandler.ServeHTTP(w, r)
 		case UserServiceCreateUserProcedure:
 			userServiceCreateUserHandler.ServeHTTP(w, r)
+		case UserServiceCreateUserInviteProcedure:
+			userServiceCreateUserInviteHandler.ServeHTTP(w, r)
 		case UserServiceUpdateUserProcedure:
 			userServiceUpdateUserHandler.ServeHTTP(w, r)
 		case UserServiceDeleteUserProcedure:
@@ -1010,6 +1041,10 @@ func (UnimplementedUserServiceHandler) GetUser(context.Context, *connect.Request
 
 func (UnimplementedUserServiceHandler) CreateUser(context.Context, *connect.Request[v1.CreateUserRequest]) (*connect.Response[v1.User], error) {
 	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("memos.api.v1.UserService.CreateUser is not implemented"))
+}
+
+func (UnimplementedUserServiceHandler) CreateUserInvite(context.Context, *connect.Request[v1.CreateUserInviteRequest]) (*connect.Response[v1.UserInvite], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("memos.api.v1.UserService.CreateUserInvite is not implemented"))
 }
 
 func (UnimplementedUserServiceHandler) UpdateUser(context.Context, *connect.Request[v1.UpdateUserRequest]) (*connect.Response[v1.User], error) {

@@ -3,6 +3,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useInstance } from "@/contexts/InstanceContext";
 import useCurrentUser from "@/hooks/useCurrentUser";
 import { AUTH_REDIRECT_PARAM, buildAuthRoute, getSafeRedirectPath } from "@/utils/auth-redirect";
+import { isSuperUser } from "@/utils/user";
 import { ROUTES } from "./routes";
 
 /** Waits for instance settings used by public/auth pages to settle. */
@@ -19,8 +20,9 @@ export const RequireFullInitializationRoute = () => {
 };
 
 /**
- * Index-route gate mounted at `/`. Authenticated visitors fall through to the
- * nested Home page; unauthenticated visitors are redirected to `/explore`,
+ * Index-route gate mounted at `/`. Authenticated members fall through to the
+ * nested Home page; the operator (ADMIN) is sent to the dashboard since they
+ * never write notes here; unauthenticated visitors are redirected to `/explore`,
  * preserving the original query string and hash so bookmarks like `/?filter=foo`
  * keep working.
  */
@@ -39,6 +41,30 @@ export const LandingRoute = () => {
         replace
       />
     );
+  }
+
+  if (isSuperUser(currentUser)) {
+    return <Navigate to={ROUTES.DASHBOARD} replace />;
+  }
+
+  return <Outlet />;
+};
+
+/**
+ * Guard for operator-only pages. Anonymous visitors go to sign-in like
+ * `RequireAuthRoute`; signed-in members are sent to their notes.
+ */
+export const RequireOperatorRoute = () => {
+  const currentUser = useCurrentUser();
+  const location = useLocation();
+
+  if (!currentUser) {
+    const redirect = `${location.pathname}${location.search}${location.hash}`;
+    return <Navigate to={buildAuthRoute({ redirect })} replace />;
+  }
+
+  if (!isSuperUser(currentUser)) {
+    return <Navigate to={ROUTES.HOME} replace />;
   }
 
   return <Outlet />;

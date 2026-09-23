@@ -20,6 +20,7 @@ import (
 	"github.com/usememos/memos/internal/clientip"
 	"github.com/usememos/memos/internal/ratelimit"
 	v1pb "github.com/usememos/memos/proto/gen/api/v1"
+	"github.com/usememos/memos/server/auth"
 	"github.com/usememos/memos/store"
 )
 
@@ -232,6 +233,23 @@ func (s *APIV1Service) CreateUser(ctx context.Context, request *v1pb.CreateUserR
 		if email == "" {
 			return nil, status.Errorf(codes.InvalidArgument, "email is required")
 		}
+		// An invite link lets its email through a closed registration gate
+		// and fixes the role of the account it creates. It is checked here so
+		// ValidateOnly covers it too; on an empty instance the first-user
+		// path below simply ignores it.
+		invited := false
+		invitedRole := store.RoleUser
+		if request.GetInviteToken() != "" {
+			claims, err := auth.ParseInviteToken(request.GetInviteToken(), []byte(s.Secret))
+			if err != nil {
+				return nil, status.Errorf(codes.PermissionDenied, "this invite link is invalid or has expired")
+			}
+			if claims.Email != email {
+				return nil, status.Errorf(codes.PermissionDenied, "this invite is for a different email address")
+			}
+			invited = true
+			invitedRole = store.Role(claims.Role)
+		}
 		limitOne := 1
 		allUsers, err := s.Store.ListUsers(ctx, &store.FindUser{Limit: &limitOne})
 		if err != nil {
@@ -268,11 +286,16 @@ func (s *APIV1Service) CreateUser(ctx context.Context, request *v1pb.CreateUserR
 			if err != nil {
 				return nil, status.Errorf(codes.Internal, "failed to get instance general setting, error: %v", err)
 			}
-			if instanceGeneralSetting.DisallowUserRegistration {
+			if instanceGeneralSetting.DisallowUserRegistration && !invited {
 				return nil, status.Errorf(codes.PermissionDenied, "user registration is not allowed")
 			}
 			if instanceGeneralSetting.DisallowPasswordAuth {
 				return nil, status.Errorf(codes.PermissionDenied, "password signup is not allowed")
+			}
+			// Applied after the gate so an operator invite still honors
+			// password sign-up being off.
+			if invited {
+				roleToAssign = invitedRole
 			}
 		}
 	}

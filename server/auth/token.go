@@ -45,6 +45,13 @@ const (
 	// RefreshTokenAudienceName is the audience claim for refresh tokens.
 	RefreshTokenAudienceName = "user.refresh-token"
 
+	// InviteTokenAudienceName is the audience claim for invite tokens, which
+	// let one email address sign up on a closed instance.
+	InviteTokenAudienceName = "user.invite"
+
+	// InviteTokenDuration is the lifetime of an invite link (7 days).
+	InviteTokenDuration = 7 * 24 * time.Hour
+
 	// RefreshTokenCookieName is the cookie name for refresh tokens.
 	RefreshTokenCookieName = "memos_refresh"
 

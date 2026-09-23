@@ -10,6 +10,8 @@ interface Props {
   email?: string;
   passwordAutoComplete: "current-password" | "new-password";
   readOnly?: boolean;
+  // Locks only the email field, e.g. when an invite fixes the address.
+  emailReadOnly?: boolean;
   onUsernameChange: (username: string) => void;
   onEmailChange?: (email: string) => void;
   onPasswordChange: (password: string) => void;
@@ -23,6 +25,7 @@ const CredentialFields = ({
   password,
   passwordAutoComplete,
   readOnly,
+  emailReadOnly,
   onUsernameChange,
   onEmailChange,
   onPasswordChange,
@@ -52,7 +55,7 @@ const CredentialFields = ({
           <Input
             id={`${idPrefix}-email`}
             type="email"
-            readOnly={readOnly}
+            readOnly={readOnly || emailReadOnly}
             placeholder={t("common.email")}
             value={email ?? ""}
             autoComplete="email"

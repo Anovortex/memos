@@ -2031,6 +2031,13 @@ paths:
                      requests to create a user have the same result.
                   schema:
                     type: string
+                - name: inviteToken
+                  in: query
+                  description: |-
+                    Optional. Token from an invite link; lets a closed instance accept the
+                     invited email.
+                  schema:
+                    type: string
             requestBody:
                 content:
                     application/json:
@@ -3095,6 +3102,34 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/Status'
+    /api/v1/users:invite:
+        post:
+            tags:
+                - UserService
+            description: |-
+                CreateUserInvite issues a signed invite link for one email address.
+                 Administrators only. The link lets a closed instance accept a sign-up
+                 for that address through CreateUser.
+            operationId: UserService_CreateUserInvite
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/CreateUserInviteRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/UserInvite'
+                default:
+                    description: Default error response
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Status'
     /api/v1/users:stats:
         get:
             tags:
@@ -3463,6 +3498,14 @@ components:
                     description: |-
                         The actual token value - only returned on creation.
                          This is the only time the token value will be visible.
+        CreateUserInviteRequest:
+            required:
+                - email
+            type: object
+            properties:
+                email:
+                    type: string
+                    description: Required. The email address to invite.
         DeclineSpaceInvitationRequest:
             required:
                 - name
@@ -5234,6 +5277,25 @@ components:
                         Output only. Whether the user has proven ownership of `email`. Only
                          populated on the caller's own user in GetCurrentUser and SignIn responses;
                          false elsewhere.
+        UserInvite:
+            type: object
+            properties:
+                email:
+                    type: string
+                    description: The invited email address, normalized.
+                token:
+                    type: string
+                    description: The signed invite token.
+                link:
+                    type: string
+                    description: The sign-up link carrying the token.
+                expireTime:
+                    type: string
+                    description: When the invite expires.
+                    format: date-time
+                emailSent:
+                    type: boolean
+                    description: Whether the invite was emailed to the address.
         UserNotification:
             type: object
             properties:
@@ -5370,6 +5432,8 @@ components:
                     $ref: '#/components/schemas/UserSetting_WebhooksSetting'
                 tagsSetting:
                     $ref: '#/components/schemas/UserSetting_TagsSetting'
+                packageSetting:
+                    $ref: '#/components/schemas/UserSetting_PackageSetting'
             description: User settings message
         UserSetting_GeneralSetting:
             type: object
@@ -5390,6 +5454,23 @@ components:
                     type: boolean
                     description: Whether the official client should save metadata from future media uploads.
             description: General user settings configuration.
+        UserSetting_PackageSetting:
+            type: object
+            properties:
+                plan:
+                    enum:
+                        - PLAN_UNSPECIFIED
+                        - FREE
+                        - TEAMS
+                    type: string
+                    format: enum
+                expireTime:
+                    type: string
+                    description: When the plan lapses back to FREE. Unset means it does not lapse.
+                    format: date-time
+            description: |-
+                Operator-set package: the plan and when it lapses. Members can read
+                 their own package; only the operator can update it.
         UserSetting_TagMetadata:
             type: object
             properties:

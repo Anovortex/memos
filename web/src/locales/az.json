@@ -44,10 +44,26 @@
     "continue-with": "{{provider}} ilə davam et",
     "create-admin-account": "Admin hesabı yarat",
     "create-your-account": "Hesabınızı yaradın",
+    "email-verified-description": "Thanks, your address is confirmed.",
+    "email-verified-title": "Email verified",
     "explore-public-memos": "Bu instansdakı ictimai qeydləri kəşf edin",
     "first-run": "İlk işə salma",
+    "forgot-password": "Forgot password?",
+    "forgot-password-description": "Enter the email address on your account and we will send you a link.",
+    "forgot-password-title": "Reset your password",
     "new-password": "Yeni parol",
+    "password-too-short": "Password must be at least 8 characters.",
+    "password-updated-description": "Sign in with your new password.",
+    "password-updated-title": "Password updated",
+    "passwords-do-not-match": "The passwords do not match.",
     "repeat-new-password": "Yeni parolu təkrarlayın",
+    "resend-verification": "Resend email",
+    "reset-link-sent-description": "If an account with a verified email exists for that address, a reset link is on its way.",
+    "reset-link-sent-title": "Check your inbox",
+    "reset-password": "Set new password",
+    "reset-password-description": "This link works once and expires after an hour.",
+    "reset-password-title": "Choose a new password",
+    "send-reset-link": "Send reset link",
     "setup-description": "Bu instans üçün administrator hesabı yaradın.",
     "setup-note": "Bu hesab instans parametrlərinə, üzvlərə və kimlik provayderlərinə sahib olur.",
     "setup-title": "İnstansınızı qurun",
@@ -60,30 +76,15 @@
     "signups-closed-description": "Bu instansda yeni hesablar deaktiv edilib. Giriş lazımdırsa, administratorunuzla əlaqə saxlayın.",
     "signups-closed-title": "Qeydiyyat bağlıdır",
     "sso-signup-tip": "Hesabınızı yaratmaq üçün aşağıdakı provayderlərdən biri ilə daxil olun.",
-    "welcome-back": "Yenidən xoş gəlmisiniz.",
-    "email-verified-description": "Thanks, your address is confirmed.",
-    "email-verified-title": "Email verified",
-    "forgot-password": "Forgot password?",
-    "forgot-password-description": "Enter the email address on your account and we will send you a link.",
-    "forgot-password-title": "Reset your password",
-    "password-too-short": "Password must be at least 8 characters.",
-    "password-updated-description": "Sign in with your new password.",
-    "password-updated-title": "Password updated",
-    "passwords-do-not-match": "The passwords do not match.",
-    "resend-verification": "Resend email",
-    "reset-link-sent-description": "If an account with a verified email exists for that address, a reset link is on its way.",
-    "reset-link-sent-title": "Check your inbox",
-    "reset-password": "Set new password",
-    "reset-password-description": "This link works once and expires after an hour.",
-    "reset-password-title": "Choose a new password",
-    "send-reset-link": "Send reset link",
     "username-email-not-allowed": "Only a username is accepted here. Email addresses cannot be used.",
     "verification-sent": "Verification email sent. Check your inbox.",
     "verify-email-banner": "Verify your email address to unlock AI features and password recovery.",
     "verify-email-title": "Verify your email",
     "verify-link-invalid-description": "Request a new link and try again.",
     "verify-link-invalid-title": "This link no longer works",
-    "verifying-email": "Verifying your email address…"
+    "verifying-email": "Verifying your email address…",
+    "welcome-back": "Yenidən xoş gəlmisiniz.",
+    "invited": "Invited"
   },
   "calendar": {
     "new-memo-on-day": "Bu gün üçün yeni qeyd",
@@ -618,7 +619,26 @@
       "restore-success": "{{username}} uğurla bərpa edildi",
       "summary-column": "Xülasə",
       "user": "İstifadəçi",
-      "no-members-found": "Üzv tapılmadı"
+      "no-members-found": "Üzv tapılmadı",
+      "invite": "Invite",
+      "invite-description": "Send a sign-up link for one email address. The account it creates is a regular member. The link works for 7 days, even while sign-ups are closed.",
+      "invite-expires": "Expires on {{date}}",
+      "invite-link": "Invite link",
+      "invite-not-sent": "Email is not configured; share this link yourself.",
+      "invite-operator": "Invite operator",
+      "invite-operator-description": "Send a sign-up link for one email address. The account it creates is a Noviledger operator with full access to this instance. The link works for 7 days, even while sign-ups are closed. The sign-up page is for guests, so open a test invite in a private window.",
+      "invite-operator-title": "Invite an operator",
+      "invite-sent": "Sent to {{email}}",
+      "invite-title": "Invite a member",
+      "package": "Package",
+      "package-description": "Teams lets this member invite others. When the date passes, the package drops back to Free on its own.",
+      "package-expires": "Expires on",
+      "package-free": "Free",
+      "package-no-expiry": "Leave empty for no expiry.",
+      "package-plan": "Plan",
+      "package-teams": "Teams",
+      "package-title": "Package for {{username}}",
+      "package-updated": "Package updated"
     },
     "memo": {
       "add-reaction": "Reaksiya əlavə et",
@@ -981,34 +1001,6 @@
       "tag-pattern-hint": "Etiket adı və ya regex şablonu (məs. project/.* bütün project/ etiketlərinə uyğun gəlir)",
       "invalid-regex": "Yanlış və ya təhlükəsiz olmayan regex şablonu.",
       "used-count": "{{count}} qeyd"
-    },
-    "resource-stats": {
-      "label": "Resurslar",
-      "title": "Resurs statistikası",
-      "description": "Bu instans üçün resurs istifadəsi.",
-      "database": {
-        "title": "Verilənlər bazası",
-        "driver": "Drayver",
-        "size": "Ölçü"
-      },
-      "local-storage": {
-        "title": "Lokal saxlama",
-        "size": "Data qovluğunun ölçüsü"
-      },
-      "unknown": "Naməlum",
-      "last-updated": "Son yenilənmə {{ago}}",
-      "refresh": "Yenilə",
-      "load-error": "Statistikanı yükləmək alınmadı",
-      "user-usage": {
-        "title": "User Usage",
-        "description": "Notes, uploaded attachments, and latest note activity by user.",
-        "last-activity": "Latest note activity {{ago}}",
-        "no-activity": "No note activity",
-        "memo-count_one": "{{count}} memo",
-        "memo-count_other": "{{count}} memos",
-        "attachment-count_one": "{{count}} attachment · {{size}}",
-        "attachment-count_other": "{{count}} attachments · {{size}}"
-      }
     }
   },
   "space": {
@@ -1046,5 +1038,33 @@
   "tooltip": {
     "link-memo": "Qeydə keçid əlavə et",
     "select-location": "Məkan"
+  },
+  "dashboard": {
+    "title": "Overview",
+    "description": "Noviledger Notes at a glance.",
+    "members": "Members",
+    "notes": "Notes",
+    "manage-members": "Manage members",
+    "database": {
+      "title": "Database"
+    },
+    "local-storage": {
+      "title": "Local Storage",
+      "size": "Data directory size"
+    },
+    "user-usage": {
+      "title": "User Usage",
+      "description": "Notes, uploaded attachments, and latest note activity by user.",
+      "last-activity": "Latest note activity {{ago}}",
+      "no-activity": "No note activity",
+      "memo-count_one": "{{count}} memo",
+      "memo-count_other": "{{count}} memos",
+      "attachment-count_one": "{{count}} attachment · {{size}}",
+      "attachment-count_other": "{{count}} attachments · {{size}}"
+    },
+    "unknown": "Unknown",
+    "last-updated": "Last updated {{ago}}",
+    "refresh": "Refresh",
+    "load-error": "Failed to load statistics"
   }
 }

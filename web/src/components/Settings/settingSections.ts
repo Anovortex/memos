@@ -1,7 +1,6 @@
 import {
   ArrowLeftRightIcon,
   AstroidIcon,
-  BarChart3Icon,
   CogIcon,
   DatabaseIcon,
   HeartHandshakeIcon,
@@ -26,7 +25,6 @@ import MemoRelatedSettings from "@/components/Settings/MemoRelatedSettings";
 import MyAccountSection from "@/components/Settings/MyAccountSection";
 import NotificationSection from "@/components/Settings/NotificationSection";
 import PreferencesSection from "@/components/Settings/PreferencesSection";
-import ResourceStatsSection from "@/components/Settings/ResourceStatsSection";
 import SpacesSection from "@/components/Settings/SpacesSection";
 import SSOSection from "@/components/Settings/SSOSection";
 import StorageSection from "@/components/Settings/StorageSection";
@@ -48,8 +46,7 @@ export type SettingSectionKey =
   | "notification"
   | "sso"
   | "tags"
-  | "ai"
-  | "resource-stats";
+  | "ai";
 
 type SettingSectionScope = "basic" | "admin";
 
@@ -163,13 +160,6 @@ export const SETTINGS_SECTIONS: SettingSectionDefinition[] = [
     icon: HeartHandshakeIcon,
     component: AISection,
     preloadSettingKeys: [InstanceSetting_Key.AI],
-  },
-  {
-    key: "resource-stats",
-    scope: "admin",
-    labelKey: "setting.resource-stats.label",
-    icon: BarChart3Icon,
-    component: ResourceStatsSection,
   },
 ];
 

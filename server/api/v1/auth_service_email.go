@@ -44,26 +44,41 @@ type authMailer struct {
 	baseURL string
 }
 
-// newAuthMailer resolves the mailer or returns FailedPrecondition naming what
-// is missing, which the UI shows to the user.
-func (s *APIV1Service) newAuthMailer(ctx context.Context) (*authMailer, error) {
+// authEmailConfig resolves the instance SMTP config and reply-to, or returns
+// FailedPrecondition when email is not configured.
+func (s *APIV1Service) authEmailConfig(ctx context.Context) (*email.Config, string, error) {
 	setting, err := s.Store.GetInstanceNotificationSetting(ctx)
 	if err != nil {
-		return nil, status.Errorf(codes.Internal, "failed to get notification setting")
+		return nil, "", status.Errorf(codes.Internal, "failed to get notification setting")
 	}
 	emailSetting := setting.GetEmail()
 	if emailSetting == nil || !emailSetting.Enabled {
-		return nil, status.Errorf(codes.FailedPrecondition, "email is not configured on this instance")
+		return nil, "", status.Errorf(codes.FailedPrecondition, "email is not configured on this instance")
 	}
 	config := notification.EmailConfigFromInstanceSetting(emailSetting)
 	if err := config.Validate(); err != nil {
-		return nil, status.Errorf(codes.FailedPrecondition, "email is not configured on this instance")
+		return nil, "", status.Errorf(codes.FailedPrecondition, "email is not configured on this instance")
 	}
-	baseURL := strings.TrimRight(strings.TrimSpace(s.Profile.InstanceURL), "/")
+	return config, emailSetting.ReplyTo, nil
+}
+
+// instanceBaseURL is the public base URL for links, or empty when unset.
+func (s *APIV1Service) instanceBaseURL() string {
+	return strings.TrimRight(strings.TrimSpace(s.Profile.InstanceURL), "/")
+}
+
+// newAuthMailer resolves the mailer or returns FailedPrecondition naming what
+// is missing, which the UI shows to the user.
+func (s *APIV1Service) newAuthMailer(ctx context.Context) (*authMailer, error) {
+	config, replyTo, err := s.authEmailConfig(ctx)
+	if err != nil {
+		return nil, err
+	}
+	baseURL := s.instanceBaseURL()
 	if baseURL == "" {
 		return nil, status.Errorf(codes.FailedPrecondition, "instance URL is not configured")
 	}
-	return &authMailer{config: config, replyTo: emailSetting.ReplyTo, baseURL: baseURL}, nil
+	return &authMailer{config: config, replyTo: replyTo, baseURL: baseURL}, nil
 }
 
 func (s *APIV1Service) sendAuthEmail(mailer *authMailer, message *email.Message) {

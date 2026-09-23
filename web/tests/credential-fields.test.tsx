@@ -42,4 +42,24 @@ describe("<CredentialFields>", () => {
     expect(email).toHaveAttribute("type", "email");
     expect(email).toBeRequired();
   });
+
+  it("locks only the email field when it is read-only", () => {
+    render(
+      <CredentialFields
+        idPrefix="signup"
+        username=""
+        email="invited@example.com"
+        password=""
+        passwordAutoComplete="new-password"
+        emailReadOnly
+        onUsernameChange={vi.fn()}
+        onEmailChange={vi.fn()}
+        onPasswordChange={vi.fn()}
+      />,
+    );
+
+    expect(screen.getByPlaceholderText("common.email")).toHaveAttribute("readonly");
+    expect(screen.getByPlaceholderText("common.username")).not.toHaveAttribute("readonly");
+    expect(screen.getByPlaceholderText("common.password")).not.toHaveAttribute("readonly");
+  });
 });

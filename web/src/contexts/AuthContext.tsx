@@ -6,6 +6,7 @@ import { userKeys } from "@/hooks/useUserQueries";
 import type {
   User,
   UserSetting_GeneralSetting,
+  UserSetting_PackageSetting,
   UserSetting_TagsSetting,
   UserSetting_WebhooksSetting,
 } from "@/types/proto/api/v1/user_service_pb";
@@ -15,6 +16,7 @@ interface AuthState {
   userGeneralSetting: UserSetting_GeneralSetting | undefined;
   userWebhooksSetting: UserSetting_WebhooksSetting | undefined;
   userTagsSetting: UserSetting_TagsSetting | undefined;
+  userPackageSetting: UserSetting_PackageSetting | undefined;
   /** Authentication identity has settled, while user settings may still be loading. */
   isIdentityInitialized: boolean;
   /** User settings that affect memo presentation are safe to consume. */
@@ -38,6 +40,7 @@ const UNAUTHENTICATED_STATE: AuthState = {
   userGeneralSetting: undefined,
   userWebhooksSetting: undefined,
   userTagsSetting: undefined,
+  userPackageSetting: undefined,
   isIdentityInitialized: true,
   isUserSettingsInitialized: true,
   isInitialized: true,
@@ -51,6 +54,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     userGeneralSetting: undefined,
     userWebhooksSetting: undefined,
     userTagsSetting: undefined,
+    userPackageSetting: undefined,
     isIdentityInitialized: false,
     isUserSettingsInitialized: false,
     isInitialized: false,
@@ -62,10 +66,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const generalSetting = settings.find((s) => s.value.case === "generalSetting");
     const webhooksSetting = settings.find((s) => s.value.case === "webhooksSetting");
     const tagsSetting = settings.find((s) => s.value.case === "tagsSetting");
+    const packageSetting = settings.find((s) => s.value.case === "packageSetting");
     const userSettings = {
       userGeneralSetting: generalSetting?.value.case === "generalSetting" ? generalSetting.value.value : undefined,
       userWebhooksSetting: webhooksSetting?.value.case === "webhooksSetting" ? webhooksSetting.value.value : undefined,
       userTagsSetting: tagsSetting?.value.case === "tagsSetting" ? tagsSetting.value.value : undefined,
+      userPackageSetting: packageSetting?.value.case === "packageSetting" ? packageSetting.value.value : undefined,
     };
 
     // Tag settings control sensitive-content blurring. Publish them as soon as

@@ -25,12 +25,15 @@ import {
   RequireFullInitializationRoute,
   RequireGuestRoute,
   RequireInstanceInitializationRoute,
+  RequireOperatorRoute,
 } from "@/router/guards";
+import { User_Role } from "@/types/proto/api/v1/user_service_pb";
 
 const mockedUseCurrentUser = vi.mocked(useCurrentUser);
 
 // Minimal User-like stand-in — guards only check truthiness on the value.
 const fakeUser = { name: "users/steven" } as unknown as ReturnType<typeof useCurrentUser>;
+const operator = { name: "users/noviledger", role: User_Role.ADMIN } as unknown as ReturnType<typeof useCurrentUser>;
 
 const LocationProbe = () => {
   const location = useLocation();
@@ -92,6 +95,22 @@ describe("LandingRoute", () => {
     );
 
     expect(screen.getByTestId("home")).toHaveTextContent("home");
+  });
+
+  it("sends the operator from the entry to the dashboard", () => {
+    mockedUseCurrentUser.mockReturnValue(operator);
+
+    renderAt(
+      "/",
+      <Routes>
+        <Route path="/" element={<LandingRoute />}>
+          <Route index element={<div data-testid="home">home</div>} />
+        </Route>
+        <Route path="/dashboard" element={<LocationProbe />} />
+      </Routes>,
+    );
+
+    expect(screen.getByTestId("location").textContent).toBe("/dashboard");
   });
 
   it("sends an unauthenticated visitor from the entry to /explore", () => {
@@ -241,5 +260,41 @@ describe("RequireGuestRoute", () => {
     );
 
     expect(screen.getByTestId("location").textContent).toBe("/");
+  });
+});
+
+describe("RequireOperatorRoute", () => {
+  const tree = (
+    <Routes>
+      <Route element={<RequireOperatorRoute />}>
+        <Route path="/dashboard" element={<div data-testid="dashboard">dashboard</div>} />
+      </Route>
+      <Route path="/auth" element={<LocationProbe />} />
+      <Route path="/" element={<LocationProbe />} />
+    </Routes>
+  );
+
+  it("renders the page for the operator", () => {
+    mockedUseCurrentUser.mockReturnValue(operator);
+
+    renderAt("/dashboard", tree);
+
+    expect(screen.getByTestId("dashboard")).toHaveTextContent("dashboard");
+  });
+
+  it("sends a member to their notes", () => {
+    mockedUseCurrentUser.mockReturnValue(fakeUser);
+
+    renderAt("/dashboard", tree);
+
+    expect(screen.getByTestId("location").textContent).toBe("/");
+  });
+
+  it("sends an anonymous visitor to sign-in with the dashboard as the redirect", () => {
+    mockedUseCurrentUser.mockReturnValue(undefined);
+
+    renderAt("/dashboard", tree);
+
+    expect(screen.getByTestId("location").textContent).toBe("/auth?redirect=%2Fdashboard");
   });
 });

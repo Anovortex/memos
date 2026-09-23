@@ -26,6 +26,8 @@ message UserSetting {
     EMAIL_VERIFICATION = 9;
     // Pending password reset challenge (server-internal).
     PASSWORD_RESET = 10;
+    // Operator-set package: plan and expiry.
+    PACKAGE = 11;
   }
 
   int32 user_id = 1;
@@ -40,6 +42,7 @@ message UserSetting {
     TagsUserSetting tags = 10;
     EmailVerificationUserSetting email_verification = 11;
     PasswordResetUserSetting password_reset = 12;
+    PackageUserSetting package = 13;
   }
 }
 
@@ -174,4 +177,16 @@ message PasswordResetUserSetting {
   string token_hash = 1;
   // When the token expires.
   google.protobuf.Timestamp expires_at = 2;
+}
+
+// PackageUserSetting is the plan the operator granted a user and when it lapses.
+message PackageUserSetting {
+  enum Plan {
+    PLAN_UNSPECIFIED = 0;
+    FREE = 1;
+    TEAMS = 2;
+  }
+  Plan plan = 1;
+  // When the plan lapses back to FREE; unset means it does not lapse.
+  google.protobuf.Timestamp expire_time = 2;
 }
