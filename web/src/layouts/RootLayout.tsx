@@ -1,5 +1,6 @@
 import { useEffect, useRef } from "react";
 import { Navigate, Outlet, useLocation, useSearchParams } from "react-router-dom";
+import EmailVerificationBanner from "@/components/EmailVerificationBanner";
 import Navigation from "@/components/Navigation";
 import { useInstance } from "@/contexts/InstanceContext";
 import { useMemoFilterContext } from "@/contexts/MemoFilterContext";
@@ -71,6 +72,7 @@ const RootLayout = () => {
       )}
       <main className="w-full h-auto grow shrink flex flex-col justify-start items-center">
         {profile.demo && <DemoBanner />}
+        <EmailVerificationBanner />
         <Outlet />
       </main>
     </div>

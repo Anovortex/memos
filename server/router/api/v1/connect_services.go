@@ -614,3 +614,37 @@ func (s *ConnectServiceHandler) DeleteIdentityProvider(ctx context.Context, req 
 	}
 	return connect.NewResponse(resp), nil
 }
+
+// AuthService: email verification and password reset.
+
+func (s *ConnectServiceHandler) SendEmailVerification(ctx context.Context, req *connect.Request[v1pb.SendEmailVerificationRequest]) (*connect.Response[emptypb.Empty], error) {
+	resp, err := s.APIV1Service.SendEmailVerification(ctx, req.Msg)
+	if err != nil {
+		return nil, convertGRPCError(err)
+	}
+	return connect.NewResponse(resp), nil
+}
+
+func (s *ConnectServiceHandler) VerifyEmail(ctx context.Context, req *connect.Request[v1pb.VerifyEmailRequest]) (*connect.Response[emptypb.Empty], error) {
+	resp, err := s.APIV1Service.VerifyEmail(ctx, req.Msg)
+	if err != nil {
+		return nil, convertGRPCError(err)
+	}
+	return connect.NewResponse(resp), nil
+}
+
+func (s *ConnectServiceHandler) RequestPasswordReset(ctx context.Context, req *connect.Request[v1pb.RequestPasswordResetRequest]) (*connect.Response[emptypb.Empty], error) {
+	resp, err := s.APIV1Service.RequestPasswordReset(ctx, req.Msg)
+	if err != nil {
+		return nil, convertGRPCError(err)
+	}
+	return connect.NewResponse(resp), nil
+}
+
+func (s *ConnectServiceHandler) ResetPassword(ctx context.Context, req *connect.Request[v1pb.ResetPasswordRequest]) (*connect.Response[emptypb.Empty], error) {
+	resp, err := s.APIV1Service.ResetPassword(ctx, req.Msg)
+	if err != nil {
+		return nil, convertGRPCError(err)
+	}
+	return connect.NewResponse(resp), nil
+}

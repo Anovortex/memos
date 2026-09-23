@@ -29,17 +29,20 @@ const About = lazyWithReload(() => import("@/pages/About"));
 const Archived = lazyWithReload(() => import("@/pages/Archived"));
 const AuthCallback = lazyWithReload(() => import("@/pages/AuthCallback"));
 const Explore = lazyWithReload(() => import("@/pages/Explore"));
+const ForgotPassword = lazyWithReload(() => import("@/pages/ForgotPassword"));
 const Home = lazyWithReload(() => import("@/pages/Home"));
 const Inboxes = lazyWithReload(() => import("@/pages/Inboxes"));
 const MemoDetail = lazyWithReload(() => import("@/pages/MemoDetail"));
 const NotFound = lazyWithReload(() => import("@/pages/NotFound"));
 const PermissionDenied = lazyWithReload(() => import("@/pages/PermissionDenied"));
+const ResetPassword = lazyWithReload(() => import("@/pages/ResetPassword"));
 const Attachments = lazyWithReload(() => import("@/pages/Attachments"));
 const Setting = lazyWithReload(() => import("@/pages/Setting"));
 const Shortcuts = lazyWithReload(() => import("@/pages/Shortcuts"));
 const SignIn = lazyWithReload(() => import("@/pages/SignIn"));
 const SignUp = lazyWithReload(() => import("@/pages/SignUp"));
 const UserProfile = lazyWithReload(() => import("@/pages/UserProfile"));
+const VerifyEmail = lazyWithReload(() => import("@/pages/VerifyEmail"));
 
 // Backward compatibility alias.
 export const Routes = ROUTES;
@@ -63,12 +66,17 @@ export const routeConfig: RouteObject[] = [
           // authenticated tab elsewhere must not block it from consuming its
           // one-time OAuth state. Keep it outside the guest-only subtree.
           { path: "callback", element: <AuthCallback /> },
+          // Verification links are opened from email, often while already signed
+          // in, so this page must not be guest-only either.
+          { path: "verify-email", element: <VerifyEmail /> },
           {
             element: <RequireGuestRoute />,
             children: [
               { path: "", element: <SignIn /> },
               { path: "admin", element: <AdminSignIn /> },
               { path: "signup", element: <SignUp /> },
+              { path: "forgot-password", element: <ForgotPassword /> },
+              { path: "reset-password", element: <ResetPassword /> },
             ],
           },
         ],

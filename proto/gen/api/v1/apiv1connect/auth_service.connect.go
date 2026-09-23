@@ -44,6 +44,17 @@ const (
 	// AuthServiceRefreshTokenProcedure is the fully-qualified name of the AuthService's RefreshToken
 	// RPC.
 	AuthServiceRefreshTokenProcedure = "/memos.api.v1.AuthService/RefreshToken"
+	// AuthServiceSendEmailVerificationProcedure is the fully-qualified name of the AuthService's
+	// SendEmailVerification RPC.
+	AuthServiceSendEmailVerificationProcedure = "/memos.api.v1.AuthService/SendEmailVerification"
+	// AuthServiceVerifyEmailProcedure is the fully-qualified name of the AuthService's VerifyEmail RPC.
+	AuthServiceVerifyEmailProcedure = "/memos.api.v1.AuthService/VerifyEmail"
+	// AuthServiceRequestPasswordResetProcedure is the fully-qualified name of the AuthService's
+	// RequestPasswordReset RPC.
+	AuthServiceRequestPasswordResetProcedure = "/memos.api.v1.AuthService/RequestPasswordReset"
+	// AuthServiceResetPasswordProcedure is the fully-qualified name of the AuthService's ResetPassword
+	// RPC.
+	AuthServiceResetPasswordProcedure = "/memos.api.v1.AuthService/ResetPassword"
 )
 
 // AuthServiceClient is a client for the memos.api.v1.AuthService service.
@@ -63,6 +74,18 @@ type AuthServiceClient interface {
 	// The refresh token is read from the HttpOnly cookie.
 	// Returns a new short-lived access token.
 	RefreshToken(context.Context, *connect.Request[v1.RefreshTokenRequest]) (*connect.Response[v1.RefreshTokenResponse], error)
+	// SendEmailVerification emails the authenticated user a link that proves
+	// they own their address. No-op when the address is already verified.
+	SendEmailVerification(context.Context, *connect.Request[v1.SendEmailVerificationRequest]) (*connect.Response[emptypb.Empty], error)
+	// VerifyEmail consumes a verification token from the emailed link.
+	// Public: the user may open the link while signed out.
+	VerifyEmail(context.Context, *connect.Request[v1.VerifyEmailRequest]) (*connect.Response[emptypb.Empty], error)
+	// RequestPasswordReset emails a reset link when exactly one account has the
+	// given verified email. Always returns OK so accounts cannot be enumerated.
+	RequestPasswordReset(context.Context, *connect.Request[v1.RequestPasswordResetRequest]) (*connect.Response[emptypb.Empty], error)
+	// ResetPassword sets a new password using a reset token and signs out every
+	// existing session of that user.
+	ResetPassword(context.Context, *connect.Request[v1.ResetPasswordRequest]) (*connect.Response[emptypb.Empty], error)
 }
 
 // NewAuthServiceClient constructs a client for the memos.api.v1.AuthService service. By default, it
@@ -100,15 +123,43 @@ func NewAuthServiceClient(httpClient connect.HTTPClient, baseURL string, opts ..
 			connect.WithSchema(authServiceMethods.ByName("RefreshToken")),
 			connect.WithClientOptions(opts...),
 		),
+		sendEmailVerification: connect.NewClient[v1.SendEmailVerificationRequest, emptypb.Empty](
+			httpClient,
+			baseURL+AuthServiceSendEmailVerificationProcedure,
+			connect.WithSchema(authServiceMethods.ByName("SendEmailVerification")),
+			connect.WithClientOptions(opts...),
+		),
+		verifyEmail: connect.NewClient[v1.VerifyEmailRequest, emptypb.Empty](
+			httpClient,
+			baseURL+AuthServiceVerifyEmailProcedure,
+			connect.WithSchema(authServiceMethods.ByName("VerifyEmail")),
+			connect.WithClientOptions(opts...),
+		),
+		requestPasswordReset: connect.NewClient[v1.RequestPasswordResetRequest, emptypb.Empty](
+			httpClient,
+			baseURL+AuthServiceRequestPasswordResetProcedure,
+			connect.WithSchema(authServiceMethods.ByName("RequestPasswordReset")),
+			connect.WithClientOptions(opts...),
+		),
+		resetPassword: connect.NewClient[v1.ResetPasswordRequest, emptypb.Empty](
+			httpClient,
+			baseURL+AuthServiceResetPasswordProcedure,
+			connect.WithSchema(authServiceMethods.ByName("ResetPassword")),
+			connect.WithClientOptions(opts...),
+		),
 	}
 }
 
 // authServiceClient implements AuthServiceClient.
 type authServiceClient struct {
-	getCurrentUser *connect.Client[v1.GetCurrentUserRequest, v1.GetCurrentUserResponse]
-	signIn         *connect.Client[v1.SignInRequest, v1.SignInResponse]
-	signOut        *connect.Client[v1.SignOutRequest, emptypb.Empty]
-	refreshToken   *connect.Client[v1.RefreshTokenRequest, v1.RefreshTokenResponse]
+	getCurrentUser        *connect.Client[v1.GetCurrentUserRequest, v1.GetCurrentUserResponse]
+	signIn                *connect.Client[v1.SignInRequest, v1.SignInResponse]
+	signOut               *connect.Client[v1.SignOutRequest, emptypb.Empty]
+	refreshToken          *connect.Client[v1.RefreshTokenRequest, v1.RefreshTokenResponse]
+	sendEmailVerification *connect.Client[v1.SendEmailVerificationRequest, emptypb.Empty]
+	verifyEmail           *connect.Client[v1.VerifyEmailRequest, emptypb.Empty]
+	requestPasswordReset  *connect.Client[v1.RequestPasswordResetRequest, emptypb.Empty]
+	resetPassword         *connect.Client[v1.ResetPasswordRequest, emptypb.Empty]
 }
 
 // GetCurrentUser calls memos.api.v1.AuthService.GetCurrentUser.
@@ -131,6 +182,26 @@ func (c *authServiceClient) RefreshToken(ctx context.Context, req *connect.Reque
 	return c.refreshToken.CallUnary(ctx, req)
 }
 
+// SendEmailVerification calls memos.api.v1.AuthService.SendEmailVerification.
+func (c *authServiceClient) SendEmailVerification(ctx context.Context, req *connect.Request[v1.SendEmailVerificationRequest]) (*connect.Response[emptypb.Empty], error) {
+	return c.sendEmailVerification.CallUnary(ctx, req)
+}
+
+// VerifyEmail calls memos.api.v1.AuthService.VerifyEmail.
+func (c *authServiceClient) VerifyEmail(ctx context.Context, req *connect.Request[v1.VerifyEmailRequest]) (*connect.Response[emptypb.Empty], error) {
+	return c.verifyEmail.CallUnary(ctx, req)
+}
+
+// RequestPasswordReset calls memos.api.v1.AuthService.RequestPasswordReset.
+func (c *authServiceClient) RequestPasswordReset(ctx context.Context, req *connect.Request[v1.RequestPasswordResetRequest]) (*connect.Response[emptypb.Empty], error) {
+	return c.requestPasswordReset.CallUnary(ctx, req)
+}
+
+// ResetPassword calls memos.api.v1.AuthService.ResetPassword.
+func (c *authServiceClient) ResetPassword(ctx context.Context, req *connect.Request[v1.ResetPasswordRequest]) (*connect.Response[emptypb.Empty], error) {
+	return c.resetPassword.CallUnary(ctx, req)
+}
+
 // AuthServiceHandler is an implementation of the memos.api.v1.AuthService service.
 type AuthServiceHandler interface {
 	// GetCurrentUser returns the authenticated user's information.
@@ -148,6 +219,18 @@ type AuthServiceHandler interface {
 	// The refresh token is read from the HttpOnly cookie.
 	// Returns a new short-lived access token.
 	RefreshToken(context.Context, *connect.Request[v1.RefreshTokenRequest]) (*connect.Response[v1.RefreshTokenResponse], error)
+	// SendEmailVerification emails the authenticated user a link that proves
+	// they own their address. No-op when the address is already verified.
+	SendEmailVerification(context.Context, *connect.Request[v1.SendEmailVerificationRequest]) (*connect.Response[emptypb.Empty], error)
+	// VerifyEmail consumes a verification token from the emailed link.
+	// Public: the user may open the link while signed out.
+	VerifyEmail(context.Context, *connect.Request[v1.VerifyEmailRequest]) (*connect.Response[emptypb.Empty], error)
+	// RequestPasswordReset emails a reset link when exactly one account has the
+	// given verified email. Always returns OK so accounts cannot be enumerated.
+	RequestPasswordReset(context.Context, *connect.Request[v1.RequestPasswordResetRequest]) (*connect.Response[emptypb.Empty], error)
+	// ResetPassword sets a new password using a reset token and signs out every
+	// existing session of that user.
+	ResetPassword(context.Context, *connect.Request[v1.ResetPasswordRequest]) (*connect.Response[emptypb.Empty], error)
 }
 
 // NewAuthServiceHandler builds an HTTP handler from the service implementation. It returns the path
@@ -181,6 +264,30 @@ func NewAuthServiceHandler(svc AuthServiceHandler, opts ...connect.HandlerOption
 		connect.WithSchema(authServiceMethods.ByName("RefreshToken")),
 		connect.WithHandlerOptions(opts...),
 	)
+	authServiceSendEmailVerificationHandler := connect.NewUnaryHandler(
+		AuthServiceSendEmailVerificationProcedure,
+		svc.SendEmailVerification,
+		connect.WithSchema(authServiceMethods.ByName("SendEmailVerification")),
+		connect.WithHandlerOptions(opts...),
+	)
+	authServiceVerifyEmailHandler := connect.NewUnaryHandler(
+		AuthServiceVerifyEmailProcedure,
+		svc.VerifyEmail,
+		connect.WithSchema(authServiceMethods.ByName("VerifyEmail")),
+		connect.WithHandlerOptions(opts...),
+	)
+	authServiceRequestPasswordResetHandler := connect.NewUnaryHandler(
+		AuthServiceRequestPasswordResetProcedure,
+		svc.RequestPasswordReset,
+		connect.WithSchema(authServiceMethods.ByName("RequestPasswordReset")),
+		connect.WithHandlerOptions(opts...),
+	)
+	authServiceResetPasswordHandler := connect.NewUnaryHandler(
+		AuthServiceResetPasswordProcedure,
+		svc.ResetPassword,
+		connect.WithSchema(authServiceMethods.ByName("ResetPassword")),
+		connect.WithHandlerOptions(opts...),
+	)
 	return "/memos.api.v1.AuthService/", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		switch r.URL.Path {
 		case AuthServiceGetCurrentUserProcedure:
@@ -191,6 +298,14 @@ func NewAuthServiceHandler(svc AuthServiceHandler, opts ...connect.HandlerOption
 			authServiceSignOutHandler.ServeHTTP(w, r)
 		case AuthServiceRefreshTokenProcedure:
 			authServiceRefreshTokenHandler.ServeHTTP(w, r)
+		case AuthServiceSendEmailVerificationProcedure:
+			authServiceSendEmailVerificationHandler.ServeHTTP(w, r)
+		case AuthServiceVerifyEmailProcedure:
+			authServiceVerifyEmailHandler.ServeHTTP(w, r)
+		case AuthServiceRequestPasswordResetProcedure:
+			authServiceRequestPasswordResetHandler.ServeHTTP(w, r)
+		case AuthServiceResetPasswordProcedure:
+			authServiceResetPasswordHandler.ServeHTTP(w, r)
 		default:
 			http.NotFound(w, r)
 		}
@@ -214,4 +329,20 @@ func (UnimplementedAuthServiceHandler) SignOut(context.Context, *connect.Request
 
 func (UnimplementedAuthServiceHandler) RefreshToken(context.Context, *connect.Request[v1.RefreshTokenRequest]) (*connect.Response[v1.RefreshTokenResponse], error) {
 	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("memos.api.v1.AuthService.RefreshToken is not implemented"))
+}
+
+func (UnimplementedAuthServiceHandler) SendEmailVerification(context.Context, *connect.Request[v1.SendEmailVerificationRequest]) (*connect.Response[emptypb.Empty], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("memos.api.v1.AuthService.SendEmailVerification is not implemented"))
+}
+
+func (UnimplementedAuthServiceHandler) VerifyEmail(context.Context, *connect.Request[v1.VerifyEmailRequest]) (*connect.Response[emptypb.Empty], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("memos.api.v1.AuthService.VerifyEmail is not implemented"))
+}
+
+func (UnimplementedAuthServiceHandler) RequestPasswordReset(context.Context, *connect.Request[v1.RequestPasswordResetRequest]) (*connect.Response[emptypb.Empty], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("memos.api.v1.AuthService.RequestPasswordReset is not implemented"))
+}
+
+func (UnimplementedAuthServiceHandler) ResetPassword(context.Context, *connect.Request[v1.ResetPasswordRequest]) (*connect.Response[emptypb.Empty], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("memos.api.v1.AuthService.ResetPassword is not implemented"))
 }

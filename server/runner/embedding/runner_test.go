@@ -7,6 +7,7 @@ import (
 
 	"github.com/stretchr/testify/require"
 	"golang.org/x/crypto/bcrypt"
+	"google.golang.org/protobuf/types/known/timestamppb"
 
 	"github.com/usememos/memos/internal/ai"
 	aiembedding "github.com/usememos/memos/internal/ai/embedding"
@@ -52,6 +53,22 @@ func createUser(ctx context.Context, t *testing.T, ts *store.Store, username str
 		Email:        username + "@test.com",
 		Nickname:     username,
 		PasswordHash: string(passwordHash),
+	})
+	require.NoError(t, err)
+	// Regular test users are verified; the indexer skips unverified accounts.
+	require.NoError(t, ts.SetUserEmailVerification(ctx, user.ID, &storepb.EmailVerificationUserSetting{
+		VerifiedEmail: user.Email,
+		VerifiedAt:    timestamppb.Now(),
+	}))
+	return user
+}
+
+func createUnverifiedUser(ctx context.Context, t *testing.T, ts *store.Store, username string) *store.User {
+	t.Helper()
+	user, err := ts.CreateUser(ctx, &store.User{
+		Username: username,
+		Role:     store.RoleUser,
+		Email:    username + "@test.com",
 	})
 	require.NoError(t, err)
 	return user
@@ -215,4 +232,37 @@ func TestReEmbedAfterEmbeddingDeleted(t *testing.T) {
 	rows, err := ts.ListMemoEmbeddings(ctx, &store.FindMemoEmbedding{MemoID: &memo.ID})
 	require.NoError(t, err)
 	require.Len(t, rows, 1)
+}
+
+func TestRunOnceSkipsUnverifiedCreators(t *testing.T) {
+	ctx := context.Background()
+	ts := teststore.NewTestingStore(ctx, t)
+	defer ts.Close()
+	unverified := createUnverifiedUser(ctx, t, ts, "unverified")
+	verified := createUser(ctx, t, ts, "verified", store.RoleUser)
+	configureEmbedding(ctx, t, ts)
+
+	unverifiedMemo, err := ts.CreateMemo(ctx, &store.Memo{
+		UID: "unverified-memo", CreatorID: unverified.ID, Content: "not yet", Visibility: store.Private,
+	})
+	require.NoError(t, err)
+	verifiedMemo, err := ts.CreateMemo(ctx, &store.Memo{
+		UID: "verified-memo", CreatorID: verified.ID, Content: "ready", Visibility: store.Private,
+	})
+	require.NoError(t, err)
+
+	fake := &fakeEmbedder{tokensPerBatch: 5}
+	runner := newTestRunner(t, ts, &profile.Profile{}, fake)
+	runner.RunOnce(ctx)
+
+	rows, err := ts.ListMemoEmbeddings(ctx, &store.FindMemoEmbedding{MemoID: &unverifiedMemo.ID})
+	require.NoError(t, err)
+	require.Len(t, rows, 0, "unverified creator's memo must not be embedded")
+	rows, err = ts.ListMemoEmbeddings(ctx, &store.FindMemoEmbedding{MemoID: &verifiedMemo.ID})
+	require.NoError(t, err)
+	require.Len(t, rows, 1)
+
+	usage, err := ts.GetUserAIUsage(ctx, unverified.ID, plan.UsageDate(time.Now()))
+	require.NoError(t, err)
+	require.Zero(t, usage, "no tokens are spent on unverified accounts")
 }

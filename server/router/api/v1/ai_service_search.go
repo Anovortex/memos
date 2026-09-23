@@ -38,6 +38,15 @@ func (s *APIV1Service) SearchMemos(ctx context.Context, request *v1pb.SearchMemo
 	if err := s.RateLimits.check(FlowSearchUser, userRateKey(user.ID)); err != nil {
 		return nil, err
 	}
+	verified, err := s.Store.IsEmailVerified(ctx, user)
+	if err != nil {
+		return nil, status.Errorf(codes.Internal, "failed to check email verification")
+	}
+	if !verified {
+		// PermissionDenied, not FailedPrecondition: the UI treats the latter as
+		// "search not configured" and silently falls back to substring search.
+		return nil, status.Errorf(codes.PermissionDenied, "verify your email address to use AI features")
+	}
 
 	query := strings.TrimSpace(request.GetQuery())
 	if query == "" {

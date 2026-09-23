@@ -243,6 +243,11 @@ message User {
   // Output only. The last update timestamp.
   google.protobuf.Timestamp update_time = 11 [(google.api.field_behavior) = OUTPUT_ONLY];
 
+  // Output only. Whether the user has proven ownership of `email`. Only
+  // populated on the caller's own user in GetCurrentUser and SignIn responses;
+  // false elsewhere.
+  bool email_verified = 12 [(google.api.field_behavior) = OUTPUT_ONLY];
+
   // User role enumeration.
   enum Role {
     ROLE_UNSPECIFIED = 0;

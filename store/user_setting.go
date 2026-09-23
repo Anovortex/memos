@@ -2,6 +2,7 @@ package store
 
 import (
 	"context"
+	"strings"
 
 	"github.com/pkg/errors"
 	"google.golang.org/protobuf/encoding/protojson"
@@ -459,6 +460,18 @@ func convertUserSettingFromRaw(raw *UserSetting) (*storepb.UserSetting, error) {
 			return nil, err
 		}
 		userSetting.Value = &storepb.UserSetting_Webhooks{Webhooks: webhooksUserSetting}
+	case storepb.UserSetting_EMAIL_VERIFICATION:
+		emailVerification := &storepb.EmailVerificationUserSetting{}
+		if err := protojsonUnmarshaler.Unmarshal([]byte(raw.Value), emailVerification); err != nil {
+			return nil, errors.Wrap(err, "unmarshal email verification user setting")
+		}
+		userSetting.Value = &storepb.UserSetting_EmailVerification{EmailVerification: emailVerification}
+	case storepb.UserSetting_PASSWORD_RESET:
+		passwordReset := &storepb.PasswordResetUserSetting{}
+		if err := protojsonUnmarshaler.Unmarshal([]byte(raw.Value), passwordReset); err != nil {
+			return nil, errors.Wrap(err, "unmarshal password reset user setting")
+		}
+		userSetting.Value = &storepb.UserSetting_PasswordReset{PasswordReset: passwordReset}
 	default:
 		return nil, nil
 	}
@@ -514,8 +527,100 @@ func convertUserSettingToRaw(userSetting *storepb.UserSetting) (*UserSetting, er
 			return nil, err
 		}
 		raw.Value = string(value)
+	case storepb.UserSetting_EMAIL_VERIFICATION:
+		value, err := protojson.Marshal(userSetting.GetEmailVerification())
+		if err != nil {
+			return nil, errors.Wrap(err, "marshal email verification user setting")
+		}
+		raw.Value = string(value)
+	case storepb.UserSetting_PASSWORD_RESET:
+		value, err := protojson.Marshal(userSetting.GetPasswordReset())
+		if err != nil {
+			return nil, errors.Wrap(err, "marshal password reset user setting")
+		}
+		raw.Value = string(value)
 	default:
 		return nil, errors.Errorf("unsupported user setting key: %v", userSetting.Key)
 	}
 	return raw, nil
+}
+
+// GetUserEmailVerification returns the user's email verification record, or nil
+// when none exists.
+func (s *Store) GetUserEmailVerification(ctx context.Context, userID int32) (*storepb.EmailVerificationUserSetting, error) {
+	userSetting, err := s.GetUserSetting(ctx, &FindUserSetting{
+		UserID: &userID,
+		Key:    storepb.UserSetting_EMAIL_VERIFICATION,
+	})
+	if err != nil {
+		return nil, err
+	}
+	if userSetting == nil {
+		return nil, nil
+	}
+	return userSetting.GetEmailVerification(), nil
+}
+
+// SetUserEmailVerification replaces the user's email verification record.
+func (s *Store) SetUserEmailVerification(ctx context.Context, userID int32, verification *storepb.EmailVerificationUserSetting) error {
+	_, err := s.UpsertUserSetting(ctx, &storepb.UserSetting{
+		UserId: userID,
+		Key:    storepb.UserSetting_EMAIL_VERIFICATION,
+		Value:  &storepb.UserSetting_EmailVerification{EmailVerification: verification},
+	})
+	return err
+}
+
+// IsEmailVerified reports whether the user has proven ownership of their
+// current email. Admins always count as verified so the instance owner is
+// never locked out of gated features.
+func (s *Store) IsEmailVerified(ctx context.Context, user *User) (bool, error) {
+	if user == nil {
+		return false, nil
+	}
+	if user.Role == RoleAdmin {
+		return true, nil
+	}
+	email := strings.ToLower(strings.TrimSpace(user.Email))
+	if email == "" {
+		return false, nil
+	}
+	verification, err := s.GetUserEmailVerification(ctx, user.ID)
+	if err != nil {
+		return false, err
+	}
+	return verification != nil && verification.VerifiedEmail == email, nil
+}
+
+// GetUserPasswordReset returns the pending password reset challenge, or nil.
+func (s *Store) GetUserPasswordReset(ctx context.Context, userID int32) (*storepb.PasswordResetUserSetting, error) {
+	userSetting, err := s.GetUserSetting(ctx, &FindUserSetting{
+		UserID: &userID,
+		Key:    storepb.UserSetting_PASSWORD_RESET,
+	})
+	if err != nil {
+		return nil, err
+	}
+	if userSetting == nil {
+		return nil, nil
+	}
+	return userSetting.GetPasswordReset(), nil
+}
+
+// SetUserPasswordReset replaces the pending password reset challenge.
+func (s *Store) SetUserPasswordReset(ctx context.Context, userID int32, reset *storepb.PasswordResetUserSetting) error {
+	_, err := s.UpsertUserSetting(ctx, &storepb.UserSetting{
+		UserId: userID,
+		Key:    storepb.UserSetting_PASSWORD_RESET,
+		Value:  &storepb.UserSetting_PasswordReset{PasswordReset: reset},
+	})
+	return err
+}
+
+// ClearUserPasswordReset removes the pending password reset challenge.
+func (s *Store) ClearUserPasswordReset(ctx context.Context, userID int32) error {
+	return s.DeleteUserSettings(ctx, &DeleteUserSetting{
+		UserID: &userID,
+		Key:    storepb.UserSetting_PASSWORD_RESET,
+	})
 }

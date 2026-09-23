@@ -125,6 +125,18 @@ func (r *Runner) embedBatch(ctx context.Context, embedder aiembedding.Embedder, 
 	usageDate := plan.UsageDate(time.Now())
 	embedded := 0
 	for creatorID, creatorMemos := range byCreator {
+		creator, err := r.store.GetUser(ctx, &store.FindUser{ID: &creatorID})
+		if err != nil {
+			return embedded, errors.Wrap(err, "failed to get creator")
+		}
+		verified, err := r.store.IsEmailVerified(ctx, creator)
+		if err != nil {
+			return embedded, errors.Wrap(err, "failed to check email verification")
+		}
+		if !verified {
+			// Unverified accounts cannot search, so indexing them only spends tokens.
+			continue
+		}
 		limits := plan.ForUser(r.profile, nil)
 		if limits.AITokensPerDay > 0 {
 			used, err := r.store.GetUserAIUsage(ctx, creatorID, usageDate)

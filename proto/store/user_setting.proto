@@ -22,6 +22,10 @@ message UserSetting {
     PERSONAL_ACCESS_TOKENS = 7;
     // Per-user tag metadata.
     TAGS = 8;
+    // Email verification state and pending challenge (server-internal).
+    EMAIL_VERIFICATION = 9;
+    // Pending password reset challenge (server-internal).
+    PASSWORD_RESET = 10;
   }
 
   int32 user_id = 1;
@@ -34,6 +38,8 @@ message UserSetting {
     RefreshTokensUserSetting refresh_tokens = 8;
     PersonalAccessTokensUserSetting personal_access_tokens = 9;
     TagsUserSetting tags = 10;
+    EmailVerificationUserSetting email_verification = 11;
+    PasswordResetUserSetting password_reset = 12;
   }
 }
 
@@ -132,4 +138,28 @@ message WebhooksUserSetting {
     string signing_secret = 4;
   }
   repeated Webhook webhooks = 1;
+}
+
+// EmailVerificationUserSetting records which address a user has proven they
+// own, plus the outstanding challenge if one was sent. The address counts as
+// verified only while it still equals the user's current (lowercased) email.
+message EmailVerificationUserSetting {
+  // The lowercased address that was verified. Empty when never verified.
+  string verified_email = 1;
+  // When verified_email was confirmed.
+  google.protobuf.Timestamp verified_at = 2;
+  // The lowercased address the pending challenge was sent to.
+  string pending_email = 3;
+  // SHA-256 hex of the pending verification token.
+  string pending_token_hash = 4;
+  // When the pending token expires.
+  google.protobuf.Timestamp pending_expires_at = 5;
+}
+
+// PasswordResetUserSetting holds the outstanding password reset challenge.
+message PasswordResetUserSetting {
+  // SHA-256 hex of the reset token.
+  string token_hash = 1;
+  // When the token expires.
+  google.protobuf.Timestamp expires_at = 2;
 }

@@ -4,8 +4,11 @@ import (
 	"context"
 	"testing"
 
+	"google.golang.org/protobuf/types/known/timestamppb"
+
 	"github.com/usememos/memos/internal/markdown"
 	"github.com/usememos/memos/internal/profile"
+	storepb "github.com/usememos/memos/proto/gen/store"
 	"github.com/usememos/memos/server/auth"
 	apiv1 "github.com/usememos/memos/server/router/api/v1"
 	"github.com/usememos/memos/store"
@@ -75,8 +78,24 @@ func (ts *TestService) CreateHostUser(ctx context.Context, username string) (*st
 	})
 }
 
-// CreateRegularUser creates a regular user for testing.
+// CreateRegularUser creates a regular user for testing with a verified email,
+// so gated features (AI search, password reset) work out of the box.
 func (ts *TestService) CreateRegularUser(ctx context.Context, username string) (*store.User, error) {
+	user, err := ts.CreateUnverifiedUser(ctx, username)
+	if err != nil {
+		return nil, err
+	}
+	if err := ts.Store.SetUserEmailVerification(ctx, user.ID, &storepb.EmailVerificationUserSetting{
+		VerifiedEmail: user.Email,
+		VerifiedAt:    timestamppb.Now(),
+	}); err != nil {
+		return nil, err
+	}
+	return user, nil
+}
+
+// CreateUnverifiedUser creates a regular user whose email is not yet verified.
+func (ts *TestService) CreateUnverifiedUser(ctx context.Context, username string) (*store.User, error) {
 	return ts.Store.CreateUser(ctx, &store.User{
 		Username: username,
 		Role:     store.RoleUser,

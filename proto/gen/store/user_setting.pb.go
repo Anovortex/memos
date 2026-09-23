@@ -39,18 +39,24 @@ const (
 	UserSetting_PERSONAL_ACCESS_TOKENS UserSetting_Key = 7
 	// Per-user tag metadata.
 	UserSetting_TAGS UserSetting_Key = 8
+	// Email verification state and pending challenge (server-internal).
+	UserSetting_EMAIL_VERIFICATION UserSetting_Key = 9
+	// Pending password reset challenge (server-internal).
+	UserSetting_PASSWORD_RESET UserSetting_Key = 10
 )
 
 // Enum value maps for UserSetting_Key.
 var (
 	UserSetting_Key_name = map[int32]string{
-		0: "KEY_UNSPECIFIED",
-		1: "GENERAL",
-		4: "SHORTCUTS",
-		5: "WEBHOOKS",
-		6: "REFRESH_TOKENS",
-		7: "PERSONAL_ACCESS_TOKENS",
-		8: "TAGS",
+		0:  "KEY_UNSPECIFIED",
+		1:  "GENERAL",
+		4:  "SHORTCUTS",
+		5:  "WEBHOOKS",
+		6:  "REFRESH_TOKENS",
+		7:  "PERSONAL_ACCESS_TOKENS",
+		8:  "TAGS",
+		9:  "EMAIL_VERIFICATION",
+		10: "PASSWORD_RESET",
 	}
 	UserSetting_Key_value = map[string]int32{
 		"KEY_UNSPECIFIED":        0,
@@ -60,6 +66,8 @@ var (
 		"REFRESH_TOKENS":         6,
 		"PERSONAL_ACCESS_TOKENS": 7,
 		"TAGS":                   8,
+		"EMAIL_VERIFICATION":     9,
+		"PASSWORD_RESET":         10,
 	}
 )
 
@@ -102,6 +110,8 @@ type UserSetting struct {
 	//	*UserSetting_RefreshTokens
 	//	*UserSetting_PersonalAccessTokens
 	//	*UserSetting_Tags
+	//	*UserSetting_EmailVerification
+	//	*UserSetting_PasswordReset
 	Value         isUserSetting_Value `protobuf_oneof:"value"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
@@ -212,6 +222,24 @@ func (x *UserSetting) GetTags() *TagsUserSetting {
 	return nil
 }
 
+func (x *UserSetting) GetEmailVerification() *EmailVerificationUserSetting {
+	if x != nil {
+		if x, ok := x.Value.(*UserSetting_EmailVerification); ok {
+			return x.EmailVerification
+		}
+	}
+	return nil
+}
+
+func (x *UserSetting) GetPasswordReset() *PasswordResetUserSetting {
+	if x != nil {
+		if x, ok := x.Value.(*UserSetting_PasswordReset); ok {
+			return x.PasswordReset
+		}
+	}
+	return nil
+}
+
 type isUserSetting_Value interface {
 	isUserSetting_Value()
 }
@@ -240,6 +268,14 @@ type UserSetting_Tags struct {
 	Tags *TagsUserSetting `protobuf:"bytes,10,opt,name=tags,proto3,oneof"`
 }
 
+type UserSetting_EmailVerification struct {
+	EmailVerification *EmailVerificationUserSetting `protobuf:"bytes,11,opt,name=email_verification,json=emailVerification,proto3,oneof"`
+}
+
+type UserSetting_PasswordReset struct {
+	PasswordReset *PasswordResetUserSetting `protobuf:"bytes,12,opt,name=password_reset,json=passwordReset,proto3,oneof"`
+}
+
 func (*UserSetting_General) isUserSetting_Value() {}
 
 func (*UserSetting_Shortcuts) isUserSetting_Value() {}
@@ -251,6 +287,10 @@ func (*UserSetting_RefreshTokens) isUserSetting_Value() {}
 func (*UserSetting_PersonalAccessTokens) isUserSetting_Value() {}
 
 func (*UserSetting_Tags) isUserSetting_Value() {}
+
+func (*UserSetting_EmailVerification) isUserSetting_Value() {}
+
+func (*UserSetting_PasswordReset) isUserSetting_Value() {}
 
 type GeneralUserSetting struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
@@ -595,6 +635,145 @@ func (x *WebhooksUserSetting) GetWebhooks() []*WebhooksUserSetting_Webhook {
 	return nil
 }
 
+// EmailVerificationUserSetting records which address a user has proven they
+// own, plus the outstanding challenge if one was sent. The address counts as
+// verified only while it still equals the user's current (lowercased) email.
+type EmailVerificationUserSetting struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// The lowercased address that was verified. Empty when never verified.
+	VerifiedEmail string `protobuf:"bytes,1,opt,name=verified_email,json=verifiedEmail,proto3" json:"verified_email,omitempty"`
+	// When verified_email was confirmed.
+	VerifiedAt *timestamppb.Timestamp `protobuf:"bytes,2,opt,name=verified_at,json=verifiedAt,proto3" json:"verified_at,omitempty"`
+	// The lowercased address the pending challenge was sent to.
+	PendingEmail string `protobuf:"bytes,3,opt,name=pending_email,json=pendingEmail,proto3" json:"pending_email,omitempty"`
+	// SHA-256 hex of the pending verification token.
+	PendingTokenHash string `protobuf:"bytes,4,opt,name=pending_token_hash,json=pendingTokenHash,proto3" json:"pending_token_hash,omitempty"`
+	// When the pending token expires.
+	PendingExpiresAt *timestamppb.Timestamp `protobuf:"bytes,5,opt,name=pending_expires_at,json=pendingExpiresAt,proto3" json:"pending_expires_at,omitempty"`
+	unknownFields    protoimpl.UnknownFields
+	sizeCache        protoimpl.SizeCache
+}
+
+func (x *EmailVerificationUserSetting) Reset() {
+	*x = EmailVerificationUserSetting{}
+	mi := &file_store_user_setting_proto_msgTypes[8]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *EmailVerificationUserSetting) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*EmailVerificationUserSetting) ProtoMessage() {}
+
+func (x *EmailVerificationUserSetting) ProtoReflect() protoreflect.Message {
+	mi := &file_store_user_setting_proto_msgTypes[8]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use EmailVerificationUserSetting.ProtoReflect.Descriptor instead.
+func (*EmailVerificationUserSetting) Descriptor() ([]byte, []int) {
+	return file_store_user_setting_proto_rawDescGZIP(), []int{8}
+}
+
+func (x *EmailVerificationUserSetting) GetVerifiedEmail() string {
+	if x != nil {
+		return x.VerifiedEmail
+	}
+	return ""
+}
+
+func (x *EmailVerificationUserSetting) GetVerifiedAt() *timestamppb.Timestamp {
+	if x != nil {
+		return x.VerifiedAt
+	}
+	return nil
+}
+
+func (x *EmailVerificationUserSetting) GetPendingEmail() string {
+	if x != nil {
+		return x.PendingEmail
+	}
+	return ""
+}
+
+func (x *EmailVerificationUserSetting) GetPendingTokenHash() string {
+	if x != nil {
+		return x.PendingTokenHash
+	}
+	return ""
+}
+
+func (x *EmailVerificationUserSetting) GetPendingExpiresAt() *timestamppb.Timestamp {
+	if x != nil {
+		return x.PendingExpiresAt
+	}
+	return nil
+}
+
+// PasswordResetUserSetting holds the outstanding password reset challenge.
+type PasswordResetUserSetting struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// SHA-256 hex of the reset token.
+	TokenHash string `protobuf:"bytes,1,opt,name=token_hash,json=tokenHash,proto3" json:"token_hash,omitempty"`
+	// When the token expires.
+	ExpiresAt     *timestamppb.Timestamp `protobuf:"bytes,2,opt,name=expires_at,json=expiresAt,proto3" json:"expires_at,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *PasswordResetUserSetting) Reset() {
+	*x = PasswordResetUserSetting{}
+	mi := &file_store_user_setting_proto_msgTypes[9]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *PasswordResetUserSetting) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*PasswordResetUserSetting) ProtoMessage() {}
+
+func (x *PasswordResetUserSetting) ProtoReflect() protoreflect.Message {
+	mi := &file_store_user_setting_proto_msgTypes[9]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use PasswordResetUserSetting.ProtoReflect.Descriptor instead.
+func (*PasswordResetUserSetting) Descriptor() ([]byte, []int) {
+	return file_store_user_setting_proto_rawDescGZIP(), []int{9}
+}
+
+func (x *PasswordResetUserSetting) GetTokenHash() string {
+	if x != nil {
+		return x.TokenHash
+	}
+	return ""
+}
+
+func (x *PasswordResetUserSetting) GetExpiresAt() *timestamppb.Timestamp {
+	if x != nil {
+		return x.ExpiresAt
+	}
+	return nil
+}
+
 type RefreshTokensUserSetting_RefreshToken struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
 	// Unique identifier (matches 'tid' claim in JWT)
@@ -613,7 +792,7 @@ type RefreshTokensUserSetting_RefreshToken struct {
 
 func (x *RefreshTokensUserSetting_RefreshToken) Reset() {
 	*x = RefreshTokensUserSetting_RefreshToken{}
-	mi := &file_store_user_setting_proto_msgTypes[9]
+	mi := &file_store_user_setting_proto_msgTypes[11]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -625,7 +804,7 @@ func (x *RefreshTokensUserSetting_RefreshToken) String() string {
 func (*RefreshTokensUserSetting_RefreshToken) ProtoMessage() {}
 
 func (x *RefreshTokensUserSetting_RefreshToken) ProtoReflect() protoreflect.Message {
-	mi := &file_store_user_setting_proto_msgTypes[9]
+	mi := &file_store_user_setting_proto_msgTypes[11]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -694,7 +873,7 @@ type RefreshTokensUserSetting_ClientInfo struct {
 
 func (x *RefreshTokensUserSetting_ClientInfo) Reset() {
 	*x = RefreshTokensUserSetting_ClientInfo{}
-	mi := &file_store_user_setting_proto_msgTypes[10]
+	mi := &file_store_user_setting_proto_msgTypes[12]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -706,7 +885,7 @@ func (x *RefreshTokensUserSetting_ClientInfo) String() string {
 func (*RefreshTokensUserSetting_ClientInfo) ProtoMessage() {}
 
 func (x *RefreshTokensUserSetting_ClientInfo) ProtoReflect() protoreflect.Message {
-	mi := &file_store_user_setting_proto_msgTypes[10]
+	mi := &file_store_user_setting_proto_msgTypes[12]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -777,7 +956,7 @@ type PersonalAccessTokensUserSetting_PersonalAccessToken struct {
 
 func (x *PersonalAccessTokensUserSetting_PersonalAccessToken) Reset() {
 	*x = PersonalAccessTokensUserSetting_PersonalAccessToken{}
-	mi := &file_store_user_setting_proto_msgTypes[11]
+	mi := &file_store_user_setting_proto_msgTypes[13]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -789,7 +968,7 @@ func (x *PersonalAccessTokensUserSetting_PersonalAccessToken) String() string {
 func (*PersonalAccessTokensUserSetting_PersonalAccessToken) ProtoMessage() {}
 
 func (x *PersonalAccessTokensUserSetting_PersonalAccessToken) ProtoReflect() protoreflect.Message {
-	mi := &file_store_user_setting_proto_msgTypes[11]
+	mi := &file_store_user_setting_proto_msgTypes[13]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -858,7 +1037,7 @@ type ShortcutsUserSetting_Shortcut struct {
 
 func (x *ShortcutsUserSetting_Shortcut) Reset() {
 	*x = ShortcutsUserSetting_Shortcut{}
-	mi := &file_store_user_setting_proto_msgTypes[12]
+	mi := &file_store_user_setting_proto_msgTypes[14]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -870,7 +1049,7 @@ func (x *ShortcutsUserSetting_Shortcut) String() string {
 func (*ShortcutsUserSetting_Shortcut) ProtoMessage() {}
 
 func (x *ShortcutsUserSetting_Shortcut) ProtoReflect() protoreflect.Message {
-	mi := &file_store_user_setting_proto_msgTypes[12]
+	mi := &file_store_user_setting_proto_msgTypes[14]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -923,7 +1102,7 @@ type WebhooksUserSetting_Webhook struct {
 
 func (x *WebhooksUserSetting_Webhook) Reset() {
 	*x = WebhooksUserSetting_Webhook{}
-	mi := &file_store_user_setting_proto_msgTypes[13]
+	mi := &file_store_user_setting_proto_msgTypes[15]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -935,7 +1114,7 @@ func (x *WebhooksUserSetting_Webhook) String() string {
 func (*WebhooksUserSetting_Webhook) ProtoMessage() {}
 
 func (x *WebhooksUserSetting_Webhook) ProtoReflect() protoreflect.Message {
-	mi := &file_store_user_setting_proto_msgTypes[13]
+	mi := &file_store_user_setting_proto_msgTypes[15]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -983,7 +1162,7 @@ var File_store_user_setting_proto protoreflect.FileDescriptor
 
 const file_store_user_setting_proto_rawDesc = "" +
 	"\n" +
-	"\x18store/user_setting.proto\x12\vmemos.store\x1a\x1fgoogle/protobuf/timestamp.proto\x1a\x17google/type/color.proto\"\x89\x05\n" +
+	"\x18store/user_setting.proto\x12\vmemos.store\x1a\x1fgoogle/protobuf/timestamp.proto\x1a\x17google/type/color.proto\"\xe2\x06\n" +
 	"\vUserSetting\x12\x17\n" +
 	"\auser_id\x18\x01 \x01(\x05R\x06userId\x12.\n" +
 	"\x03key\x18\x02 \x01(\x0e2\x1c.memos.store.UserSetting.KeyR\x03key\x12;\n" +
@@ -993,7 +1172,9 @@ const file_store_user_setting_proto_rawDesc = "" +
 	"\x0erefresh_tokens\x18\b \x01(\v2%.memos.store.RefreshTokensUserSettingH\x00R\rrefreshTokens\x12d\n" +
 	"\x16personal_access_tokens\x18\t \x01(\v2,.memos.store.PersonalAccessTokensUserSettingH\x00R\x14personalAccessTokens\x122\n" +
 	"\x04tags\x18\n" +
-	" \x01(\v2\x1c.memos.store.TagsUserSettingH\x00R\x04tags\"~\n" +
+	" \x01(\v2\x1c.memos.store.TagsUserSettingH\x00R\x04tags\x12Z\n" +
+	"\x12email_verification\x18\v \x01(\v2).memos.store.EmailVerificationUserSettingH\x00R\x11emailVerification\x12N\n" +
+	"\x0epassword_reset\x18\f \x01(\v2%.memos.store.PasswordResetUserSettingH\x00R\rpasswordReset\"\xaa\x01\n" +
 	"\x03Key\x12\x13\n" +
 	"\x0fKEY_UNSPECIFIED\x10\x00\x12\v\n" +
 	"\aGENERAL\x10\x01\x12\r\n" +
@@ -1001,7 +1182,10 @@ const file_store_user_setting_proto_rawDesc = "" +
 	"\bWEBHOOKS\x10\x05\x12\x12\n" +
 	"\x0eREFRESH_TOKENS\x10\x06\x12\x1a\n" +
 	"\x16PERSONAL_ACCESS_TOKENS\x10\a\x12\b\n" +
-	"\x04TAGS\x10\bB\a\n" +
+	"\x04TAGS\x10\b\x12\x16\n" +
+	"\x12EMAIL_VERIFICATION\x10\t\x12\x12\n" +
+	"\x0ePASSWORD_RESET\x10\n" +
+	"B\a\n" +
 	"\x05value\"k\n" +
 	"\x12GeneralUserSetting\x12\x16\n" +
 	"\x06locale\x18\x01 \x01(\tR\x06locale\x12'\n" +
@@ -1061,7 +1245,19 @@ const file_store_user_setting_proto_rawDesc = "" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12\x14\n" +
 	"\x05title\x18\x02 \x01(\tR\x05title\x12\x10\n" +
 	"\x03url\x18\x03 \x01(\tR\x03url\x12%\n" +
-	"\x0esigning_secret\x18\x04 \x01(\tR\rsigningSecretB\x9b\x01\n" +
+	"\x0esigning_secret\x18\x04 \x01(\tR\rsigningSecret\"\x9f\x02\n" +
+	"\x1cEmailVerificationUserSetting\x12%\n" +
+	"\x0everified_email\x18\x01 \x01(\tR\rverifiedEmail\x12;\n" +
+	"\vverified_at\x18\x02 \x01(\v2\x1a.google.protobuf.TimestampR\n" +
+	"verifiedAt\x12#\n" +
+	"\rpending_email\x18\x03 \x01(\tR\fpendingEmail\x12,\n" +
+	"\x12pending_token_hash\x18\x04 \x01(\tR\x10pendingTokenHash\x12H\n" +
+	"\x12pending_expires_at\x18\x05 \x01(\v2\x1a.google.protobuf.TimestampR\x10pendingExpiresAt\"t\n" +
+	"\x18PasswordResetUserSetting\x12\x1d\n" +
+	"\n" +
+	"token_hash\x18\x01 \x01(\tR\ttokenHash\x129\n" +
+	"\n" +
+	"expires_at\x18\x02 \x01(\v2\x1a.google.protobuf.TimestampR\texpiresAtB\x9b\x01\n" +
 	"\x0fcom.memos.storeB\x10UserSettingProtoP\x01Z)github.com/usememos/memos/proto/gen/store\xa2\x02\x03MSX\xaa\x02\vMemos.Store\xca\x02\vMemos\\Store\xe2\x02\x17Memos\\Store\\GPBMetadata\xea\x02\fMemos::Storeb\x06proto3"
 
 var (
@@ -1077,25 +1273,27 @@ func file_store_user_setting_proto_rawDescGZIP() []byte {
 }
 
 var file_store_user_setting_proto_enumTypes = make([]protoimpl.EnumInfo, 1)
-var file_store_user_setting_proto_msgTypes = make([]protoimpl.MessageInfo, 14)
+var file_store_user_setting_proto_msgTypes = make([]protoimpl.MessageInfo, 16)
 var file_store_user_setting_proto_goTypes = []any{
-	(UserSetting_Key)(0),                          // 0: memos.store.UserSetting.Key
-	(*UserSetting)(nil),                           // 1: memos.store.UserSetting
-	(*GeneralUserSetting)(nil),                    // 2: memos.store.GeneralUserSetting
-	(*UserTagMetadata)(nil),                       // 3: memos.store.UserTagMetadata
-	(*TagsUserSetting)(nil),                       // 4: memos.store.TagsUserSetting
-	(*RefreshTokensUserSetting)(nil),              // 5: memos.store.RefreshTokensUserSetting
-	(*PersonalAccessTokensUserSetting)(nil),       // 6: memos.store.PersonalAccessTokensUserSetting
-	(*ShortcutsUserSetting)(nil),                  // 7: memos.store.ShortcutsUserSetting
-	(*WebhooksUserSetting)(nil),                   // 8: memos.store.WebhooksUserSetting
-	nil,                                           // 9: memos.store.TagsUserSetting.TagsEntry
-	(*RefreshTokensUserSetting_RefreshToken)(nil), // 10: memos.store.RefreshTokensUserSetting.RefreshToken
-	(*RefreshTokensUserSetting_ClientInfo)(nil),   // 11: memos.store.RefreshTokensUserSetting.ClientInfo
-	(*PersonalAccessTokensUserSetting_PersonalAccessToken)(nil), // 12: memos.store.PersonalAccessTokensUserSetting.PersonalAccessToken
-	(*ShortcutsUserSetting_Shortcut)(nil),                       // 13: memos.store.ShortcutsUserSetting.Shortcut
-	(*WebhooksUserSetting_Webhook)(nil),                         // 14: memos.store.WebhooksUserSetting.Webhook
-	(*color.Color)(nil),                                         // 15: google.type.Color
-	(*timestamppb.Timestamp)(nil),                               // 16: google.protobuf.Timestamp
+	(UserSetting_Key)(0),                                        // 0: memos.store.UserSetting.Key
+	(*UserSetting)(nil),                                         // 1: memos.store.UserSetting
+	(*GeneralUserSetting)(nil),                                  // 2: memos.store.GeneralUserSetting
+	(*UserTagMetadata)(nil),                                     // 3: memos.store.UserTagMetadata
+	(*TagsUserSetting)(nil),                                     // 4: memos.store.TagsUserSetting
+	(*RefreshTokensUserSetting)(nil),                            // 5: memos.store.RefreshTokensUserSetting
+	(*PersonalAccessTokensUserSetting)(nil),                     // 6: memos.store.PersonalAccessTokensUserSetting
+	(*ShortcutsUserSetting)(nil),                                // 7: memos.store.ShortcutsUserSetting
+	(*WebhooksUserSetting)(nil),                                 // 8: memos.store.WebhooksUserSetting
+	(*EmailVerificationUserSetting)(nil),                        // 9: memos.store.EmailVerificationUserSetting
+	(*PasswordResetUserSetting)(nil),                            // 10: memos.store.PasswordResetUserSetting
+	nil,                                                         // 11: memos.store.TagsUserSetting.TagsEntry
+	(*RefreshTokensUserSetting_RefreshToken)(nil),               // 12: memos.store.RefreshTokensUserSetting.RefreshToken
+	(*RefreshTokensUserSetting_ClientInfo)(nil),                 // 13: memos.store.RefreshTokensUserSetting.ClientInfo
+	(*PersonalAccessTokensUserSetting_PersonalAccessToken)(nil), // 14: memos.store.PersonalAccessTokensUserSetting.PersonalAccessToken
+	(*ShortcutsUserSetting_Shortcut)(nil),                       // 15: memos.store.ShortcutsUserSetting.Shortcut
+	(*WebhooksUserSetting_Webhook)(nil),                         // 16: memos.store.WebhooksUserSetting.Webhook
+	(*color.Color)(nil),                                         // 17: google.type.Color
+	(*timestamppb.Timestamp)(nil),                               // 18: google.protobuf.Timestamp
 }
 var file_store_user_setting_proto_depIdxs = []int32{
 	0,  // 0: memos.store.UserSetting.key:type_name -> memos.store.UserSetting.Key
@@ -1105,24 +1303,29 @@ var file_store_user_setting_proto_depIdxs = []int32{
 	5,  // 4: memos.store.UserSetting.refresh_tokens:type_name -> memos.store.RefreshTokensUserSetting
 	6,  // 5: memos.store.UserSetting.personal_access_tokens:type_name -> memos.store.PersonalAccessTokensUserSetting
 	4,  // 6: memos.store.UserSetting.tags:type_name -> memos.store.TagsUserSetting
-	15, // 7: memos.store.UserTagMetadata.background_color:type_name -> google.type.Color
-	9,  // 8: memos.store.TagsUserSetting.tags:type_name -> memos.store.TagsUserSetting.TagsEntry
-	10, // 9: memos.store.RefreshTokensUserSetting.refresh_tokens:type_name -> memos.store.RefreshTokensUserSetting.RefreshToken
-	12, // 10: memos.store.PersonalAccessTokensUserSetting.tokens:type_name -> memos.store.PersonalAccessTokensUserSetting.PersonalAccessToken
-	13, // 11: memos.store.ShortcutsUserSetting.shortcuts:type_name -> memos.store.ShortcutsUserSetting.Shortcut
-	14, // 12: memos.store.WebhooksUserSetting.webhooks:type_name -> memos.store.WebhooksUserSetting.Webhook
-	3,  // 13: memos.store.TagsUserSetting.TagsEntry.value:type_name -> memos.store.UserTagMetadata
-	16, // 14: memos.store.RefreshTokensUserSetting.RefreshToken.expires_at:type_name -> google.protobuf.Timestamp
-	16, // 15: memos.store.RefreshTokensUserSetting.RefreshToken.created_at:type_name -> google.protobuf.Timestamp
-	11, // 16: memos.store.RefreshTokensUserSetting.RefreshToken.client_info:type_name -> memos.store.RefreshTokensUserSetting.ClientInfo
-	16, // 17: memos.store.PersonalAccessTokensUserSetting.PersonalAccessToken.expires_at:type_name -> google.protobuf.Timestamp
-	16, // 18: memos.store.PersonalAccessTokensUserSetting.PersonalAccessToken.created_at:type_name -> google.protobuf.Timestamp
-	16, // 19: memos.store.PersonalAccessTokensUserSetting.PersonalAccessToken.last_used_at:type_name -> google.protobuf.Timestamp
-	20, // [20:20] is the sub-list for method output_type
-	20, // [20:20] is the sub-list for method input_type
-	20, // [20:20] is the sub-list for extension type_name
-	20, // [20:20] is the sub-list for extension extendee
-	0,  // [0:20] is the sub-list for field type_name
+	9,  // 7: memos.store.UserSetting.email_verification:type_name -> memos.store.EmailVerificationUserSetting
+	10, // 8: memos.store.UserSetting.password_reset:type_name -> memos.store.PasswordResetUserSetting
+	17, // 9: memos.store.UserTagMetadata.background_color:type_name -> google.type.Color
+	11, // 10: memos.store.TagsUserSetting.tags:type_name -> memos.store.TagsUserSetting.TagsEntry
+	12, // 11: memos.store.RefreshTokensUserSetting.refresh_tokens:type_name -> memos.store.RefreshTokensUserSetting.RefreshToken
+	14, // 12: memos.store.PersonalAccessTokensUserSetting.tokens:type_name -> memos.store.PersonalAccessTokensUserSetting.PersonalAccessToken
+	15, // 13: memos.store.ShortcutsUserSetting.shortcuts:type_name -> memos.store.ShortcutsUserSetting.Shortcut
+	16, // 14: memos.store.WebhooksUserSetting.webhooks:type_name -> memos.store.WebhooksUserSetting.Webhook
+	18, // 15: memos.store.EmailVerificationUserSetting.verified_at:type_name -> google.protobuf.Timestamp
+	18, // 16: memos.store.EmailVerificationUserSetting.pending_expires_at:type_name -> google.protobuf.Timestamp
+	18, // 17: memos.store.PasswordResetUserSetting.expires_at:type_name -> google.protobuf.Timestamp
+	3,  // 18: memos.store.TagsUserSetting.TagsEntry.value:type_name -> memos.store.UserTagMetadata
+	18, // 19: memos.store.RefreshTokensUserSetting.RefreshToken.expires_at:type_name -> google.protobuf.Timestamp
+	18, // 20: memos.store.RefreshTokensUserSetting.RefreshToken.created_at:type_name -> google.protobuf.Timestamp
+	13, // 21: memos.store.RefreshTokensUserSetting.RefreshToken.client_info:type_name -> memos.store.RefreshTokensUserSetting.ClientInfo
+	18, // 22: memos.store.PersonalAccessTokensUserSetting.PersonalAccessToken.expires_at:type_name -> google.protobuf.Timestamp
+	18, // 23: memos.store.PersonalAccessTokensUserSetting.PersonalAccessToken.created_at:type_name -> google.protobuf.Timestamp
+	18, // 24: memos.store.PersonalAccessTokensUserSetting.PersonalAccessToken.last_used_at:type_name -> google.protobuf.Timestamp
+	25, // [25:25] is the sub-list for method output_type
+	25, // [25:25] is the sub-list for method input_type
+	25, // [25:25] is the sub-list for extension type_name
+	25, // [25:25] is the sub-list for extension extendee
+	0,  // [0:25] is the sub-list for field type_name
 }
 
 func init() { file_store_user_setting_proto_init() }
@@ -1137,6 +1340,8 @@ func file_store_user_setting_proto_init() {
 		(*UserSetting_RefreshTokens)(nil),
 		(*UserSetting_PersonalAccessTokens)(nil),
 		(*UserSetting_Tags)(nil),
+		(*UserSetting_EmailVerification)(nil),
+		(*UserSetting_PasswordReset)(nil),
 	}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
@@ -1144,7 +1349,7 @@ func file_store_user_setting_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_store_user_setting_proto_rawDesc), len(file_store_user_setting_proto_rawDesc)),
 			NumEnums:      1,
-			NumMessages:   14,
+			NumMessages:   16,
 			NumExtensions: 0,
 			NumServices:   0,
 		},

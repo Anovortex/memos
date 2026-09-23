@@ -250,6 +250,54 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/Status'
+    /api/v1/auth/email:sendVerification:
+        post:
+            tags:
+                - AuthService
+            description: |-
+                SendEmailVerification emails the authenticated user a link that proves
+                 they own their address. No-op when the address is already verified.
+            operationId: AuthService_SendEmailVerification
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/SendEmailVerificationRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content: {}
+                default:
+                    description: Default error response
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Status'
+    /api/v1/auth/email:verify:
+        post:
+            tags:
+                - AuthService
+            description: |-
+                VerifyEmail consumes a verification token from the emailed link.
+                 Public: the user may open the link while signed out.
+            operationId: AuthService_VerifyEmail
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/VerifyEmailRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content: {}
+                default:
+                    description: Default error response
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Status'
     /api/v1/auth/me:
         get:
             tags:
@@ -266,6 +314,54 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/GetCurrentUserResponse'
+                default:
+                    description: Default error response
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Status'
+    /api/v1/auth/password:requestReset:
+        post:
+            tags:
+                - AuthService
+            description: |-
+                RequestPasswordReset emails a reset link when exactly one account has the
+                 given verified email. Always returns OK so accounts cannot be enumerated.
+            operationId: AuthService_RequestPasswordReset
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/RequestPasswordResetRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content: {}
+                default:
+                    description: Default error response
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Status'
+    /api/v1/auth/password:reset:
+        post:
+            tags:
+                - AuthService
+            description: |-
+                ResetPassword sets a new password using a reset token and signs out every
+                 existing session of that user.
+            operationId: AuthService_ResetPassword
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/ResetPasswordRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content: {}
                 default:
                     description: Default error response
                     content:
@@ -3598,6 +3694,32 @@ components:
                     type: string
                     description: When the access token expires.
                     format: date-time
+        RequestPasswordResetRequest:
+            required:
+                - email
+            type: object
+            properties:
+                email:
+                    type: string
+                    description: Required. The email address of the account to recover.
+        ResetPasswordRequest:
+            required:
+                - name
+                - token
+                - newPassword
+            type: object
+            properties:
+                name:
+                    type: string
+                    description: |-
+                        Required. The user the token was issued to.
+                         Format: users/{user}
+                token:
+                    type: string
+                    description: Required. The token from the emailed link.
+                newPassword:
+                    type: string
+                    description: Required. The new password.
         SearchMemosRequest:
             required:
                 - query
@@ -3629,6 +3751,9 @@ components:
                     type: number
                     description: Cosine similarity of the memo to the query, higher is closer.
                     format: float
+        SendEmailVerificationRequest:
+            type: object
+            properties: {}
         SetMemoAttachmentsRequest:
             required:
                 - name
@@ -3901,6 +4026,13 @@ components:
                     type: string
                     description: Output only. The last update timestamp.
                     format: date-time
+                emailVerified:
+                    readOnly: true
+                    type: boolean
+                    description: |-
+                        Output only. Whether the user has proven ownership of `email`. Only
+                         populated on the caller's own user in GetCurrentUser and SignIn responses;
+                         false elsewhere.
         UserNotification:
             type: object
             properties:
@@ -4148,6 +4280,20 @@ components:
                     type: boolean
                     description: Whether a signing secret is configured for this webhook.
             description: UserWebhook represents a webhook owned by a user.
+        VerifyEmailRequest:
+            required:
+                - name
+                - token
+            type: object
+            properties:
+                name:
+                    type: string
+                    description: |-
+                        Required. The user the token was issued to.
+                         Format: users/{user}
+                token:
+                    type: string
+                    description: Required. The token from the emailed link.
 tags:
     - name: AIService
     - name: AttachmentService

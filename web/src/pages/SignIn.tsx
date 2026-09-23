@@ -43,6 +43,15 @@ const SignIn = () => {
             </div>
           )}
           {passwordAuthAllowed && <PasswordSignInForm redirectPath={redirectTarget} />}
+          {passwordAuthAllowed && (
+            <Link
+              to={ROUTES.AUTH_FORGOT_PASSWORD}
+              className="mt-3 block text-center text-sm text-muted-foreground hover:text-primary hover:underline"
+              viewTransition
+            >
+              {t("auth.forgot-password")}
+            </Link>
+          )}
           {passwordAuthAllowed && !instanceGeneralSetting.disallowUserRegistration && (
             <AuthLinkPrompt prompt={t("auth.sign-up-tip")} to={signUpPath} label={t("common.sign-up")} />
           )}

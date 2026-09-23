@@ -10,8 +10,11 @@ package v1
 // or info.FullMethod (gRPC interceptor).
 var PublicMethods = map[string]struct{}{
 	// Auth Service - login/token endpoints must be accessible without auth
-	"/memos.api.v1.AuthService/SignIn":       {},
-	"/memos.api.v1.AuthService/RefreshToken": {}, // Token refresh uses cookie, must be accessible when access token expired
+	"/memos.api.v1.AuthService/SignIn":               {},
+	"/memos.api.v1.AuthService/RefreshToken":         {}, // Token refresh uses cookie, must be accessible when access token expired
+	"/memos.api.v1.AuthService/VerifyEmail":          {}, // Emailed link may be opened signed-out
+	"/memos.api.v1.AuthService/RequestPasswordReset": {},
+	"/memos.api.v1.AuthService/ResetPassword":        {},
 
 	// Instance Service - needed before login to show instance info
 	"/memos.api.v1.InstanceService/GetInstanceProfile":       {},
@@ -56,8 +59,11 @@ func IsPublicMethod(procedure string) bool {
 // setup, while the instance has no users yet).
 var AuthBootstrapMethods = map[string]struct{}{
 	// Auth Service - sign-in and token refresh.
-	"/memos.api.v1.AuthService/SignIn":       {},
-	"/memos.api.v1.AuthService/RefreshToken": {},
+	"/memos.api.v1.AuthService/SignIn":               {},
+	"/memos.api.v1.AuthService/RefreshToken":         {},
+	"/memos.api.v1.AuthService/VerifyEmail":          {},
+	"/memos.api.v1.AuthService/RequestPasswordReset": {},
+	"/memos.api.v1.AuthService/ResetPassword":        {},
 
 	// Instance Service - needed to render the sign-in page (branding, auth options).
 	"/memos.api.v1.InstanceService/GetInstanceProfile":       {},

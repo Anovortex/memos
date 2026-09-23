@@ -4,6 +4,7 @@ import { LoaderIcon, SearchXIcon } from "lucide-react";
 import { useEffect } from "react";
 import { aiServiceClient } from "@/connect";
 import { useMemoFilterContext } from "@/contexts/MemoFilterContext";
+import { getErrorMessage } from "@/lib/error";
 import MemoView from "./MemoView";
 
 interface SemanticMemoListProps {
@@ -42,7 +43,7 @@ const SemanticMemoList = ({ query }: SemanticMemoListProps) => {
     );
   }
   if (error) {
-    return <div className="w-full py-8 text-center text-sm text-destructive">{error.message}</div>;
+    return <div className="w-full py-8 text-center text-sm text-destructive">{getErrorMessage(error)}</div>;
   }
   if (!data || data.results.length === 0) {
     return (

@@ -43,6 +43,42 @@ service AuthService {
       body: "*"
     };
   }
+
+  // SendEmailVerification emails the authenticated user a link that proves
+  // they own their address. No-op when the address is already verified.
+  rpc SendEmailVerification(SendEmailVerificationRequest) returns (google.protobuf.Empty) {
+    option (google.api.http) = {
+      post: "/api/v1/auth/email:sendVerification"
+      body: "*"
+    };
+  }
+
+  // VerifyEmail consumes a verification token from the emailed link.
+  // Public: the user may open the link while signed out.
+  rpc VerifyEmail(VerifyEmailRequest) returns (google.protobuf.Empty) {
+    option (google.api.http) = {
+      post: "/api/v1/auth/email:verify"
+      body: "*"
+    };
+  }
+
+  // RequestPasswordReset emails a reset link when exactly one account has the
+  // given verified email. Always returns OK so accounts cannot be enumerated.
+  rpc RequestPasswordReset(RequestPasswordResetRequest) returns (google.protobuf.Empty) {
+    option (google.api.http) = {
+      post: "/api/v1/auth/password:requestReset"
+      body: "*"
+    };
+  }
+
+  // ResetPassword sets a new password using a reset token and signs out every
+  // existing session of that user.
+  rpc ResetPassword(ResetPasswordRequest) returns (google.protobuf.Empty) {
+    option (google.api.http) = {
+      post: "/api/v1/auth/password:reset"
+      body: "*"
+    };
+  }
 }
 
 message GetCurrentUserRequest {}
@@ -112,4 +148,32 @@ message RefreshTokenResponse {
 
   // When the access token expires.
   google.protobuf.Timestamp expires_at = 2;
+}
+
+message SendEmailVerificationRequest {}
+
+message VerifyEmailRequest {
+  // Required. The user the token was issued to.
+  // Format: users/{user}
+  string name = 1 [(google.api.field_behavior) = REQUIRED];
+
+  // Required. The token from the emailed link.
+  string token = 2 [(google.api.field_behavior) = REQUIRED];
+}
+
+message RequestPasswordResetRequest {
+  // Required. The email address of the account to recover.
+  string email = 1 [(google.api.field_behavior) = REQUIRED];
+}
+
+message ResetPasswordRequest {
+  // Required. The user the token was issued to.
+  // Format: users/{user}
+  string name = 1 [(google.api.field_behavior) = REQUIRED];
+
+  // Required. The token from the emailed link.
+  string token = 2 [(google.api.field_behavior) = REQUIRED];
+
+  // Required. The new password.
+  string new_password = 3 [(google.api.field_behavior) = REQUIRED];
 }

@@ -205,7 +205,9 @@ func (s *APIV1Service) CreateUser(ctx context.Context, request *v1pb.CreateUserR
 	}
 
 	roleToAssign := store.RoleUser
+	selfSignup := true
 	if currentUser != nil && currentUser.Role == store.RoleAdmin {
+		selfSignup = false
 		// Authenticated ADMIN user can create users with any role specified in request
 		if request.User.Role != v1pb.User_ROLE_UNSPECIFIED {
 			roleToAssign = convertUserRoleToStore(request.User.Role)
@@ -245,6 +247,7 @@ func (s *APIV1Service) CreateUser(ctx context.Context, request *v1pb.CreateUserR
 					return nil, status.Errorf(codes.Internal, "failed to create first user: %v", err)
 				}
 				if created {
+					s.sendEmailVerificationBestEffort(ctx, user)
 					return convertUserFromStore(user, user), nil
 				}
 				roleToAssign = store.RoleUser
@@ -307,6 +310,10 @@ func (s *APIV1Service) CreateUser(ctx context.Context, request *v1pb.CreateUserR
 		return nil, status.Errorf(codes.Internal, "failed to create user: %v", err)
 	}
 
+	if selfSignup && user.Email != "" {
+		s.sendEmailVerificationBestEffort(ctx, user)
+	}
+
 	return convertUserFromStore(user, user), nil
 }
 
@@ -350,6 +357,7 @@ func (s *APIV1Service) UpdateUser(ctx context.Context, request *v1pb.UpdateUserR
 	if err != nil {
 		return nil, status.Errorf(codes.Internal, "failed to get instance general setting: %v", err)
 	}
+	emailChanged := false
 	for _, field := range request.UpdateMask.Paths {
 		switch field {
 		case "username":
@@ -374,6 +382,7 @@ func (s *APIV1Service) UpdateUser(ctx context.Context, request *v1pb.UpdateUserR
 				return nil, err
 			}
 			update.Email = &email
+			emailChanged = email != normalizeEmail(user.Email)
 		case "avatar_url":
 			// Validate avatar MIME type to prevent XSS during upload
 			if request.User.AvatarUrl != "" {
@@ -427,6 +436,10 @@ func (s *APIV1Service) UpdateUser(ctx context.Context, request *v1pb.UpdateUserR
 	updatedUser, err := s.Store.UpdateUser(ctx, update)
 	if err != nil {
 		return nil, status.Errorf(codes.Internal, "failed to update user: %v", err)
+	}
+	if emailChanged && updatedUser.Email != "" {
+		// The old verification no longer matches; prove the new address.
+		s.sendEmailVerificationBestEffort(ctx, updatedUser)
 	}
 
 	return convertUserFromStore(updatedUser, currentUser), nil

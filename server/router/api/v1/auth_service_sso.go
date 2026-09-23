@@ -60,13 +60,15 @@ func (s *APIV1Service) resolveSSOUser(ctx context.Context, currentUser *store.Us
 		Username:     username,
 		Role:         store.RoleUser,
 		Nickname:     userInfo.DisplayName,
-		Email:        userInfo.Email,
+		Email:        normalizeEmail(userInfo.Email),
 		AvatarURL:    userInfo.AvatarURL,
 		PasswordHash: string(passwordHash),
 	})
 	if err != nil {
 		return nil, status.Errorf(codes.Internal, "failed to create user, error: %v", err)
 	}
+	// The identity provider already proved ownership of this address.
+	s.markEmailVerifiedBestEffort(ctx, user)
 
 	if _, err := s.Store.CreateUserIdentity(ctx, &store.UserIdentity{
 		UserID:    user.ID,
