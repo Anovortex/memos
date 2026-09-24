@@ -128,6 +128,7 @@ message InstanceSetting {
     NotificationSetting notification_setting = 6;
     AISetting ai_setting = 7;
     AccessSetting access_setting = 8;
+    BillingSetting billing_setting = 9;
   }
 
   // Enumeration of instance setting keys.
@@ -147,6 +148,8 @@ message InstanceSetting {
     AI = 6;
     // ACCESS is the key for instance access policy settings.
     ACCESS = 7;
+    // BILLING is the key for plan pricing and the manual payment steps.
+    BILLING = 8;
   }
 
   // General instance settings configuration.
@@ -379,6 +382,17 @@ message InstanceSetting {
   // Access policy configuration for the instance.
   message AccessSetting {
     InstanceAccessMode access_mode = 1;
+  }
+
+  // Plan pricing and the manual payment steps members follow. Readable by
+  // signed-in users; only the operator updates it.
+  message BillingSetting {
+    // Free-text price shown to members, e.g. "500 BDT / month".
+    string teams_price = 1 [(google.api.field_behavior) = OPTIONAL];
+    // How to pay: bank or mobile-money details and the reference to include.
+    string payment_instructions = 2 [(google.api.field_behavior) = OPTIONAL];
+    // Days per paid period; 0 reads back as the default of 30.
+    int32 period_days = 3 [(google.api.field_behavior) = OPTIONAL];
   }
 }
 

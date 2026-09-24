@@ -9,6 +9,7 @@ import {
   LibraryIcon,
   type LucideIcon,
   MailIcon,
+  ReceiptIcon,
   Settings2Icon,
   SparklesIcon,
   TagsIcon,
@@ -19,6 +20,7 @@ import {
 import { type ComponentType } from "react";
 import AccessTokenSection from "@/components/Settings/AccessTokenSection";
 import AISection from "@/components/Settings/AISection";
+import BillingSection from "@/components/Settings/BillingSection";
 import InstanceSection from "@/components/Settings/InstanceSection";
 import MemberSection from "@/components/Settings/MemberSection";
 import MemoExportSection from "@/components/Settings/MemoExportSection";
@@ -44,6 +46,7 @@ export type SettingSectionKey =
   | "preference"
   | "webhook"
   | "member"
+  | "billing"
   | "system"
   | "memo"
   | "storage"
@@ -113,6 +116,14 @@ const ALL_SETTINGS_SECTIONS: SettingSectionDefinition[] = [
     labelKey: "setting.member.label",
     icon: UsersIcon,
     component: MemberSection,
+  },
+  {
+    key: "billing",
+    scope: "admin",
+    labelKey: "setting.billing.label",
+    icon: ReceiptIcon,
+    component: BillingSection,
+    preloadSettingKeys: [InstanceSetting_Key.BILLING],
   },
   {
     key: "system",

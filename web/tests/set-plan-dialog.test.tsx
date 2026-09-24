@@ -16,6 +16,9 @@ vi.mock("react-hot-toast", () => ({ toast: { success: mocks.toastSuccess, error:
 vi.mock("@/connect", () => ({ userServiceClient: { getUserSetting: mocks.getUserSetting } }));
 vi.mock("@/hooks/useUserQueries", () => ({ useUpdateUserSetting: () => ({ mutateAsync: mocks.update }) }));
 vi.mock("@/utils/i18n", () => ({ useTranslate: () => (key: string) => key }));
+// Stable references: the dialog re-runs its load effect whenever fetchSetting changes.
+const instanceMocks = vi.hoisted(() => ({ billingSetting: { periodDays: 30 }, fetchSetting: vi.fn() }));
+vi.mock("@/contexts/InstanceContext", () => ({ useInstance: () => instanceMocks }));
 
 const alice = { name: "users/alice", username: "alice" } as User;
 const packageName = "users/alice/settings/PACKAGE";
@@ -41,7 +44,7 @@ describe("<SetPlanDialog>", () => {
     expect(screen.getByRole("radio", { name: "setting.member.plan-teams" })).toHaveAttribute("aria-checked", "true");
   });
 
-  it("pre-selects the plan the member asked for and says so", async () => {
+  it("pre-selects the plan the member asked for and pre-fills one billing period", async () => {
     mocks.getUserSetting.mockResolvedValue(
       packageSetting(UserSetting_PackageSetting_Plan.FREE, undefined, UserSetting_PackageSetting_Plan.TEAMS),
     );
@@ -50,6 +53,12 @@ describe("<SetPlanDialog>", () => {
 
     await screen.findByText("setting.member.plan-requested");
     expect(screen.getByRole("radio", { name: "setting.member.plan-teams" })).toHaveAttribute("aria-checked", "true");
+    const expected = new Date();
+    expected.setDate(expected.getDate() + 30);
+    const pad = (n: number) => String(n).padStart(2, "0");
+    expect(screen.getByLabelText("setting.member.plan-expires")).toHaveValue(
+      `${expected.getFullYear()}-${pad(expected.getMonth() + 1)}-${pad(expected.getDate())}`,
+    );
   });
 
   it("saves Teams with the chosen day as the end of that day", async () => {

@@ -30,6 +30,8 @@ func validateInstanceSetting(setting *v1pb.InstanceSetting) error {
 		return err
 	}
 	switch key {
+	case storepb.InstanceSettingKey_BILLING.String():
+		return validateInstanceBillingSetting(setting.GetBillingSetting())
 	case storepb.InstanceSettingKey_MEMO_RELATED.String():
 		return validateInstanceMemoRelatedSetting(setting.GetMemoRelatedSetting())
 	case storepb.InstanceSettingKey_TAGS.String():
@@ -270,6 +272,28 @@ func validateInstanceColorComponent(name string, value float32) error {
 	}
 	if value < 0 || value > 1 {
 		return errors.Errorf("%s must be between 0 and 1", name)
+	}
+	return nil
+}
+
+const (
+	maxBillingPriceLength        = 200
+	maxBillingInstructionsLength = 4000
+	maxBillingPeriodDays         = 3650
+)
+
+func validateInstanceBillingSetting(setting *v1pb.InstanceSetting_BillingSetting) error {
+	if setting == nil {
+		return errors.New("billing setting is required")
+	}
+	if len(setting.TeamsPrice) > maxBillingPriceLength {
+		return errors.Errorf("teams_price must be at most %d characters", maxBillingPriceLength)
+	}
+	if len(setting.PaymentInstructions) > maxBillingInstructionsLength {
+		return errors.Errorf("payment_instructions must be at most %d characters", maxBillingInstructionsLength)
+	}
+	if setting.PeriodDays < 0 || setting.PeriodDays > maxBillingPeriodDays {
+		return errors.Errorf("period_days must be between 0 and %d", maxBillingPeriodDays)
 	}
 	return nil
 }

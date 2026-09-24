@@ -191,4 +191,8 @@ message PackageUserSetting {
   google.protobuf.Timestamp expire_time = 2;
   // The plan the member asked the operator for; PLAN_UNSPECIFIED when none is pending.
   Plan requested_plan = 3;
+  // What the member typed when reporting a payment (transaction id, sender).
+  string payment_reference = 4;
+  // When the member reported the payment; stamped by the server.
+  google.protobuf.Timestamp payment_reported_time = 5;
 }

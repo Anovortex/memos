@@ -42,6 +42,8 @@ const (
 	InstanceSettingKey_AI InstanceSettingKey = 7
 	// ACCESS is the key for instance access policy settings.
 	InstanceSettingKey_ACCESS InstanceSettingKey = 8
+	// BILLING is the key for plan pricing and the manual payment steps.
+	InstanceSettingKey_BILLING InstanceSettingKey = 9
 )
 
 // Enum value maps for InstanceSettingKey.
@@ -56,6 +58,7 @@ var (
 		6: "NOTIFICATION",
 		7: "AI",
 		8: "ACCESS",
+		9: "BILLING",
 	}
 	InstanceSettingKey_value = map[string]int32{
 		"INSTANCE_SETTING_KEY_UNSPECIFIED": 0,
@@ -67,6 +70,7 @@ var (
 		"NOTIFICATION":                     6,
 		"AI":                               7,
 		"ACCESS":                           8,
+		"BILLING":                          9,
 	}
 )
 
@@ -319,6 +323,7 @@ type InstanceSetting struct {
 	//	*InstanceSetting_NotificationSetting
 	//	*InstanceSetting_AiSetting
 	//	*InstanceSetting_AccessSetting
+	//	*InstanceSetting_BillingSetting
 	Value         isInstanceSetting_Value `protobuf_oneof:"value"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
@@ -440,6 +445,15 @@ func (x *InstanceSetting) GetAccessSetting() *InstanceAccessSetting {
 	return nil
 }
 
+func (x *InstanceSetting) GetBillingSetting() *InstanceBillingSetting {
+	if x != nil {
+		if x, ok := x.Value.(*InstanceSetting_BillingSetting); ok {
+			return x.BillingSetting
+		}
+	}
+	return nil
+}
+
 type isInstanceSetting_Value interface {
 	isInstanceSetting_Value()
 }
@@ -476,6 +490,10 @@ type InstanceSetting_AccessSetting struct {
 	AccessSetting *InstanceAccessSetting `protobuf:"bytes,9,opt,name=access_setting,json=accessSetting,proto3,oneof"`
 }
 
+type InstanceSetting_BillingSetting struct {
+	BillingSetting *InstanceBillingSetting `protobuf:"bytes,10,opt,name=billing_setting,json=billingSetting,proto3,oneof"`
+}
+
 func (*InstanceSetting_BasicSetting) isInstanceSetting_Value() {}
 
 func (*InstanceSetting_GeneralSetting) isInstanceSetting_Value() {}
@@ -491,6 +509,8 @@ func (*InstanceSetting_NotificationSetting) isInstanceSetting_Value() {}
 func (*InstanceSetting_AiSetting) isInstanceSetting_Value() {}
 
 func (*InstanceSetting_AccessSetting) isInstanceSetting_Value() {}
+
+func (*InstanceSetting_BillingSetting) isInstanceSetting_Value() {}
 
 type InstanceBasicSetting struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
@@ -1540,6 +1560,71 @@ func (x *InstanceAccessSetting) GetAccessMode() InstanceAccessMode {
 	return InstanceAccessMode_INSTANCE_ACCESS_MODE_UNSPECIFIED
 }
 
+// InstanceBillingSetting holds the plan price and the manual payment steps
+// members follow until a payment provider exists.
+type InstanceBillingSetting struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// Free-text price shown to members, e.g. "500 BDT / month".
+	TeamsPrice string `protobuf:"bytes,1,opt,name=teams_price,json=teamsPrice,proto3" json:"teams_price,omitempty"`
+	// How to pay: bank or mobile-money details and the reference to include.
+	PaymentInstructions string `protobuf:"bytes,2,opt,name=payment_instructions,json=paymentInstructions,proto3" json:"payment_instructions,omitempty"`
+	// Days per paid period; the operator's confirmation prefills the expiry with it.
+	PeriodDays    int32 `protobuf:"varint,3,opt,name=period_days,json=periodDays,proto3" json:"period_days,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *InstanceBillingSetting) Reset() {
+	*x = InstanceBillingSetting{}
+	mi := &file_store_instance_setting_proto_msgTypes[16]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *InstanceBillingSetting) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*InstanceBillingSetting) ProtoMessage() {}
+
+func (x *InstanceBillingSetting) ProtoReflect() protoreflect.Message {
+	mi := &file_store_instance_setting_proto_msgTypes[16]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use InstanceBillingSetting.ProtoReflect.Descriptor instead.
+func (*InstanceBillingSetting) Descriptor() ([]byte, []int) {
+	return file_store_instance_setting_proto_rawDescGZIP(), []int{16}
+}
+
+func (x *InstanceBillingSetting) GetTeamsPrice() string {
+	if x != nil {
+		return x.TeamsPrice
+	}
+	return ""
+}
+
+func (x *InstanceBillingSetting) GetPaymentInstructions() string {
+	if x != nil {
+		return x.PaymentInstructions
+	}
+	return ""
+}
+
+func (x *InstanceBillingSetting) GetPeriodDays() int32 {
+	if x != nil {
+		return x.PeriodDays
+	}
+	return 0
+}
+
 type InstanceNotificationSetting_EmailSetting struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Enabled       bool                   `protobuf:"varint,1,opt,name=enabled,proto3" json:"enabled,omitempty"`
@@ -1558,7 +1643,7 @@ type InstanceNotificationSetting_EmailSetting struct {
 
 func (x *InstanceNotificationSetting_EmailSetting) Reset() {
 	*x = InstanceNotificationSetting_EmailSetting{}
-	mi := &file_store_instance_setting_proto_msgTypes[17]
+	mi := &file_store_instance_setting_proto_msgTypes[18]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1570,7 +1655,7 @@ func (x *InstanceNotificationSetting_EmailSetting) String() string {
 func (*InstanceNotificationSetting_EmailSetting) ProtoMessage() {}
 
 func (x *InstanceNotificationSetting_EmailSetting) ProtoReflect() protoreflect.Message {
-	mi := &file_store_instance_setting_proto_msgTypes[17]
+	mi := &file_store_instance_setting_proto_msgTypes[18]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1660,7 +1745,7 @@ var File_store_instance_setting_proto protoreflect.FileDescriptor
 
 const file_store_instance_setting_proto_rawDesc = "" +
 	"\n" +
-	"\x1cstore/instance_setting.proto\x12\vmemos.store\x1a\x17google/type/color.proto\"\xc8\x05\n" +
+	"\x1cstore/instance_setting.proto\x12\vmemos.store\x1a\x17google/type/color.proto\"\x98\x06\n" +
 	"\x0fInstanceSetting\x121\n" +
 	"\x03key\x18\x01 \x01(\x0e2\x1f.memos.store.InstanceSettingKeyR\x03key\x12H\n" +
 	"\rbasic_setting\x18\x02 \x01(\v2!.memos.store.InstanceBasicSettingH\x00R\fbasicSetting\x12N\n" +
@@ -1671,7 +1756,9 @@ const file_store_instance_setting_proto_rawDesc = "" +
 	"\x14notification_setting\x18\a \x01(\v2(.memos.store.InstanceNotificationSettingH\x00R\x13notificationSetting\x12?\n" +
 	"\n" +
 	"ai_setting\x18\b \x01(\v2\x1e.memos.store.InstanceAISettingH\x00R\taiSetting\x12K\n" +
-	"\x0eaccess_setting\x18\t \x01(\v2\".memos.store.InstanceAccessSettingH\x00R\raccessSettingB\a\n" +
+	"\x0eaccess_setting\x18\t \x01(\v2\".memos.store.InstanceAccessSettingH\x00R\raccessSetting\x12N\n" +
+	"\x0fbilling_setting\x18\n" +
+	" \x01(\v2#.memos.store.InstanceBillingSettingH\x00R\x0ebillingSettingB\a\n" +
 	"\x05value\"\\\n" +
 	"\x14InstanceBasicSetting\x12\x1d\n" +
 	"\n" +
@@ -1766,7 +1853,13 @@ const file_store_instance_setting_proto_rawDesc = "" +
 	"\x05model\x18\x02 \x01(\tR\x05model\"Y\n" +
 	"\x15InstanceAccessSetting\x12@\n" +
 	"\vaccess_mode\x18\x01 \x01(\x0e2\x1f.memos.store.InstanceAccessModeR\n" +
-	"accessMode*\xa1\x01\n" +
+	"accessMode\"\x8d\x01\n" +
+	"\x16InstanceBillingSetting\x12\x1f\n" +
+	"\vteams_price\x18\x01 \x01(\tR\n" +
+	"teamsPrice\x121\n" +
+	"\x14payment_instructions\x18\x02 \x01(\tR\x13paymentInstructions\x12\x1f\n" +
+	"\vperiod_days\x18\x03 \x01(\x05R\n" +
+	"periodDays*\xae\x01\n" +
 	"\x12InstanceSettingKey\x12$\n" +
 	" INSTANCE_SETTING_KEY_UNSPECIFIED\x10\x00\x12\t\n" +
 	"\x05BASIC\x10\x01\x12\v\n" +
@@ -1777,7 +1870,8 @@ const file_store_instance_setting_proto_rawDesc = "" +
 	"\fNOTIFICATION\x10\x06\x12\x06\n" +
 	"\x02AI\x10\a\x12\n" +
 	"\n" +
-	"\x06ACCESS\x10\b*s\n" +
+	"\x06ACCESS\x10\b\x12\v\n" +
+	"\aBILLING\x10\t*s\n" +
 	"\vStorageType\x12\x1c\n" +
 	"\x18STORAGE_TYPE_UNSPECIFIED\x10\x00\x12\x19\n" +
 	"\x15STORAGE_TYPE_DATABASE\x10\x01\x12\x16\n" +
@@ -1808,7 +1902,7 @@ func file_store_instance_setting_proto_rawDescGZIP() []byte {
 }
 
 var file_store_instance_setting_proto_enumTypes = make([]protoimpl.EnumInfo, 5)
-var file_store_instance_setting_proto_msgTypes = make([]protoimpl.MessageInfo, 18)
+var file_store_instance_setting_proto_msgTypes = make([]protoimpl.MessageInfo, 19)
 var file_store_instance_setting_proto_goTypes = []any{
 	(InstanceSettingKey)(0),                          // 0: memos.store.InstanceSettingKey
 	(StorageType)(0),                                 // 1: memos.store.StorageType
@@ -1831,9 +1925,10 @@ var file_store_instance_setting_proto_goTypes = []any{
 	(*TranscriptionConfig)(nil),                      // 18: memos.store.TranscriptionConfig
 	(*EmbeddingConfig)(nil),                          // 19: memos.store.EmbeddingConfig
 	(*InstanceAccessSetting)(nil),                    // 20: memos.store.InstanceAccessSetting
-	nil,                                              // 21: memos.store.InstanceTagsSetting.TagsEntry
-	(*InstanceNotificationSetting_EmailSetting)(nil), // 22: memos.store.InstanceNotificationSetting.EmailSetting
-	(*color.Color)(nil),                              // 23: google.type.Color
+	(*InstanceBillingSetting)(nil),                   // 21: memos.store.InstanceBillingSetting
+	nil,                                              // 22: memos.store.InstanceTagsSetting.TagsEntry
+	(*InstanceNotificationSetting_EmailSetting)(nil), // 23: memos.store.InstanceNotificationSetting.EmailSetting
+	(*color.Color)(nil),                              // 24: google.type.Color
 }
 var file_store_instance_setting_proto_depIdxs = []int32{
 	0,  // 0: memos.store.InstanceSetting.key:type_name -> memos.store.InstanceSettingKey
@@ -1845,26 +1940,27 @@ var file_store_instance_setting_proto_depIdxs = []int32{
 	15, // 6: memos.store.InstanceSetting.notification_setting:type_name -> memos.store.InstanceNotificationSetting
 	16, // 7: memos.store.InstanceSetting.ai_setting:type_name -> memos.store.InstanceAISetting
 	20, // 8: memos.store.InstanceSetting.access_setting:type_name -> memos.store.InstanceAccessSetting
-	8,  // 9: memos.store.InstanceGeneralSetting.custom_profile:type_name -> memos.store.InstanceCustomProfile
-	1,  // 10: memos.store.Storage.type:type_name -> memos.store.StorageType
-	11, // 11: memos.store.Storage.s3_config:type_name -> memos.store.StorageS3Config
-	4,  // 12: memos.store.InstanceStorageSetting.storage_type:type_name -> memos.store.InstanceStorageSetting.StorageType
-	11, // 13: memos.store.InstanceStorageSetting.s3_config:type_name -> memos.store.StorageS3Config
-	9,  // 14: memos.store.InstanceStorageSetting.storages:type_name -> memos.store.Storage
-	23, // 15: memos.store.InstanceTagMetadata.background_color:type_name -> google.type.Color
-	21, // 16: memos.store.InstanceTagsSetting.tags:type_name -> memos.store.InstanceTagsSetting.TagsEntry
-	22, // 17: memos.store.InstanceNotificationSetting.email:type_name -> memos.store.InstanceNotificationSetting.EmailSetting
-	17, // 18: memos.store.InstanceAISetting.providers:type_name -> memos.store.AIProviderConfig
-	18, // 19: memos.store.InstanceAISetting.transcription:type_name -> memos.store.TranscriptionConfig
-	19, // 20: memos.store.InstanceAISetting.embedding:type_name -> memos.store.EmbeddingConfig
-	2,  // 21: memos.store.AIProviderConfig.type:type_name -> memos.store.AIProviderType
-	3,  // 22: memos.store.InstanceAccessSetting.access_mode:type_name -> memos.store.InstanceAccessMode
-	13, // 23: memos.store.InstanceTagsSetting.TagsEntry.value:type_name -> memos.store.InstanceTagMetadata
-	24, // [24:24] is the sub-list for method output_type
-	24, // [24:24] is the sub-list for method input_type
-	24, // [24:24] is the sub-list for extension type_name
-	24, // [24:24] is the sub-list for extension extendee
-	0,  // [0:24] is the sub-list for field type_name
+	21, // 9: memos.store.InstanceSetting.billing_setting:type_name -> memos.store.InstanceBillingSetting
+	8,  // 10: memos.store.InstanceGeneralSetting.custom_profile:type_name -> memos.store.InstanceCustomProfile
+	1,  // 11: memos.store.Storage.type:type_name -> memos.store.StorageType
+	11, // 12: memos.store.Storage.s3_config:type_name -> memos.store.StorageS3Config
+	4,  // 13: memos.store.InstanceStorageSetting.storage_type:type_name -> memos.store.InstanceStorageSetting.StorageType
+	11, // 14: memos.store.InstanceStorageSetting.s3_config:type_name -> memos.store.StorageS3Config
+	9,  // 15: memos.store.InstanceStorageSetting.storages:type_name -> memos.store.Storage
+	24, // 16: memos.store.InstanceTagMetadata.background_color:type_name -> google.type.Color
+	22, // 17: memos.store.InstanceTagsSetting.tags:type_name -> memos.store.InstanceTagsSetting.TagsEntry
+	23, // 18: memos.store.InstanceNotificationSetting.email:type_name -> memos.store.InstanceNotificationSetting.EmailSetting
+	17, // 19: memos.store.InstanceAISetting.providers:type_name -> memos.store.AIProviderConfig
+	18, // 20: memos.store.InstanceAISetting.transcription:type_name -> memos.store.TranscriptionConfig
+	19, // 21: memos.store.InstanceAISetting.embedding:type_name -> memos.store.EmbeddingConfig
+	2,  // 22: memos.store.AIProviderConfig.type:type_name -> memos.store.AIProviderType
+	3,  // 23: memos.store.InstanceAccessSetting.access_mode:type_name -> memos.store.InstanceAccessMode
+	13, // 24: memos.store.InstanceTagsSetting.TagsEntry.value:type_name -> memos.store.InstanceTagMetadata
+	25, // [25:25] is the sub-list for method output_type
+	25, // [25:25] is the sub-list for method input_type
+	25, // [25:25] is the sub-list for extension type_name
+	25, // [25:25] is the sub-list for extension extendee
+	0,  // [0:25] is the sub-list for field type_name
 }
 
 func init() { file_store_instance_setting_proto_init() }
@@ -1881,6 +1977,7 @@ func file_store_instance_setting_proto_init() {
 		(*InstanceSetting_NotificationSetting)(nil),
 		(*InstanceSetting_AiSetting)(nil),
 		(*InstanceSetting_AccessSetting)(nil),
+		(*InstanceSetting_BillingSetting)(nil),
 	}
 	file_store_instance_setting_proto_msgTypes[4].OneofWrappers = []any{
 		(*Storage_S3Config)(nil),
@@ -1891,7 +1988,7 @@ func file_store_instance_setting_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_store_instance_setting_proto_rawDesc), len(file_store_instance_setting_proto_rawDesc)),
 			NumEnums:      5,
-			NumMessages:   18,
+			NumMessages:   19,
 			NumExtensions: 0,
 			NumServices:   0,
 		},

@@ -8,10 +8,12 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { userServiceClient } from "@/connect";
+import { useInstance } from "@/contexts/InstanceContext";
 import useLoading from "@/hooks/useLoading";
 import { useUpdateUserSetting } from "@/hooks/useUserQueries";
 import { handleError } from "@/lib/error";
 import { buildUserSettingName } from "@/lib/resource-names";
+import { InstanceSetting_Key } from "@/types/proto/api/v1/instance_service_pb";
 import { User, UserSetting_Key, UserSetting_PackageSetting_Plan, UserSettingSchema } from "@/types/proto/api/v1/user_service_pb";
 import { useTranslate } from "@/utils/i18n";
 
@@ -45,6 +47,14 @@ function SetPlanDialog({ user, open, onOpenChange }: Props) {
   const [plan, setPlan] = useState<UserSetting_PackageSetting_Plan>(UserSetting_PackageSetting_Plan.FREE);
   const [expiry, setExpiry] = useState("");
   const [requested, setRequested] = useState<UserSetting_PackageSetting_Plan>(UserSetting_PackageSetting_Plan.PLAN_UNSPECIFIED);
+  const [paymentNote, setPaymentNote] = useState("");
+  const { billingSetting, fetchSetting } = useInstance();
+  // A fresh Teams grant runs one billing period from today unless the operator picks a date.
+  const defaultExpiry = () => {
+    const date = new Date();
+    date.setDate(date.getDate() + (billingSetting.periodDays || 30));
+    return toDateInput(date);
+  };
   const settingName = user ? buildUserSettingName(user.name, UserSetting_Key.PACKAGE) : "";
 
   // Show the member's current package every time the dialog opens.
@@ -52,6 +62,7 @@ function SetPlanDialog({ user, open, onOpenChange }: Props) {
     if (!open || !settingName) {
       return;
     }
+    void fetchSetting(InstanceSetting_Key.BILLING);
     let cancelled = false;
     userServiceClient
       .getUserSetting({ name: settingName })
@@ -61,17 +72,31 @@ function SetPlanDialog({ user, open, onOpenChange }: Props) {
         }
         const current = setting.value.value;
         setRequested(current.requestedPlan);
+        setPaymentNote(
+          current.paymentReportedTime
+            ? t("setting.member.plan-payment-note", {
+                reference: current.paymentReference || "—",
+                date: timestampDate(current.paymentReportedTime).toLocaleDateString(),
+              })
+            : "",
+        );
         // Start from what the member asked for, when they asked for anything.
         const preselected =
           current.requestedPlan !== UserSetting_PackageSetting_Plan.PLAN_UNSPECIFIED ? current.requestedPlan : current.plan;
         setPlan(preselected === UserSetting_PackageSetting_Plan.TEAMS ? preselected : UserSetting_PackageSetting_Plan.FREE);
-        setExpiry(current.expireTime ? toDateInput(timestampDate(current.expireTime)) : "");
+        setExpiry(
+          current.expireTime
+            ? toDateInput(timestampDate(current.expireTime))
+            : current.requestedPlan === UserSetting_PackageSetting_Plan.TEAMS
+              ? defaultExpiry()
+              : "",
+        );
       })
       .catch((error: unknown) => handleError(error, toast.error, { context: "Load package" }));
     return () => {
       cancelled = true;
     };
-  }, [open, settingName]);
+  }, [open, settingName, fetchSetting]);
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -114,13 +139,18 @@ function SetPlanDialog({ user, open, onOpenChange }: Props) {
               {t("setting.member.plan-requested", {
                 plan: t(PLAN_OPTIONS.find((option) => option.value === requested)?.labelKey ?? "setting.member.plan-free"),
               })}
+              {paymentNote && <span className="mt-1 block text-xs text-muted-foreground">{paymentNote}</span>}
             </p>
           )}
           <div className="grid gap-2">
             <Label>{t("setting.member.plan-choice")}</Label>
             <RadioGroup
               value={String(plan)}
-              onValueChange={(value) => setPlan(Number(value) as UserSetting_PackageSetting_Plan)}
+              onValueChange={(value) => {
+                const next = Number(value) as UserSetting_PackageSetting_Plan;
+                setPlan(next);
+                if (next === UserSetting_PackageSetting_Plan.TEAMS && !expiry) setExpiry(defaultExpiry());
+              }}
               className="flex flex-row gap-4"
             >
               {PLAN_OPTIONS.map((option) => (

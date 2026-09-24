@@ -2,6 +2,7 @@ package test
 
 import (
 	"context"
+	"strings"
 	"testing"
 	"time"
 
@@ -329,12 +330,39 @@ func TestUserPackageSetting(t *testing.T) {
 		require.Equal(t, apiv1.UserSetting_PackageSetting_TEAMS, seen.GetPackageSetting().RequestedPlan, "the operator sees the request")
 	})
 
+	t.Run("a member reports a payment and the server stamps the time", func(t *testing.T) {
+		report := func(reference string) *apiv1.UpdateUserSettingRequest {
+			return &apiv1.UpdateUserSettingRequest{
+				Setting: &apiv1.UserSetting{
+					Name: name,
+					Value: &apiv1.UserSetting_PackageSetting_{
+						PackageSetting: &apiv1.UserSetting_PackageSetting{PaymentReference: reference},
+					},
+				},
+				UpdateMask: &fieldmaskpb.FieldMask{Paths: []string{"payment_reference"}},
+			}
+		}
+		setting, err := ts.Service.UpdateUserSetting(memberCtx, report("TXN-42"))
+		require.NoError(t, err)
+		require.Equal(t, "TXN-42", setting.GetPackageSetting().PaymentReference)
+		require.NotNil(t, setting.GetPackageSetting().PaymentReportedTime)
+		require.WithinDuration(t, time.Now(), setting.GetPackageSetting().PaymentReportedTime.AsTime(), time.Minute)
+		require.Equal(t, apiv1.UserSetting_PackageSetting_TEAMS, setting.GetPackageSetting().RequestedPlan, "the request stays")
+
+		_, err = ts.Service.UpdateUserSetting(otherCtx, report("nope"))
+		require.Equal(t, codes.PermissionDenied, status.Code(err))
+		_, err = ts.Service.UpdateUserSetting(memberCtx, report(strings.Repeat("x", 201)))
+		require.Equal(t, codes.InvalidArgument, status.Code(err))
+	})
+
 	t.Run("the operator sets Teams with an expiry", func(t *testing.T) {
 		setting, err := ts.Service.UpdateUserSetting(adminCtx, packageUpdate(apiv1.UserSetting_PackageSetting_TEAMS, "plan", "expire_time"))
 		require.NoError(t, err)
 		require.Equal(t, apiv1.UserSetting_PackageSetting_TEAMS, setting.GetPackageSetting().Plan)
 		require.True(t, expire.AsTime().Equal(setting.GetPackageSetting().ExpireTime.AsTime()))
 		require.Equal(t, apiv1.UserSetting_PackageSetting_PLAN_UNSPECIFIED, setting.GetPackageSetting().RequestedPlan, "the decision answers the request")
+		require.Empty(t, setting.GetPackageSetting().PaymentReference, "and closes the payment report")
+		require.Nil(t, setting.GetPackageSetting().PaymentReportedTime)
 
 		mine, err := ts.Service.GetUserSetting(memberCtx, &apiv1.GetUserSettingRequest{Name: name})
 		require.NoError(t, err)

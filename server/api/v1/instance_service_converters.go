@@ -40,6 +40,10 @@ func convertInstanceSettingFromStore(setting *storepb.InstanceSetting) *v1pb.Ins
 		instanceSetting.Value = &v1pb.InstanceSetting_AccessSetting_{
 			AccessSetting: convertInstanceAccessSettingFromStore(setting.GetAccessSetting()),
 		}
+	case *storepb.InstanceSetting_BillingSetting:
+		instanceSetting.Value = &v1pb.InstanceSetting_BillingSetting_{
+			BillingSetting: convertInstanceBillingSettingFromStore(setting.GetBillingSetting()),
+		}
 	default:
 		// Leave Value unset for unsupported setting variants.
 	}
@@ -83,10 +87,36 @@ func convertInstanceSettingToStore(setting *v1pb.InstanceSetting) *storepb.Insta
 		instanceSetting.Value = &storepb.InstanceSetting_AccessSetting{
 			AccessSetting: convertInstanceAccessSettingToStore(setting.GetAccessSetting()),
 		}
+	case storepb.InstanceSettingKey_BILLING:
+		instanceSetting.Value = &storepb.InstanceSetting_BillingSetting{
+			BillingSetting: convertInstanceBillingSettingToStore(setting.GetBillingSetting()),
+		}
 	default:
 		// Keep the default GeneralSetting value
 	}
 	return instanceSetting
+}
+
+func convertInstanceBillingSettingFromStore(setting *storepb.InstanceBillingSetting) *v1pb.InstanceSetting_BillingSetting {
+	if setting == nil {
+		return nil
+	}
+	return &v1pb.InstanceSetting_BillingSetting{
+		TeamsPrice:          setting.TeamsPrice,
+		PaymentInstructions: setting.PaymentInstructions,
+		PeriodDays:          setting.PeriodDays,
+	}
+}
+
+func convertInstanceBillingSettingToStore(setting *v1pb.InstanceSetting_BillingSetting) *storepb.InstanceBillingSetting {
+	if setting == nil {
+		return &storepb.InstanceBillingSetting{}
+	}
+	return &storepb.InstanceBillingSetting{
+		TeamsPrice:          setting.TeamsPrice,
+		PaymentInstructions: setting.PaymentInstructions,
+		PeriodDays:          setting.PeriodDays,
+	}
 }
 
 func convertInstanceAccessSettingFromStore(setting *storepb.InstanceAccessSetting) *v1pb.InstanceSetting_AccessSetting {

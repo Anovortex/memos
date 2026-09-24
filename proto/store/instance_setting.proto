@@ -24,6 +24,8 @@ enum InstanceSettingKey {
   AI = 7;
   // ACCESS is the key for instance access policy settings.
   ACCESS = 8;
+  // BILLING is the key for plan pricing and the manual payment steps.
+  BILLING = 9;
 }
 
 message InstanceSetting {
@@ -37,6 +39,7 @@ message InstanceSetting {
     InstanceNotificationSetting notification_setting = 7;
     InstanceAISetting ai_setting = 8;
     InstanceAccessSetting access_setting = 9;
+    InstanceBillingSetting billing_setting = 10;
   }
 }
 
@@ -260,4 +263,15 @@ enum InstanceAccessMode {
 
 message InstanceAccessSetting {
   InstanceAccessMode access_mode = 1;
+}
+
+// InstanceBillingSetting holds the plan price and the manual payment steps
+// members follow until a payment provider exists.
+message InstanceBillingSetting {
+  // Free-text price shown to members, e.g. "500 BDT / month".
+  string teams_price = 1;
+  // How to pay: bank or mobile-money details and the reference to include.
+  string payment_instructions = 2;
+  // Days per paid period; the operator's confirmation prefills the expiry with it.
+  int32 period_days = 3;
 }

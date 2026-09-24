@@ -3745,6 +3745,8 @@ components:
                     $ref: '#/components/schemas/InstanceSetting_AISetting'
                 accessSetting:
                     $ref: '#/components/schemas/InstanceSetting_AccessSetting'
+                billingSetting:
+                    $ref: '#/components/schemas/InstanceSetting_BillingSetting'
             description: An instance setting resource.
         InstanceSetting_AIProviderConfig:
             type: object
@@ -3807,6 +3809,22 @@ components:
                     type: string
                     format: enum
             description: Access policy configuration for the instance.
+        InstanceSetting_BillingSetting:
+            type: object
+            properties:
+                teamsPrice:
+                    type: string
+                    description: Free-text price shown to members, e.g. "500 BDT / month".
+                paymentInstructions:
+                    type: string
+                    description: 'How to pay: bank or mobile-money details and the reference to include.'
+                periodDays:
+                    type: integer
+                    description: Days per paid period; 0 reads back as the default of 30.
+                    format: int32
+            description: |-
+                Plan pricing and the manual payment steps members follow. Readable by
+                 signed-in users; only the operator updates it.
         InstanceSetting_EmbeddingConfig:
             type: object
             properties:
@@ -5478,6 +5496,16 @@ components:
                         The plan the member asked for. A member may update only this field, on
                          their own setting; the operator's next plan change answers it.
                     format: enum
+                paymentReference:
+                    type: string
+                    description: |-
+                        What the member typed when reporting a payment. Updating it (own
+                         record only) stamps payment_reported_time on the server.
+                paymentReportedTime:
+                    readOnly: true
+                    type: string
+                    description: When the member reported the payment; set by the server.
+                    format: date-time
             description: |-
                 The member's plan ("plan" in the UI): what the operator granted, when it
                  lapses, and what the member asked for. Members read their own; only the

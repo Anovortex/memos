@@ -6,11 +6,15 @@ import (
 
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
+	"google.golang.org/protobuf/types/known/timestamppb"
 
 	v1pb "github.com/usememos/memos/proto/gen/api/v1"
 	storepb "github.com/usememos/memos/proto/gen/store"
 	"github.com/usememos/memos/store"
 )
+
+// maxPaymentReferenceLength bounds what a member may attach to a payment report.
+const maxPaymentReferenceLength = 200
 
 func (s *APIV1Service) GetUserSetting(ctx context.Context, request *v1pb.GetUserSettingRequest) (*v1pb.UserSetting, error) {
 	// Parse resource name: users/{user}/settings/{setting}
@@ -173,8 +177,10 @@ func (s *APIV1Service) UpdateUserSetting(ctx context.Context, request *v1pb.Upda
 					return nil, status.Errorf(codes.PermissionDenied, "only the operator can set a plan")
 				}
 				updated.Plan = incoming.Plan
-				// The operator's decision answers whatever was requested.
+				// The operator's decision answers whatever was requested and reported.
 				updated.RequestedPlan = v1pb.UserSetting_PackageSetting_PLAN_UNSPECIFIED
+				updated.PaymentReference = ""
+				updated.PaymentReportedTime = nil
 			case "expire_time":
 				if !operator {
 					return nil, status.Errorf(codes.PermissionDenied, "only the operator can set a plan")
@@ -182,6 +188,18 @@ func (s *APIV1Service) UpdateUserSetting(ctx context.Context, request *v1pb.Upda
 				updated.ExpireTime = incoming.ExpireTime
 			case "requested_plan":
 				updated.RequestedPlan = incoming.RequestedPlan
+				if incoming.RequestedPlan == v1pb.UserSetting_PackageSetting_PLAN_UNSPECIFIED {
+					// Cancelling the request withdraws the payment report with it.
+					updated.PaymentReference = ""
+					updated.PaymentReportedTime = nil
+				}
+			case "payment_reference":
+				// The member reports a manual payment; the server stamps when.
+				if len(incoming.PaymentReference) > maxPaymentReferenceLength {
+					return nil, status.Errorf(codes.InvalidArgument, "payment reference must be at most %d characters", maxPaymentReferenceLength)
+				}
+				updated.PaymentReference = incoming.PaymentReference
+				updated.PaymentReportedTime = timestamppb.Now()
 			default:
 				return nil, status.Errorf(codes.InvalidArgument, "unsupported update mask path for plan setting: %s", field)
 			}

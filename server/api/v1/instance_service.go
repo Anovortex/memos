@@ -140,6 +140,10 @@ func (s *APIV1Service) getInstanceSettingByName(ctx context.Context, name string
 		var setting *storepb.InstanceAccessSetting
 		setting, err = s.Store.GetInstanceAccessSetting(ctx)
 		instanceSetting = &storepb.InstanceSetting{Key: instanceSettingKey, Value: &storepb.InstanceSetting_AccessSetting{AccessSetting: setting}}
+	case storepb.InstanceSettingKey_BILLING:
+		var setting *storepb.InstanceBillingSetting
+		setting, err = s.Store.GetInstanceBillingSetting(ctx)
+		instanceSetting = &storepb.InstanceSetting{Key: instanceSettingKey, Value: &storepb.InstanceSetting_BillingSetting{BillingSetting: setting}}
 	default:
 		return nil, status.Errorf(codes.InvalidArgument, "unsupported instance setting key: %v", instanceSettingKey)
 	}
@@ -161,8 +165,10 @@ func (s *APIV1Service) getInstanceSettingByName(ctx context.Context, name string
 			return nil, status.Errorf(codes.PermissionDenied, "permission denied")
 		}
 	}
+	// AI settings are partly redacted for members; billing (price and how to
+	// pay) is for signed-in users only, never for anonymous visitors.
 	isAdminCaller := false
-	if instanceSetting.Key == storepb.InstanceSettingKey_AI {
+	if instanceSetting.Key == storepb.InstanceSettingKey_AI || instanceSetting.Key == storepb.InstanceSettingKey_BILLING {
 		user, err := caller.currentUser(ctx, s)
 		if err != nil {
 			return nil, status.Errorf(codes.Internal, "failed to get current user: %v", err)

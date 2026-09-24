@@ -49,6 +49,8 @@ func (s *Store) UpsertInstanceSetting(ctx context.Context, upsert *storepb.Insta
 		valueBytes, err = protojson.Marshal(upsert.GetAiSetting())
 	} else if upsert.Key == storepb.InstanceSettingKey_ACCESS {
 		valueBytes, err = protojson.Marshal(upsert.GetAccessSetting())
+	} else if upsert.Key == storepb.InstanceSettingKey_BILLING {
+		valueBytes, err = protojson.Marshal(upsert.GetBillingSetting())
 	} else {
 		return nil, errors.Errorf("unsupported instance setting key: %v", upsert.Key)
 	}
@@ -356,6 +358,33 @@ func (s *Store) GetInstanceAISetting(ctx context.Context) (*storepb.InstanceAISe
 	return instanceAISetting, nil
 }
 
+// defaultBillingPeriodDays is the paid period used when the operator has not set one.
+const defaultBillingPeriodDays = 30
+
+// GetInstanceBillingSetting returns the plan price and payment steps, with the
+// period defaulted so callers never see 0.
+func (s *Store) GetInstanceBillingSetting(ctx context.Context) (*storepb.InstanceBillingSetting, error) {
+	instanceSetting, err := s.GetInstanceSetting(ctx, &FindInstanceSetting{
+		Name: storepb.InstanceSettingKey_BILLING.String(),
+	})
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to get instance billing setting")
+	}
+
+	billingSetting := &storepb.InstanceBillingSetting{}
+	if instanceSetting != nil && instanceSetting.GetBillingSetting() != nil {
+		billingSetting = instanceSetting.GetBillingSetting()
+	}
+	if billingSetting.PeriodDays <= 0 {
+		billingSetting.PeriodDays = defaultBillingPeriodDays
+	}
+	s.cacheInstanceSetting(ctx, &storepb.InstanceSetting{
+		Key:   storepb.InstanceSettingKey_BILLING,
+		Value: &storepb.InstanceSetting_BillingSetting{BillingSetting: billingSetting},
+	})
+	return billingSetting, nil
+}
+
 const (
 	defaultInstanceStorageType       = storepb.InstanceStorageSetting_LOCAL
 	defaultInstanceUploadSizeLimitMb = 30
@@ -451,6 +480,12 @@ func convertInstanceSettingFromRaw(instanceSettingRaw *InstanceSetting) (*storep
 			return nil, err
 		}
 		instanceSetting.Value = &storepb.InstanceSetting_AccessSetting{AccessSetting: accessSetting}
+	case storepb.InstanceSettingKey_BILLING.String():
+		billingSetting := &storepb.InstanceBillingSetting{}
+		if err := protojsonUnmarshaler.Unmarshal([]byte(instanceSettingRaw.Value), billingSetting); err != nil {
+			return nil, errors.Wrap(err, "failed to unmarshal instance billing setting")
+		}
+		instanceSetting.Value = &storepb.InstanceSetting_BillingSetting{BillingSetting: billingSetting}
 	default:
 		// Skip unsupported instance setting key.
 		return nil, nil

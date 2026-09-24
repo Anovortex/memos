@@ -860,8 +860,12 @@ type PackageUserSetting struct {
 	ExpireTime *timestamppb.Timestamp `protobuf:"bytes,2,opt,name=expire_time,json=expireTime,proto3" json:"expire_time,omitempty"`
 	// The plan the member asked the operator for; PLAN_UNSPECIFIED when none is pending.
 	RequestedPlan PackageUserSetting_Plan `protobuf:"varint,3,opt,name=requested_plan,json=requestedPlan,proto3,enum=memos.store.PackageUserSetting_Plan" json:"requested_plan,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
+	// What the member typed when reporting a payment (transaction id, sender).
+	PaymentReference string `protobuf:"bytes,4,opt,name=payment_reference,json=paymentReference,proto3" json:"payment_reference,omitempty"`
+	// When the member reported the payment; stamped by the server.
+	PaymentReportedTime *timestamppb.Timestamp `protobuf:"bytes,5,opt,name=payment_reported_time,json=paymentReportedTime,proto3" json:"payment_reported_time,omitempty"`
+	unknownFields       protoimpl.UnknownFields
+	sizeCache           protoimpl.SizeCache
 }
 
 func (x *PackageUserSetting) Reset() {
@@ -913,6 +917,20 @@ func (x *PackageUserSetting) GetRequestedPlan() PackageUserSetting_Plan {
 		return x.RequestedPlan
 	}
 	return PackageUserSetting_PLAN_UNSPECIFIED
+}
+
+func (x *PackageUserSetting) GetPaymentReference() string {
+	if x != nil {
+		return x.PaymentReference
+	}
+	return ""
+}
+
+func (x *PackageUserSetting) GetPaymentReportedTime() *timestamppb.Timestamp {
+	if x != nil {
+		return x.PaymentReportedTime
+	}
+	return nil
 }
 
 type RefreshTokensUserSetting_RefreshToken struct {
@@ -1501,12 +1519,14 @@ const file_store_user_setting_proto_rawDesc = "" +
 	"\n" +
 	"token_hash\x18\x01 \x01(\tR\ttokenHash\x129\n" +
 	"\n" +
-	"expires_at\x18\x02 \x01(\v2\x1a.google.protobuf.TimestampR\texpiresAt\"\x8b\x02\n" +
+	"expires_at\x18\x02 \x01(\v2\x1a.google.protobuf.TimestampR\texpiresAt\"\x88\x03\n" +
 	"\x12PackageUserSetting\x128\n" +
 	"\x04plan\x18\x01 \x01(\x0e2$.memos.store.PackageUserSetting.PlanR\x04plan\x12;\n" +
 	"\vexpire_time\x18\x02 \x01(\v2\x1a.google.protobuf.TimestampR\n" +
 	"expireTime\x12K\n" +
-	"\x0erequested_plan\x18\x03 \x01(\x0e2$.memos.store.PackageUserSetting.PlanR\rrequestedPlan\"1\n" +
+	"\x0erequested_plan\x18\x03 \x01(\x0e2$.memos.store.PackageUserSetting.PlanR\rrequestedPlan\x12+\n" +
+	"\x11payment_reference\x18\x04 \x01(\tR\x10paymentReference\x12N\n" +
+	"\x15payment_reported_time\x18\x05 \x01(\v2\x1a.google.protobuf.TimestampR\x13paymentReportedTime\"1\n" +
 	"\x04Plan\x12\x14\n" +
 	"\x10PLAN_UNSPECIFIED\x10\x00\x12\b\n" +
 	"\x04FREE\x10\x01\x12\t\n" +
@@ -1574,19 +1594,20 @@ var file_store_user_setting_proto_depIdxs = []int32{
 	1,  // 19: memos.store.PackageUserSetting.plan:type_name -> memos.store.PackageUserSetting.Plan
 	21, // 20: memos.store.PackageUserSetting.expire_time:type_name -> google.protobuf.Timestamp
 	1,  // 21: memos.store.PackageUserSetting.requested_plan:type_name -> memos.store.PackageUserSetting.Plan
-	4,  // 22: memos.store.TagsUserSetting.TagsEntry.value:type_name -> memos.store.UserTagMetadata
-	21, // 23: memos.store.RefreshTokensUserSetting.RefreshToken.expires_at:type_name -> google.protobuf.Timestamp
-	21, // 24: memos.store.RefreshTokensUserSetting.RefreshToken.created_at:type_name -> google.protobuf.Timestamp
-	15, // 25: memos.store.RefreshTokensUserSetting.RefreshToken.client_info:type_name -> memos.store.RefreshTokensUserSetting.ClientInfo
-	21, // 26: memos.store.PersonalAccessTokensUserSetting.PersonalAccessToken.expires_at:type_name -> google.protobuf.Timestamp
-	21, // 27: memos.store.PersonalAccessTokensUserSetting.PersonalAccessToken.created_at:type_name -> google.protobuf.Timestamp
-	21, // 28: memos.store.PersonalAccessTokensUserSetting.PersonalAccessToken.last_used_at:type_name -> google.protobuf.Timestamp
-	18, // 29: memos.store.MemoViewsUserSetting.MemoView.icon:type_name -> memos.store.MemoViewsUserSetting.MemoView.Icon
-	30, // [30:30] is the sub-list for method output_type
-	30, // [30:30] is the sub-list for method input_type
-	30, // [30:30] is the sub-list for extension type_name
-	30, // [30:30] is the sub-list for extension extendee
-	0,  // [0:30] is the sub-list for field type_name
+	21, // 22: memos.store.PackageUserSetting.payment_reported_time:type_name -> google.protobuf.Timestamp
+	4,  // 23: memos.store.TagsUserSetting.TagsEntry.value:type_name -> memos.store.UserTagMetadata
+	21, // 24: memos.store.RefreshTokensUserSetting.RefreshToken.expires_at:type_name -> google.protobuf.Timestamp
+	21, // 25: memos.store.RefreshTokensUserSetting.RefreshToken.created_at:type_name -> google.protobuf.Timestamp
+	15, // 26: memos.store.RefreshTokensUserSetting.RefreshToken.client_info:type_name -> memos.store.RefreshTokensUserSetting.ClientInfo
+	21, // 27: memos.store.PersonalAccessTokensUserSetting.PersonalAccessToken.expires_at:type_name -> google.protobuf.Timestamp
+	21, // 28: memos.store.PersonalAccessTokensUserSetting.PersonalAccessToken.created_at:type_name -> google.protobuf.Timestamp
+	21, // 29: memos.store.PersonalAccessTokensUserSetting.PersonalAccessToken.last_used_at:type_name -> google.protobuf.Timestamp
+	18, // 30: memos.store.MemoViewsUserSetting.MemoView.icon:type_name -> memos.store.MemoViewsUserSetting.MemoView.Icon
+	31, // [31:31] is the sub-list for method output_type
+	31, // [31:31] is the sub-list for method input_type
+	31, // [31:31] is the sub-list for extension type_name
+	31, // [31:31] is the sub-list for extension extendee
+	0,  // [0:31] is the sub-list for field type_name
 }
 
 func init() { file_store_user_setting_proto_init() }

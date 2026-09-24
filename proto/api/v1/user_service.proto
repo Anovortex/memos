@@ -764,6 +764,11 @@ message UserSetting {
     // The plan the member asked for. A member may update only this field, on
     // their own setting; the operator's next plan change answers it.
     Plan requested_plan = 3 [(google.api.field_behavior) = OPTIONAL];
+    // What the member typed when reporting a payment. Updating it (own
+    // record only) stamps payment_reported_time on the server.
+    string payment_reference = 4 [(google.api.field_behavior) = OPTIONAL];
+    // When the member reported the payment; set by the server.
+    google.protobuf.Timestamp payment_reported_time = 5 [(google.api.field_behavior) = OUTPUT_ONLY];
   }
 }
 

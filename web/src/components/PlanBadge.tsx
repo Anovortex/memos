@@ -29,7 +29,9 @@ const PlanBadge = ({ userName }: Props) => {
       </Badge>
       {requested !== UserSetting_PackageSetting_Plan.PLAN_UNSPECIFIED && (
         <Badge variant="outline" className="rounded-full border-primary/50 px-2.5 py-0.5 text-primary">
-          {t("setting.member.plan-requested", { plan: t(planLabelKey(requested)) })}
+          {plan?.paymentReportedTime
+            ? t("setting.member.plan-payment-reported")
+            : t("setting.member.plan-requested", { plan: t(planLabelKey(requested)) })}
         </Badge>
       )}
     </>

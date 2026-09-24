@@ -10,6 +10,8 @@ import {
   InstanceSetting_AccessSettingSchema,
   InstanceSetting_AISetting,
   InstanceSetting_AISettingSchema,
+  InstanceSetting_BillingSetting,
+  InstanceSetting_BillingSettingSchema,
   InstanceSetting_GeneralSetting,
   InstanceSetting_GeneralSettingSchema,
   InstanceSetting_Key,
@@ -49,6 +51,7 @@ interface InstanceContextValue extends InstanceState {
   storageSetting: InstanceSetting_StorageSetting;
   notificationSetting: InstanceSetting_NotificationSetting;
   aiSetting: InstanceSetting_AISetting;
+  billingSetting: InstanceSetting_BillingSetting;
   initialize: () => Promise<void>;
   fetchSetting: (key: InstanceSetting_Key) => Promise<void>;
   fetchSettings: (keys: InstanceSetting_Key[]) => Promise<void>;
@@ -117,6 +120,14 @@ export function InstanceProvider({ children }: { children: ReactNode }) {
       return setting.value.value;
     }
     return create(InstanceSetting_AISettingSchema, {});
+  }, [state.settings]);
+
+  const billingSetting = useMemo((): InstanceSetting_BillingSetting => {
+    const setting = state.settings.find((s) => s.name === `${instanceSettingNamePrefix}BILLING`);
+    if (setting?.value.case === "billingSetting") {
+      return setting.value.value;
+    }
+    return create(InstanceSetting_BillingSettingSchema, { periodDays: 30 });
   }, [state.settings]);
 
   const initialize = useCallback(async () => {
@@ -247,6 +258,7 @@ export function InstanceProvider({ children }: { children: ReactNode }) {
       storageSetting,
       notificationSetting,
       aiSetting,
+      billingSetting,
       initialize,
       fetchSetting,
       fetchSettings,
@@ -260,6 +272,7 @@ export function InstanceProvider({ children }: { children: ReactNode }) {
       storageSetting,
       notificationSetting,
       aiSetting,
+      billingSetting,
       initialize,
       fetchSetting,
       fetchSettings,

@@ -248,9 +248,11 @@ func convertUserPackageSettingFromStore(pkg *storepb.PackageUserSetting) *v1pb.U
 		return &v1pb.UserSetting_PackageSetting{Plan: v1pb.UserSetting_PackageSetting_FREE}
 	}
 	return &v1pb.UserSetting_PackageSetting{
-		Plan:          v1pb.UserSetting_PackageSetting_Plan(pkg.Plan),
-		ExpireTime:    pkg.ExpireTime,
-		RequestedPlan: v1pb.UserSetting_PackageSetting_Plan(pkg.RequestedPlan),
+		Plan:                v1pb.UserSetting_PackageSetting_Plan(pkg.Plan),
+		ExpireTime:          pkg.ExpireTime,
+		RequestedPlan:       v1pb.UserSetting_PackageSetting_Plan(pkg.RequestedPlan),
+		PaymentReference:    pkg.PaymentReference,
+		PaymentReportedTime: pkg.PaymentReportedTime,
 	}
 }
 
@@ -309,9 +311,11 @@ func convertUserSettingToStore(apiSetting *v1pb.UserSetting, userID int32, key s
 		}
 		storeSetting.Value = &storepb.UserSetting_Package{
 			Package: &storepb.PackageUserSetting{
-				Plan:          storepb.PackageUserSetting_Plan(pkg.Plan),
-				ExpireTime:    pkg.ExpireTime,
-				RequestedPlan: storepb.PackageUserSetting_Plan(pkg.RequestedPlan),
+				Plan:                storepb.PackageUserSetting_Plan(pkg.Plan),
+				ExpireTime:          pkg.ExpireTime,
+				RequestedPlan:       storepb.PackageUserSetting_Plan(pkg.RequestedPlan),
+				PaymentReference:    pkg.PaymentReference,
+				PaymentReportedTime: pkg.PaymentReportedTime,
 			},
 		}
 	default:
