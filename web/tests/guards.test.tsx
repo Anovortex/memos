@@ -1,15 +1,32 @@
-import type { ReactNode } from "react";
 import { render, screen } from "@testing-library/react";
+import type { ReactNode } from "react";
 import { MemoryRouter, Route, Routes, useLocation } from "react-router-dom";
-import { describe, expect, it, vi } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 
 vi.mock("@/hooks/useCurrentUser", () => ({
   __esModule: true,
   default: vi.fn(),
 }));
 
+const initialization = vi.hoisted(() => ({ auth: true, instance: true }));
+
+vi.mock("@/contexts/AuthContext", () => ({
+  useAuth: () => ({ isInitialized: initialization.auth }),
+}));
+
+vi.mock("@/contexts/InstanceContext", () => ({
+  useInstance: () => ({ isInitialized: initialization.instance }),
+}));
+
 import useCurrentUser from "@/hooks/useCurrentUser";
-import { LandingRoute, RequireAuthRoute, RequireGuestRoute, RequireOperatorRoute } from "@/router/guards";
+import {
+  LandingRoute,
+  RequireAuthRoute,
+  RequireFullInitializationRoute,
+  RequireGuestRoute,
+  RequireInstanceInitializationRoute,
+  RequireOperatorRoute,
+} from "@/router/guards";
 import { User_Role } from "@/types/proto/api/v1/user_service_pb";
 
 const mockedUseCurrentUser = vi.mocked(useCurrentUser);
@@ -25,6 +42,43 @@ const LocationProbe = () => {
 
 const renderAt = (initialEntry: string, children: ReactNode) =>
   render(<MemoryRouter initialEntries={[initialEntry]}>{children}</MemoryRouter>);
+
+beforeEach(() => {
+  initialization.auth = true;
+  initialization.instance = true;
+});
+
+describe("initialization guards", () => {
+  it("keeps instance-dependent pages hidden until instance settings settle", () => {
+    initialization.instance = false;
+
+    renderAt(
+      "/auth",
+      <Routes>
+        <Route element={<RequireInstanceInitializationRoute />}>
+          <Route path="/auth" element={<div data-testid="instance-ready">ready</div>} />
+        </Route>
+      </Routes>,
+    );
+
+    expect(screen.queryByTestId("instance-ready")).not.toBeInTheDocument();
+  });
+
+  it("keeps non-feed pages hidden until both contexts fully initialize", () => {
+    initialization.auth = false;
+
+    renderAt(
+      "/setting",
+      <Routes>
+        <Route element={<RequireFullInitializationRoute />}>
+          <Route path="/setting" element={<div data-testid="fully-ready">ready</div>} />
+        </Route>
+      </Routes>,
+    );
+
+    expect(screen.queryByTestId("fully-ready")).not.toBeInTheDocument();
+  });
+});
 
 describe("LandingRoute", () => {
   it("renders the nested home page for an authenticated visitor at /", () => {

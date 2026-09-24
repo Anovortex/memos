@@ -88,7 +88,11 @@ paths:
                     Optional. Filter to apply to the list results.
                      Example: "mime_type==\"image/png\"" or "filename.contains(\"test\")"
                      Supported operators: =, !=, <, <=, >, >=, : (contains), in
-                     Supported fields: filename, mime_type, create_time, memo
+                     Supported fields: filename, mime_type, create_time, memo_id, space.
+                     `space` only supports a non-negated `==` comparison with a Space resource
+                     name or null.
+                     `space` is the linked memo's space resource name, or null when the
+                     attachment is unlinked or its linked memo has no space.
                   schema:
                     type: string
                 - name: orderBy
@@ -122,6 +126,7 @@ paths:
                   description: |-
                     Optional. The attachment ID to use for this attachment.
                      If empty, a unique ID will be generated.
+                     Format: ^[a-zA-Z0-9]([a-zA-Z0-9-]{0,34}[a-zA-Z0-9])?$
                   schema:
                     type: string
             requestBody:
@@ -244,6 +249,35 @@ paths:
                 "200":
                     description: OK
                     content: {}
+                default:
+                    description: Default error response
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Status'
+    /api/v1/attachments:upload:
+        post:
+            tags:
+                - AttachmentService
+            description: |-
+                UploadAttachment uploads a file in bounded chunks. The first call carries
+                 the spec and returns an upload_id; later calls carry that upload_id.
+                 Uploads are bound to the authenticated user, expire after 30 minutes of
+                 inactivity, and do not survive a server restart.
+            operationId: AttachmentService_UploadAttachment
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/UploadAttachmentRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/UploadAttachmentResponse'
                 default:
                     description: Default error response
                     content:
@@ -472,6 +506,7 @@ paths:
                   description: |-
                     Optional. The ID to use for the identity provider, which will become the final component of the resource name.
                      If not provided, the system will generate one.
+                     Format: ^[a-zA-Z0-9]([a-zA-Z0-9-]{0,34}[a-zA-Z0-9])?$
                   schema:
                     type: string
             requestBody:
@@ -732,7 +767,7 @@ paths:
         get:
             tags:
                 - MemoService
-            description: ListMemos lists memos with pagination and filter.
+            description: ListMemos lists readable non-comment memos with pagination and filter.
             operationId: MemoService_ListMemos
             parameters:
                 - name: pageSize
@@ -783,13 +818,17 @@ paths:
                      Available fields:
                        content (string), creator (string, e.g. "users/1"),
                        created_ts / updated_ts (timestamp), pinned (bool),
-                       visibility (string: PRIVATE | PROTECTED | PUBLIC),
+                       visibility (string: PRIVATE | PROTECTED | PUBLIC | SPACE),
+                       space (string resource name, or null when the memo has no space;
+                         supports == and comparisons against null, e.g. space != null),
                        tags (list<string>; match with `"work" in tags`, not `tag == "work"`),
-                       has_task_list / has_link / has_code / has_incomplete_tasks (bool).
+                       has_task_list / has_link / has_code / has_incomplete_tasks (bool),
+                       has_location (bool; true when the memo has a location attached).
                      Note: the time fields here are created_ts / updated_ts, which differ from
                      the create_time / update_time names used by order_by.
                      Examples:
                        pinned == true && visibility == "PUBLIC"
+                       space == "spaces/team" or space == null
                        tags.exists(t, t == "urgent")
                        content.contains("roadmap") && created_ts > now - duration("168h")
                   schema:
@@ -817,7 +856,8 @@ paths:
                 - MemoService
             description: |-
                 CreateMemo creates a memo. The request body is a Memo; set its content
-                 (Markdown) and visibility (PRIVATE | PROTECTED | PUBLIC, default PRIVATE).
+                 (Markdown) and visibility (PRIVATE | PROTECTED | PUBLIC | SPACE,
+                 default PRIVATE).
                  The memo is owned by the authenticated user; requires authentication.
             operationId: MemoService_CreateMemo
             parameters:
@@ -826,6 +866,7 @@ paths:
                   description: |-
                     Optional. The memo ID to use for this memo.
                      If empty, a unique ID will be generated.
+                     Format: ^[a-zA-Z0-9]([a-zA-Z0-9-]{0,34}[a-zA-Z0-9])?$
                   schema:
                     type: string
             requestBody:
@@ -926,7 +967,9 @@ paths:
         delete:
             tags:
                 - MemoService
-            description: DeleteMemo deletes a memo.
+            description: |-
+                DeleteMemo deletes only the named memo and its owned resources. It removes
+                 incident relations but never deletes another memo.
             operationId: MemoService_DeleteMemo
             parameters:
                 - name: memo
@@ -1100,7 +1143,10 @@ paths:
         post:
             tags:
                 - MemoService
-            description: CreateMemoComment creates a comment for a memo.
+            description: |-
+                CreateMemoComment atomically creates an independent memo plus one immutable
+                 COMMENT context relation to the named memo. The new memo keeps its own
+                 placement, visibility, authorship, and lifecycle.
             operationId: MemoService_CreateMemoComment
             parameters:
                 - name: memo
@@ -1173,9 +1219,7 @@ paths:
         post:
             tags:
                 - MemoService
-            description: |-
-                UpsertMemoReaction adds or updates the authenticated user's reaction on a
-                 memo. The reaction's content_id is the memo's resource name (memos/{memo}).
+            description: UpsertMemoReaction adds or updates the authenticated user's reaction on a memo.
             operationId: MemoService_UpsertMemoReaction
             parameters:
                 - name: memo
@@ -1273,9 +1317,9 @@ paths:
             tags:
                 - MemoService
             description: |-
-                SetMemoRelations replaces the full set of relations on a memo with the
-                 provided list (not an append). Pass the complete desired set; an empty list
-                 clears all relations. Idempotent.
+                SetMemoRelations replaces the full set of mutable REFERENCE relations on a
+                 memo. COMMENT relations are immutable creation context and are rejected by
+                 this RPC. An empty list clears references without changing COMMENT.
             operationId: MemoService_SetMemoRelations
             parameters:
                 - name: memo
@@ -1304,7 +1348,7 @@ paths:
         get:
             tags:
                 - MemoService
-            description: ListMemoShares lists all share links for a memo. Requires authentication as the memo creator.
+            description: ListMemoShares lists all share links for a memo. Requires the memo creator or an instance administrator.
             operationId: MemoService_ListMemoShares
             parameters:
                 - name: memo
@@ -1329,7 +1373,7 @@ paths:
         post:
             tags:
                 - MemoService
-            description: CreateMemoShare creates a share link for a memo. Requires authentication as the memo creator.
+            description: CreateMemoShare creates a share link for a memo. Requires the memo creator or an instance administrator.
             operationId: MemoService_CreateMemoShare
             parameters:
                 - name: memo
@@ -1361,7 +1405,7 @@ paths:
         delete:
             tags:
                 - MemoService
-            description: DeleteMemoShare revokes a share link. Requires authentication as the memo creator.
+            description: DeleteMemoShare revokes a share link. Requires the memo creator or an instance administrator.
             operationId: MemoService_DeleteMemoShare
             parameters:
                 - name: memo
@@ -1386,18 +1430,18 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/Status'
-    /api/v1/shares/{shareId}:
+    /api/v1/shares/{shareToken}/memo:
         get:
             tags:
                 - MemoService
             description: |-
-                GetMemoByShare resolves a share token to its memo. No authentication required.
+                GetSharedMemo resolves a share token to its memo. No authentication required.
                  Returns NOT_FOUND if the token is invalid or expired.
-            operationId: MemoService_GetMemoByShare
+            operationId: MemoService_GetSharedMemo
             parameters:
-                - name: shareId
+                - name: shareToken
                   in: path
-                  description: Required. The share token extracted from the share URL (/s/{share_id}).
+                  description: Required. The opaque bearer token extracted from the share URL.
                   required: true
                   schema:
                     type: string
@@ -1408,6 +1452,502 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/Memo'
+                default:
+                    description: Default error response
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Status'
+    /api/v1/spaces:
+        get:
+            tags:
+                - SpaceService
+            description: ListSpaces lists spaces of which the authenticated caller is a member.
+            operationId: SpaceService_ListSpaces
+            parameters:
+                - name: pageSize
+                  in: query
+                  description: Optional. The maximum number of spaces to return.
+                  schema:
+                    type: integer
+                    format: int32
+                - name: pageToken
+                  in: query
+                  description: Optional. A token from a previous ListSpaces response.
+                  schema:
+                    type: string
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ListSpacesResponse'
+                default:
+                    description: Default error response
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Status'
+        post:
+            tags:
+                - SpaceService
+            description: |-
+                CreateSpace creates a space and makes the authenticated caller its first
+                 administrator.
+            operationId: SpaceService_CreateSpace
+            parameters:
+                - name: spaceId
+                  in: query
+                  description: |-
+                    Optional. The space UID to use for this space.
+                     If empty, a canonical UUID v4 will be generated.
+                     Format: ^[a-zA-Z0-9]([a-zA-Z0-9-]{0,34}[a-zA-Z0-9])?$
+                  schema:
+                    type: string
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/Space'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Space'
+                default:
+                    description: Default error response
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Status'
+    /api/v1/spaces/{space}:
+        get:
+            tags:
+                - SpaceService
+            description: GetSpace gets a space of which the authenticated caller is a member.
+            operationId: SpaceService_GetSpace
+            parameters:
+                - name: space
+                  in: path
+                  description: The space id.
+                  required: true
+                  schema:
+                    type: string
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Space'
+                default:
+                    description: Default error response
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Status'
+        delete:
+            tags:
+                - SpaceService
+            description: |-
+                DeleteSpace permanently deletes a space and every memo currently placed
+                 in it. It never follows memo relations to other memos.
+            operationId: SpaceService_DeleteSpace
+            parameters:
+                - name: space
+                  in: path
+                  description: The space id.
+                  required: true
+                  schema:
+                    type: string
+            responses:
+                "200":
+                    description: OK
+                    content: {}
+                default:
+                    description: Default error response
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Status'
+        patch:
+            tags:
+                - SpaceService
+            description: UpdateSpace updates space metadata.
+            operationId: SpaceService_UpdateSpace
+            parameters:
+                - name: space
+                  in: path
+                  description: The space id.
+                  required: true
+                  schema:
+                    type: string
+                - name: updateMask
+                  in: query
+                  description: 'Required. The fields to update: title or description.'
+                  schema:
+                    type: string
+                    format: field-mask
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/Space'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Space'
+                default:
+                    description: Default error response
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Status'
+    /api/v1/spaces/{space}/invitations:
+        get:
+            tags:
+                - SpaceService
+            description: ListSpaceInvitations lists the pending invitations for a space.
+            operationId: SpaceService_ListSpaceInvitations
+            parameters:
+                - name: space
+                  in: path
+                  description: The space id.
+                  required: true
+                  schema:
+                    type: string
+                - name: pageSize
+                  in: query
+                  description: Optional. The maximum number of invitations to return.
+                  schema:
+                    type: integer
+                    format: int32
+                - name: pageToken
+                  in: query
+                  description: Optional. A token from a previous ListSpaceInvitations response.
+                  schema:
+                    type: string
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ListSpaceInvitationsResponse'
+                default:
+                    description: Default error response
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Status'
+        post:
+            tags:
+                - SpaceService
+            description: CreateSpaceInvitation invites an existing active user to a space.
+            operationId: SpaceService_CreateSpaceInvitation
+            parameters:
+                - name: space
+                  in: path
+                  description: The space id.
+                  required: true
+                  schema:
+                    type: string
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/SpaceInvitation'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/SpaceInvitation'
+                default:
+                    description: Default error response
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Status'
+    /api/v1/spaces/{space}/invitations/{invitation}:
+        get:
+            tags:
+                - SpaceService
+            description: GetSpaceInvitation gets one pending invitation.
+            operationId: SpaceService_GetSpaceInvitation
+            parameters:
+                - name: space
+                  in: path
+                  description: The space id.
+                  required: true
+                  schema:
+                    type: string
+                - name: invitation
+                  in: path
+                  description: The invitation id.
+                  required: true
+                  schema:
+                    type: string
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/SpaceInvitation'
+                default:
+                    description: Default error response
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Status'
+        delete:
+            tags:
+                - SpaceService
+            description: DeleteSpaceInvitation revokes a pending invitation.
+            operationId: SpaceService_DeleteSpaceInvitation
+            parameters:
+                - name: space
+                  in: path
+                  description: The space id.
+                  required: true
+                  schema:
+                    type: string
+                - name: invitation
+                  in: path
+                  description: The invitation id.
+                  required: true
+                  schema:
+                    type: string
+            responses:
+                "200":
+                    description: OK
+                    content: {}
+                default:
+                    description: Default error response
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Status'
+    /api/v1/spaces/{space}/invitations/{invitation}:accept:
+        post:
+            tags:
+                - SpaceService
+            description: AcceptSpaceInvitation accepts a pending invitation and creates a membership.
+            operationId: SpaceService_AcceptSpaceInvitation
+            parameters:
+                - name: space
+                  in: path
+                  description: The space id.
+                  required: true
+                  schema:
+                    type: string
+                - name: invitation
+                  in: path
+                  description: The invitation id.
+                  required: true
+                  schema:
+                    type: string
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/AcceptSpaceInvitationRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/SpaceMember'
+                default:
+                    description: Default error response
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Status'
+    /api/v1/spaces/{space}/invitations/{invitation}:decline:
+        post:
+            tags:
+                - SpaceService
+            description: DeclineSpaceInvitation declines a pending invitation.
+            operationId: SpaceService_DeclineSpaceInvitation
+            parameters:
+                - name: space
+                  in: path
+                  description: The space id.
+                  required: true
+                  schema:
+                    type: string
+                - name: invitation
+                  in: path
+                  description: The invitation id.
+                  required: true
+                  schema:
+                    type: string
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/DeclineSpaceInvitationRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content: {}
+                default:
+                    description: Default error response
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Status'
+    /api/v1/spaces/{space}/members:
+        get:
+            tags:
+                - SpaceService
+            description: ListSpaceMembers lists the members of a space.
+            operationId: SpaceService_ListSpaceMembers
+            parameters:
+                - name: space
+                  in: path
+                  description: The space id.
+                  required: true
+                  schema:
+                    type: string
+                - name: pageSize
+                  in: query
+                  description: Optional. The maximum number of members to return.
+                  schema:
+                    type: integer
+                    format: int32
+                - name: pageToken
+                  in: query
+                  description: Optional. A token from a previous ListSpaceMembers response.
+                  schema:
+                    type: string
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ListSpaceMembersResponse'
+                default:
+                    description: Default error response
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Status'
+    /api/v1/spaces/{space}/members/{member}:
+        get:
+            tags:
+                - SpaceService
+            description: GetSpaceMember gets one membership in a space.
+            operationId: SpaceService_GetSpaceMember
+            parameters:
+                - name: space
+                  in: path
+                  description: The space id.
+                  required: true
+                  schema:
+                    type: string
+                - name: member
+                  in: path
+                  description: The member id.
+                  required: true
+                  schema:
+                    type: string
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/SpaceMember'
+                default:
+                    description: Default error response
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Status'
+        delete:
+            tags:
+                - SpaceService
+            description: |-
+                DeleteSpaceMember removes a member. A member may delete their own
+                 membership to leave the space.
+            operationId: SpaceService_DeleteSpaceMember
+            parameters:
+                - name: space
+                  in: path
+                  description: The space id.
+                  required: true
+                  schema:
+                    type: string
+                - name: member
+                  in: path
+                  description: The member id.
+                  required: true
+                  schema:
+                    type: string
+            responses:
+                "200":
+                    description: OK
+                    content: {}
+                default:
+                    description: Default error response
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Status'
+        patch:
+            tags:
+                - SpaceService
+            description: UpdateSpaceMember changes a member's space role.
+            operationId: SpaceService_UpdateSpaceMember
+            parameters:
+                - name: space
+                  in: path
+                  description: The space id.
+                  required: true
+                  schema:
+                    type: string
+                - name: member
+                  in: path
+                  description: The member id.
+                  required: true
+                  schema:
+                    type: string
+                - name: updateMask
+                  in: query
+                  description: Required. Only role is supported.
+                  schema:
+                    type: string
+                    format: field-mask
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/SpaceMember'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/SpaceMember'
                 default:
                     description: Default error response
                     content:
@@ -1474,9 +2014,9 @@ paths:
                 - name: userId
                   in: query
                   description: |-
-                    Optional. The user ID to use for this user.
-                     If empty, a unique ID will be generated.
-                     Must match the pattern [a-z0-9-]+
+                    Optional. The resource ID to use for this user. If set, it must equal
+                     user.username and follow the username format.
+                     Format: ^[a-zA-Z0-9]([a-zA-Z0-9-]{0,34}[a-zA-Z0-9])?$
                   schema:
                     type: string
                 - name: validateOnly
@@ -1523,7 +2063,7 @@ paths:
                 - UserService
             description: |-
                 GetUser gets a user by username.
-                 Format: users/{username} (e.g., users/steven)
+                 Format: users/{user} (e.g., users/steven)
             operationId: UserService_GetUser
             parameters:
                 - name: user
@@ -2068,15 +2608,52 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/Status'
-    /api/v1/users/{user}/shortcuts:
+    /api/v1/users/{user}/spaceInvitations:
         get:
             tags:
-                - ShortcutService
+                - SpaceService
+            description: ListUserSpaceInvitations lists the authenticated user's pending space invitations.
+            operationId: SpaceService_ListUserSpaceInvitations
+            parameters:
+                - name: user
+                  in: path
+                  description: The user id.
+                  required: true
+                  schema:
+                    type: string
+                - name: pageSize
+                  in: query
+                  description: Optional. The maximum number of invitations to return.
+                  schema:
+                    type: integer
+                    format: int32
+                - name: pageToken
+                  in: query
+                  description: Optional. A token from a previous ListUserSpaceInvitations response.
+                  schema:
+                    type: string
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ListUserSpaceInvitationsResponse'
+                default:
+                    description: Default error response
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Status'
+    /api/v1/users/{user}/views:
+        get:
+            tags:
+                - UserService
             description: |-
-                ListShortcuts returns a user's saved shortcuts. Each shortcut is a named,
-                 reusable CEL filter (see Shortcut.filter); pass its filter string directly
-                 to the ListMemos `filter` argument to reuse a saved view.
-            operationId: ShortcutService_ListShortcuts
+                ListMemoViews returns a user's memo views. Each view is a named, reusable
+                 CEL filter (see MemoView.filter); pass its filter string directly to the
+                 ListMemos `filter` argument.
+            operationId: UserService_ListMemoViews
             parameters:
                 - name: user
                   in: path
@@ -2090,7 +2667,7 @@ paths:
                     content:
                         application/json:
                             schema:
-                                $ref: '#/components/schemas/ListShortcutsResponse'
+                                $ref: '#/components/schemas/ListMemoViewsResponse'
                 default:
                     description: Default error response
                     content:
@@ -2099,9 +2676,9 @@ paths:
                                 $ref: '#/components/schemas/Status'
         post:
             tags:
-                - ShortcutService
-            description: CreateShortcut creates a new shortcut for a user.
-            operationId: ShortcutService_CreateShortcut
+                - UserService
+            description: CreateMemoView creates a new memo view for a user.
+            operationId: UserService_CreateMemoView
             parameters:
                 - name: user
                   in: path
@@ -2111,14 +2688,14 @@ paths:
                     type: string
                 - name: validateOnly
                   in: query
-                  description: Optional. If set, validate the request, but do not actually create the shortcut.
+                  description: Optional. If set, validate the request, but do not actually create the memo view.
                   schema:
                     type: boolean
             requestBody:
                 content:
                     application/json:
                         schema:
-                            $ref: '#/components/schemas/Shortcut'
+                            $ref: '#/components/schemas/MemoView'
                 required: true
             responses:
                 "200":
@@ -2126,19 +2703,19 @@ paths:
                     content:
                         application/json:
                             schema:
-                                $ref: '#/components/schemas/Shortcut'
+                                $ref: '#/components/schemas/MemoView'
                 default:
                     description: Default error response
                     content:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/Status'
-    /api/v1/users/{user}/shortcuts/{shortcut}:
+    /api/v1/users/{user}/views/{view}:
         get:
             tags:
-                - ShortcutService
-            description: GetShortcut gets a shortcut by name.
-            operationId: ShortcutService_GetShortcut
+                - UserService
+            description: GetMemoView gets a memo view by name.
+            operationId: UserService_GetMemoView
             parameters:
                 - name: user
                   in: path
@@ -2146,9 +2723,9 @@ paths:
                   required: true
                   schema:
                     type: string
-                - name: shortcut
+                - name: view
                   in: path
-                  description: The shortcut id.
+                  description: The view id.
                   required: true
                   schema:
                     type: string
@@ -2158,7 +2735,7 @@ paths:
                     content:
                         application/json:
                             schema:
-                                $ref: '#/components/schemas/Shortcut'
+                                $ref: '#/components/schemas/MemoView'
                 default:
                     description: Default error response
                     content:
@@ -2167,9 +2744,9 @@ paths:
                                 $ref: '#/components/schemas/Status'
         delete:
             tags:
-                - ShortcutService
-            description: DeleteShortcut deletes a shortcut for a user.
-            operationId: ShortcutService_DeleteShortcut
+                - UserService
+            description: DeleteMemoView deletes a memo view for a user.
+            operationId: UserService_DeleteMemoView
             parameters:
                 - name: user
                   in: path
@@ -2177,9 +2754,9 @@ paths:
                   required: true
                   schema:
                     type: string
-                - name: shortcut
+                - name: view
                   in: path
-                  description: The shortcut id.
+                  description: The view id.
                   required: true
                   schema:
                     type: string
@@ -2195,9 +2772,9 @@ paths:
                                 $ref: '#/components/schemas/Status'
         patch:
             tags:
-                - ShortcutService
-            description: UpdateShortcut updates a shortcut for a user.
-            operationId: ShortcutService_UpdateShortcut
+                - UserService
+            description: UpdateMemoView updates a memo view for a user.
+            operationId: UserService_UpdateMemoView
             parameters:
                 - name: user
                   in: path
@@ -2205,9 +2782,9 @@ paths:
                   required: true
                   schema:
                     type: string
-                - name: shortcut
+                - name: view
                   in: path
-                  description: The shortcut id.
+                  description: The view id.
                   required: true
                   schema:
                     type: string
@@ -2221,7 +2798,7 @@ paths:
                 content:
                     application/json:
                         schema:
-                            $ref: '#/components/schemas/Shortcut'
+                            $ref: '#/components/schemas/MemoView'
                 required: true
             responses:
                 "200":
@@ -2229,7 +2806,7 @@ paths:
                     content:
                         application/json:
                             schema:
-                                $ref: '#/components/schemas/Shortcut'
+                                $ref: '#/components/schemas/MemoView'
                 default:
                     description: Default error response
                     content:
@@ -2400,6 +2977,34 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/Status'
+    /api/v1/users/{user}:exportMemos:
+        get:
+            tags:
+                - UserService
+            description: |-
+                ExportMemos writes every memo the user created, with comments, archived
+                 memos, and attachment files, as a Memos export file (a ZIP file, see
+                 docs/design/memos-export-format.md). Only the user may export their own
+                 memos. The body is the archive; content_type is its media type.
+            operationId: UserService_ExportMemos
+            parameters:
+                - name: user
+                  in: path
+                  description: The user id.
+                  required: true
+                  schema:
+                    type: string
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        '*/*': {}
+                default:
+                    description: Default error response
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Status'
     /api/v1/users/{user}:getStats:
         get:
             tags:
@@ -2413,6 +3018,13 @@ paths:
                   required: true
                   schema:
                     type: string
+                - name: filter
+                  in: query
+                  description: |-
+                    Optional. CEL expression selecting the readable non-comment memos to
+                     include. Supports the same fields as ListMemos, including `space`.
+                  schema:
+                    type: string
             responses:
                 "200":
                     description: OK
@@ -2420,6 +3032,45 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/UserStats'
+                default:
+                    description: Default error response
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Status'
+    /api/v1/users/{user}:importMemos:
+        post:
+            tags:
+                - UserService
+            description: |-
+                ImportMemos uploads a Memos export file in bounded chunks and imports it into
+                 the user's memos. The first call carries the spec and returns an
+                 upload_id; later calls carry that upload_id. A finishing call with
+                 validate_only returns the plan and keeps the archive staged; a finishing
+                 call without it imports and returns the report. Uploads are bound to the
+                 authenticated user, expire after 30 minutes of inactivity, and do not
+                 survive a server restart.
+            operationId: UserService_ImportMemos
+            parameters:
+                - name: user
+                  in: path
+                  description: The user id.
+                  required: true
+                  schema:
+                    type: string
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/ImportMemosRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ImportMemosResponse'
                 default:
                     description: Default error response
                     content:
@@ -2518,6 +3169,14 @@ paths:
                                 $ref: '#/components/schemas/Status'
 components:
     schemas:
+        AcceptSpaceInvitationRequest:
+            required:
+                - name
+            type: object
+            properties:
+                name:
+                    type: string
+                    description: 'Required. Format: spaces/{space}/invitations/{username}.'
         Attachment:
             required:
                 - filename
@@ -2561,6 +3220,10 @@ components:
                     allOf:
                         - $ref: '#/components/schemas/MotionMedia'
                     description: Optional. Motion media metadata.
+                mediaMetadata:
+                    allOf:
+                        - $ref: '#/components/schemas/MediaMetadata'
+                    description: Optional. Immutable normalized media metadata explicitly supplied by the client at creation time.
         BatchDeleteAttachmentsRequest:
             required:
                 - names
@@ -2796,7 +3459,7 @@ components:
                     type: string
                     description: |-
                         Required. The identity provider to link.
-                         Format: identity-providers/{uid}
+                         Format: identity-providers/{idp}
                 code:
                     type: string
                     description: Required. The authorization code from the identity provider.
@@ -2843,6 +3506,14 @@ components:
                 email:
                     type: string
                     description: Required. The email address to invite.
+        DeclineSpaceInvitationRequest:
+            required:
+                - name
+            type: object
+            properties:
+                name:
+                    type: string
+                    description: 'Required. Format: spaces/{space}/invitations/{username}.'
         FieldMapping:
             type: object
             properties:
@@ -2919,6 +3590,86 @@ components:
             properties:
                 oauth2Config:
                     $ref: '#/components/schemas/OAuth2Config'
+        ImportMemosRequest:
+            required:
+                - name
+                - writeOffset
+            type: object
+            properties:
+                name:
+                    type: string
+                    description: |-
+                        Required. The user who receives the memos. Must be the caller.
+                         Format: users/{user}
+                spec:
+                    allOf:
+                        - $ref: '#/components/schemas/ImportMemosSpec'
+                    description: Starts a new upload. The same call may also carry data and finish_write.
+                uploadId:
+                    type: string
+                    description: Continues the upload identified by a previous response.
+                writeOffset:
+                    type: string
+                    description: |-
+                        Required. Zero-based byte offset at which data is written. Must equal the
+                         committed size, except when retrying the most recently accepted chunk
+                         with identical bytes and offset, which is accepted without writing again.
+                data:
+                    type: string
+                    description: |-
+                        Optional. Archive bytes, at most max_chunk_size long. With no data and
+                         finish_write false, the call reports progress without writing, and
+                         write_offset is ignored.
+                    format: bytes
+                finishWrite:
+                    type: boolean
+                    description: |-
+                        Optional. Finish the upload after writing data. The committed size must
+                         then equal total_size. The archive is validated and, unless
+                         validate_only is set, imported. Any later call for an imported upload
+                         returns the same report.
+                validateOnly:
+                    type: boolean
+                    description: |-
+                        Optional. On a finishing call, validate the archive and return the plan
+                         without importing. The upload stays staged so a later finishing call can
+                         import it.
+                conflictPolicy:
+                    enum:
+                        - CONFLICT_POLICY_UNSPECIFIED
+                        - SKIP
+                        - REPLACE
+                        - DUPLICATE
+                    type: string
+                    description: Optional. Read on the finishing call that imports. Unspecified means SKIP.
+                    format: enum
+        ImportMemosResponse:
+            type: object
+            properties:
+                uploadId:
+                    type: string
+                    description: Opaque ID for subsequent calls. This is not a resource name.
+                committedSize:
+                    type: string
+                    description: Number of archive bytes committed so far.
+                maxChunkSize:
+                    type: integer
+                    description: Maximum number of data bytes accepted in one call.
+                    format: int32
+                plan:
+                    allOf:
+                        - $ref: '#/components/schemas/MemoImportPlan'
+                    description: What the import would do. Set by a finishing call with validate_only.
+                report:
+                    allOf:
+                        - $ref: '#/components/schemas/MemoImportReport'
+                    description: What the import did. Set by a finishing call that imported.
+        ImportMemosSpec:
+            type: object
+            properties:
+                totalSize:
+                    type: string
+                    description: Optional. Total size of the archive in bytes.
         InstanceProfile:
             type: object
             properties:
@@ -2948,7 +3699,30 @@ components:
                          setup (creating the first admin account). Unlike a null admin, this stays
                          false once any user exists, so an instance that has lost its admins is not
                          mistaken for a fresh install.
+                accessMode:
+                    enum:
+                        - INSTANCE_ACCESS_MODE_UNSPECIFIED
+                        - INSTANCE_ACCESS_MODE_PRIVATE
+                        - INSTANCE_ACCESS_MODE_PUBLIC
+                    type: string
+                    description: Access mode controls whether unauthenticated users may access instance content.
+                    format: enum
+                challenge:
+                    $ref: '#/components/schemas/InstanceProfile_Challenge'
             description: Instance profile message containing basic instance information.
+        InstanceProfile_Challenge:
+            type: object
+            properties:
+                provider:
+                    type: string
+                    description: The challenge provider, which selects the widget the web app renders.
+                siteKey:
+                    type: string
+                    description: The provider's public site key for the widget.
+            description: |-
+                A proof-of-humanity challenge the deployment requires on signup and
+                 password sign-in. Absent when none is configured, which is the case on
+                 every self-hosted instance.
         InstanceSetting:
             type: object
             properties:
@@ -2969,6 +3743,8 @@ components:
                     $ref: '#/components/schemas/InstanceSetting_NotificationSetting'
                 aiSetting:
                     $ref: '#/components/schemas/InstanceSetting_AISetting'
+                accessSetting:
+                    $ref: '#/components/schemas/InstanceSetting_AccessSetting'
             description: An instance setting resource.
         InstanceSetting_AIProviderConfig:
             type: object
@@ -3020,6 +3796,17 @@ components:
                         embedding is the semantic-search embedding configuration.
                          When unset or embedding.provider_id is empty, semantic search is disabled.
             description: AI provider configuration settings.
+        InstanceSetting_AccessSetting:
+            type: object
+            properties:
+                accessMode:
+                    enum:
+                        - INSTANCE_ACCESS_MODE_UNSPECIFIED
+                        - INSTANCE_ACCESS_MODE_PRIVATE
+                        - INSTANCE_ACCESS_MODE_PUBLIC
+                    type: string
+                    format: enum
+            description: Access policy configuration for the instance.
         InstanceSetting_EmbeddingConfig:
             type: object
             properties:
@@ -3090,6 +3877,26 @@ components:
                 email:
                     $ref: '#/components/schemas/NotificationSetting_EmailSetting'
             description: Notification transport configuration.
+        InstanceSetting_Storage:
+            type: object
+            properties:
+                id:
+                    type: string
+                    description: id is the stable identifier referenced by attachments.
+                name:
+                    type: string
+                    description: name is the human-readable storage name.
+                type:
+                    enum:
+                        - STORAGE_TYPE_UNSPECIFIED
+                        - DATABASE
+                        - LOCAL
+                        - S3
+                    type: string
+                    format: enum
+                s3Config:
+                    $ref: '#/components/schemas/Storage_S3Config'
+            description: Storage is a configured attachment storage instance.
         InstanceSetting_StorageSetting:
             type: object
             properties:
@@ -3100,7 +3907,7 @@ components:
                         - LOCAL
                         - S3
                     type: string
-                    description: storage_type is the storage type.
+                    description: Legacy compatibility field. New clients use default_storage_id.
                     format: enum
                 filepathTemplate:
                     type: string
@@ -3113,7 +3920,15 @@ components:
                 s3Config:
                     allOf:
                         - $ref: '#/components/schemas/StorageSetting_S3Config'
-                    description: The S3 config.
+                    description: Legacy compatibility field. New clients use storages.
+                storages:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/InstanceSetting_Storage'
+                    description: Configured storage instances, including inactive instances referenced by attachments.
+                defaultStorageId:
+                    type: string
+                    description: Storage used for new attachments.
             description: Storage configuration settings for instance attachments.
         InstanceSetting_TagMetadata:
             type: object
@@ -3241,7 +4056,7 @@ components:
                     type: string
                     description: |-
                         The resource name of the identity provider.
-                         Format: identity-providers/{uid}
+                         Format: identity-providers/{idp}
                 externUid:
                     readOnly: true
                     type: string
@@ -3336,6 +4151,14 @@ components:
                     items:
                         $ref: '#/components/schemas/MemoShare'
                     description: The list of share links.
+        ListMemoViewsResponse:
+            type: object
+            properties:
+                memoViews:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/MemoView'
+                    description: The list of memo views.
         ListMemosResponse:
             type: object
             properties:
@@ -3360,14 +4183,33 @@ components:
                 nextPageToken:
                     type: string
                     description: A token for the next page of results.
-        ListShortcutsResponse:
+        ListSpaceInvitationsResponse:
             type: object
             properties:
-                shortcuts:
+                spaceInvitations:
                     type: array
                     items:
-                        $ref: '#/components/schemas/Shortcut'
-                    description: The list of shortcuts.
+                        $ref: '#/components/schemas/SpaceInvitation'
+                nextPageToken:
+                    type: string
+        ListSpaceMembersResponse:
+            type: object
+            properties:
+                spaceMembers:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/SpaceMember'
+                nextPageToken:
+                    type: string
+        ListSpacesResponse:
+            type: object
+            properties:
+                spaces:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/Space'
+                nextPageToken:
+                    type: string
         ListUserNotificationsResponse:
             type: object
             properties:
@@ -3391,6 +4233,15 @@ components:
                         A token that can be sent as `page_token` to retrieve the next page.
                          If this field is omitted, there are no subsequent pages.
             description: Response message for ListUserSettings method.
+        ListUserSpaceInvitationsResponse:
+            type: object
+            properties:
+                spaceInvitations:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/SpaceInvitation'
+                nextPageToken:
+                    type: string
         ListUserWebhooksResponse:
             type: object
             properties:
@@ -3426,6 +4277,38 @@ components:
                     type: number
                     description: The longitude of the location.
                     format: double
+        MediaCaptureTime:
+            type: object
+            properties:
+                localDateTime:
+                    type: string
+                utcOffset:
+                    type: string
+        MediaLocation:
+            type: object
+            properties:
+                latitude:
+                    type: number
+                    format: double
+                longitude:
+                    type: number
+                    format: double
+                altitudeMeters:
+                    type: number
+                    format: double
+        MediaMetadata:
+            type: object
+            properties:
+                width:
+                    type: integer
+                    format: int32
+                height:
+                    type: integer
+                    format: int32
+                photo:
+                    $ref: '#/components/schemas/PhotoMetadata'
+                video:
+                    $ref: '#/components/schemas/VideoMetadata'
         Memo:
             required:
                 - state
@@ -3437,7 +4320,7 @@ components:
                     type: string
                     description: |-
                         The resource name of the memo.
-                         Format: memos/{memo}, memo is the user defined id or uuid.
+                         Format: memos/{memo}, where memo is the user-defined UID.
                 state:
                     enum:
                         - STATE_UNSPECIFIED
@@ -3473,11 +4356,13 @@ components:
                         - PRIVATE
                         - PROTECTED
                         - PUBLIC
+                        - SPACE
                     type: string
                     description: |-
                         The visibility of the memo.
-                         One of PRIVATE (creator only), PROTECTED (signed-in users), or
-                         PUBLIC (anyone). Defaults to PRIVATE on creation when unspecified.
+                         One of PRIVATE (creator only), PROTECTED (signed-in users), PUBLIC
+                         (anonymous-eligible), or SPACE (active space members). Defaults to
+                         PRIVATE on creation when unspecified.
                     format: enum
                 tags:
                     readOnly: true
@@ -3513,7 +4398,9 @@ components:
                     readOnly: true
                     type: string
                     description: |-
-                        Output only. The name of the parent memo.
+                        Output only. The context memo of this COMMENT relation, if any.
+                         Its identity is returned even when the caller cannot read the parent.
+                         Fetch the parent independently; this field does not grant read access.
                          Format: memos/{memo}
                 snippet:
                     readOnly: true
@@ -3523,6 +4410,86 @@ components:
                     allOf:
                         - $ref: '#/components/schemas/Location'
                     description: Optional. The location of the memo.
+                space:
+                    type: string
+                    description: |-
+                        Optional. The space in which this memo is placed. Format: spaces/{space}.
+                         Every memo, including a comment, owns its placement independently.
+        MemoImportIssue:
+            type: object
+            properties:
+                memo:
+                    type: string
+                    description: The archive memo UID the issue concerns, if any.
+                message:
+                    type: string
+            description: |-
+                MemoImportIssue is one warning or failure of an import, tied to the memo
+                 UID from the archive when there is one.
+        MemoImportPlan:
+            type: object
+            properties:
+                exportTime:
+                    type: string
+                    description: When the archive was written.
+                    format: date-time
+                exporter:
+                    type: string
+                    description: Username of the user who exported the archive.
+                generator:
+                    type: string
+                    description: The software that wrote the archive.
+                memos:
+                    type: integer
+                    description: Number of memo records in the archive.
+                    format: int32
+                attachments:
+                    type: integer
+                    description: Number of attachment files in the archive.
+                    format: int32
+                new:
+                    type: integer
+                    description: Memos whose UID nobody on the instance holds.
+                    format: int32
+                existing:
+                    type: integer
+                    description: Memos the user already holds; the conflict policy applies to them.
+                    format: int32
+                renamed:
+                    type: integer
+                    description: Memos whose UID another account holds; they are imported under fresh UIDs.
+                    format: int32
+                warnings:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/MemoImportIssue'
+                    description: Deviations the archive reader corrected while validating.
+            description: MemoImportPlan describes what importing a staged archive would do.
+        MemoImportReport:
+            type: object
+            properties:
+                created:
+                    type: integer
+                    format: int32
+                updated:
+                    type: integer
+                    format: int32
+                skipped:
+                    type: integer
+                    format: int32
+                failed:
+                    type: integer
+                    format: int32
+                warnings:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/MemoImportIssue'
+                failures:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/MemoImportIssue'
+                    description: One entry per failed memo, with the reason.
+            description: MemoImportReport is the outcome of an import.
         MemoRelation:
             required:
                 - memo
@@ -3580,6 +4547,41 @@ components:
                          If unset, the link never expires.
                     format: date-time
             description: MemoShare is an access grant that permits read-only access to a memo via an opaque bearer token.
+        MemoView:
+            required:
+                - title
+                - filter
+            type: object
+            properties:
+                name:
+                    type: string
+                    description: |-
+                        The resource name of the memo view.
+                         Format: users/{user}/views/{view}
+                title:
+                    type: string
+                    description: The title of the memo view.
+                filter:
+                    type: string
+                    description: |-
+                        The CEL filter expression for the memo view, using the same grammar as the
+                         ListMemos `filter` argument. Reuse it by passing this value to ListMemos.
+                icon:
+                    allOf:
+                        - $ref: '#/components/schemas/MemoView_Icon'
+                    description: |-
+                        Optional. Display icon. Omit when updating with the "icon" mask to reset
+                         to the default view icon.
+            description: Saved memo view messages
+        MemoView_Icon:
+            type: object
+            properties:
+                emoji:
+                    type: string
+                    description: A Unicode emoji sequence.
+                lucide:
+                    type: string
+                    description: A canonical Lucide icon name, such as "leaf".
         Memo_Property:
             type: object
             properties:
@@ -3692,9 +4694,36 @@ components:
             description: |-
                 PersonalAccessToken represents a long-lived token for API/script access.
                  PATs are distinct from short-lived JWT access tokens used for session authentication.
+        PhotoMetadata:
+            type: object
+            properties:
+                captureTime:
+                    $ref: '#/components/schemas/MediaCaptureTime'
+                location:
+                    $ref: '#/components/schemas/MediaLocation'
+                sourceExifOrientation:
+                    type: integer
+                    format: int32
+                cameraMake:
+                    type: string
+                cameraModel:
+                    type: string
+                lensModel:
+                    type: string
+                fNumber:
+                    type: number
+                    format: double
+                exposureTimeSeconds:
+                    type: number
+                    format: double
+                iso:
+                    type: integer
+                    format: int32
+                focalLengthMm:
+                    type: number
+                    format: double
         Reaction:
             required:
-                - contentId
                 - reactionType
             type: object
             properties:
@@ -3710,12 +4739,6 @@ components:
                     description: |-
                         The resource name of the creator.
                          Format: users/{user}
-                contentId:
-                    type: string
-                    description: |-
-                        The resource name of the content.
-                         For memo reactions, this should be the memo's resource name.
-                         Format: memos/{memo}
                 reactionType:
                     type: string
                     description: "Required. The type of reaction (e.g., \"\U0001F44D\", \"❤️\", \"\U0001F604\")."
@@ -3724,6 +4747,7 @@ components:
                     type: string
                     description: Output only. The creation timestamp.
                     format: date-time
+            description: Reaction is a reaction attached to a memo.
         RefreshTokenRequest:
             type: object
             properties: {}
@@ -3828,25 +4852,7 @@ components:
                     type: array
                     items:
                         $ref: '#/components/schemas/MemoRelation'
-                    description: Required. The relations to set for the memo.
-        Shortcut:
-            required:
-                - title
-            type: object
-            properties:
-                name:
-                    type: string
-                    description: |-
-                        The resource name of the shortcut.
-                         Format: users/{username}/shortcuts/{shortcut}
-                title:
-                    type: string
-                    description: The title of the shortcut.
-                filter:
-                    type: string
-                    description: |-
-                        The CEL filter expression for the shortcut, using the same grammar as the
-                         ListMemos `filter` argument. Reuse it by passing this value to ListMemos.
+                    description: Required. The REFERENCE relations to set for the memo. COMMENT is invalid.
         SignInRequest:
             type: object
             properties:
@@ -3882,7 +4888,7 @@ components:
                     type: string
                     description: |-
                         The resource name of the SSO provider.
-                         Format: identity-providers/{uid}
+                         Format: identity-providers/{idp}
                 code:
                     type: string
                     description: The authorization code from the SSO provider.
@@ -3913,6 +4919,103 @@ components:
                         When the access token expires.
                          Client should call RefreshToken before this time.
                     format: date-time
+        Space:
+            required:
+                - title
+            type: object
+            properties:
+                name:
+                    type: string
+                    description: 'The resource name of the space. Format: spaces/{space}.'
+                title:
+                    type: string
+                    description: Required. The human-readable title.
+                description:
+                    type: string
+                    description: Optional. A description of the space.
+                currentUserRole:
+                    readOnly: true
+                    enum:
+                        - ROLE_UNSPECIFIED
+                        - ADMIN
+                        - USER
+                    type: string
+                    description: |-
+                        Output only. The authenticated user's membership role in this space.
+                         ROLE_UNSPECIFIED when this Space is exposed as metadata-only.
+                    format: enum
+                memberCount:
+                    readOnly: true
+                    type: integer
+                    description: |-
+                        Output only. The number of accepted members in this space. Pending
+                         invitations are excluded. Zero when this Space is exposed as metadata-only.
+                    format: int32
+                icon:
+                    allOf:
+                        - $ref: '#/components/schemas/Space_Icon'
+                    description: |-
+                        Optional. Display icon. Omit when updating with the "icon" mask to reset
+                         to the default Space mark.
+            description: Space is a collaboration boundary for placed memos.
+        SpaceInvitation:
+            required:
+                - invitee
+                - role
+            type: object
+            properties:
+                name:
+                    type: string
+                    description: 'The resource name. Format: spaces/{space}/invitations/{username}.'
+                invitee:
+                    type: string
+                    description: 'Required. The invited user. Format: users/{username}.'
+                role:
+                    enum:
+                        - ROLE_UNSPECIFIED
+                        - ADMIN
+                        - USER
+                    type: string
+                    description: Required. The role the user will receive after accepting the invitation.
+                    format: enum
+                space:
+                    readOnly: true
+                    allOf:
+                        - $ref: '#/components/schemas/Space'
+                    description: |-
+                        Output only. The Space the user is invited to. This lets an invitee
+                         understand the invitation without granting membership-based GetSpace access.
+            description: SpaceInvitation is a pending invitation for an existing user to join a space.
+        SpaceMember:
+            required:
+                - user
+                - role
+            type: object
+            properties:
+                name:
+                    type: string
+                    description: 'The resource name. Format: spaces/{space}/members/{username}.'
+                user:
+                    type: string
+                    description: 'Required. The member user. Format: users/{username}.'
+                role:
+                    enum:
+                        - ROLE_UNSPECIFIED
+                        - ADMIN
+                        - USER
+                    type: string
+                    description: Required. The member's role within this space.
+                    format: enum
+            description: SpaceMember is a user's membership and governance role in a space.
+        Space_Icon:
+            type: object
+            properties:
+                emoji:
+                    type: string
+                    description: A Unicode emoji sequence.
+                lucide:
+                    type: string
+                    description: A canonical Lucide icon name, such as "leaf".
         Status:
             type: object
             properties:
@@ -3952,7 +5055,32 @@ components:
                          to the S3 endpoint. Only enable this for trusted endpoints that use a self-signed
                          certificate; it removes protection against man-in-the-middle attacks.
             description: |-
-                S3 configuration for cloud storage backend.
+                Legacy S3 configuration retained for compatibility with existing clients.
+                 Reference: https://developers.cloudflare.com/r2/examples/aws/aws-sdk-go/
+        Storage_S3Config:
+            type: object
+            properties:
+                accessKeyId:
+                    type: string
+                accessKeySecret:
+                    writeOnly: true
+                    type: string
+                endpoint:
+                    type: string
+                region:
+                    type: string
+                bucket:
+                    type: string
+                usePathStyle:
+                    type: boolean
+                insecureSkipTlsVerify:
+                    type: boolean
+                    description: |-
+                        insecure_skip_tls_verify disables TLS certificate verification when connecting
+                         to the S3 endpoint. Only enable this for trusted endpoints that use a self-signed
+                         certificate; it removes protection against man-in-the-middle attacks.
+            description: |-
+                S3 configuration for an S3-compatible object store.
                  Reference: https://developers.cloudflare.com/r2/examples/aws/aws-sdk-go/
         TestInstanceEmailSettingRequest:
             type: object
@@ -3997,6 +5125,76 @@ components:
                 contentType:
                     type: string
                     description: Optional. The MIME type of the input audio.
+        UploadAttachmentRequest:
+            required:
+                - writeOffset
+            type: object
+            properties:
+                spec:
+                    allOf:
+                        - $ref: '#/components/schemas/UploadAttachmentSpec'
+                    description: Starts a new upload. The same call may also carry data and finish_write.
+                uploadId:
+                    type: string
+                    description: Continues the upload identified by a previous response.
+                writeOffset:
+                    type: string
+                    description: |-
+                        Required. Zero-based byte offset at which data is written. Must equal the
+                         committed size, except when retrying the most recently accepted chunk
+                         with identical bytes and offset, which is accepted without writing again.
+                data:
+                    type: string
+                    description: |-
+                        Optional. File bytes, at most max_chunk_size long. With no data and
+                         finish_write false, the call reports progress without writing, and
+                         write_offset is ignored.
+                    format: bytes
+                finishWrite:
+                    type: boolean
+                    description: |-
+                        Optional. Finalize the upload after writing data. The committed size must
+                         then equal total_size. Any later call for the same upload_id returns the
+                         created attachment.
+        UploadAttachmentResponse:
+            type: object
+            properties:
+                uploadId:
+                    type: string
+                    description: Opaque ID for subsequent calls. This is not a resource name.
+                committedSize:
+                    type: string
+                    description: Number of file bytes committed so far.
+                attachment:
+                    allOf:
+                        - $ref: '#/components/schemas/Attachment'
+                    description: Set once the upload has been finalized.
+                maxChunkSize:
+                    type: integer
+                    description: Maximum number of data bytes accepted in one call.
+                    format: int32
+        UploadAttachmentSpec:
+            required:
+                - attachment
+            type: object
+            properties:
+                attachment:
+                    allOf:
+                        - $ref: '#/components/schemas/Attachment'
+                    description: |-
+                        Required. Metadata for the attachment to create. content must be empty;
+                         file bytes are sent in data.
+                attachmentId:
+                    type: string
+                    description: |-
+                        Optional. The attachment ID to use for this attachment.
+                         If empty, a unique ID will be generated.
+                         Format: ^[a-zA-Z0-9]([a-zA-Z0-9-]{0,34}[a-zA-Z0-9])?$
+                totalSize:
+                    type: string
+                    description: |-
+                        Optional. Total size of the file in bytes before media processing.
+                         Zero represents an empty file.
         UpsertMemoReactionRequest:
             required:
                 - name
@@ -4037,7 +5235,10 @@ components:
                     description: Required. The unique username for login.
                 email:
                     type: string
-                    description: Optional. The email address of the user.
+                    description: |-
+                        Optional. The email address of the user. Stored trimmed and lowercased;
+                         empty means no address. An address belongs to at most one user on the
+                         instance, so writes that would reuse one fail with ALREADY_EXISTS.
                 displayName:
                     type: string
                     description: Optional. The display name of the user.
@@ -4134,6 +5335,7 @@ components:
                         - TYPE_UNSPECIFIED
                         - MEMO_COMMENT
                         - MEMO_MENTION
+                        - SPACE_INVITATION
                     type: string
                     description: The type of the notification.
                     format: enum
@@ -4145,6 +5347,10 @@ components:
                     readOnly: true
                     allOf:
                         - $ref: '#/components/schemas/UserNotification_MemoMentionPayload'
+                spaceInvitation:
+                    readOnly: true
+                    allOf:
+                        - $ref: '#/components/schemas/UserNotification_SpaceInvitationPayload'
         UserNotification_MemoCommentPayload:
             type: object
             properties:
@@ -4183,6 +5389,34 @@ components:
                 relatedMemoSnippet:
                     type: string
                     description: Preview text of the related parent memo.
+        UserNotification_SpaceInvitationPayload:
+            type: object
+            properties:
+                spaceInvitation:
+                    type: string
+                    description: |-
+                        The invitation resource.
+                         Format: spaces/{space}/invitations/{username}
+                space:
+                    allOf:
+                        - $ref: '#/components/schemas/Space'
+                    description: The read-only Space summary carried by the invitation.
+                role:
+                    enum:
+                        - ROLE_UNSPECIFIED
+                        - ADMIN
+                        - USER
+                    type: string
+                    description: The role the invitation offers.
+                    format: enum
+                state:
+                    enum:
+                        - STATE_UNSPECIFIED
+                        - PENDING
+                        - ACCEPTED
+                    type: string
+                    description: The current state of the invitation for the receiver.
+                    format: enum
         UserSetting:
             type: object
             properties:
@@ -4190,7 +5424,7 @@ components:
                     type: string
                     description: |-
                         The name of the user setting.
-                         Format: users/{username}/settings/{setting}, {setting} is the key for the setting.
+                         Format: users/{user}/settings/{setting}, {setting} is the key for the setting.
                          For example, "users/steven/settings/GENERAL" for general settings.
                 generalSetting:
                     $ref: '#/components/schemas/UserSetting_GeneralSetting'
@@ -4216,6 +5450,9 @@ components:
                         The preferred theme of the user.
                          This references a CSS file in the web/public/themes/ directory.
                          If not set, the default theme will be used.
+                saveMediaMetadata:
+                    type: boolean
+                    description: Whether the official client should save metadata from future media uploads.
             description: General user settings configuration.
         UserSetting_PackageSetting:
             type: object
@@ -4231,9 +5468,20 @@ components:
                     type: string
                     description: When the plan lapses back to FREE. Unset means it does not lapse.
                     format: date-time
+                requestedPlan:
+                    enum:
+                        - PLAN_UNSPECIFIED
+                        - FREE
+                        - TEAMS
+                    type: string
+                    description: |-
+                        The plan the member asked for. A member may update only this field, on
+                         their own setting; the operator's next plan change answers it.
+                    format: enum
             description: |-
-                Operator-set package: the plan and when it lapses. Members can read
-                 their own package; only the operator can update it.
+                The member's plan ("plan" in the UI): what the operator granted, when it
+                 lapses, and what the member asked for. Members read their own; only the
+                 operator sets plan and expiry.
         UserSetting_TagMetadata:
             type: object
             properties:
@@ -4273,8 +5521,8 @@ components:
                 name:
                     type: string
                     description: |-
-                        The resource name of the user whose stats these are.
-                         Format: users/{user}
+                        The resource name of the user statistics singleton.
+                         Format: users/{user}/stats
                 memoTypeStats:
                     allOf:
                         - $ref: '#/components/schemas/UserStats_MemoTypeStats'
@@ -4309,6 +5557,14 @@ components:
                     type: integer
                     description: Total memo count.
                     format: int32
+                attachmentStorageBytes:
+                    readOnly: true
+                    type: string
+                    description: |-
+                        Total persisted attachment size in bytes, including unlinked uploads and
+                         attachments in all spaces. Excludes temporary uploads and derived files.
+                         Returned only by GetUserStats for the authenticated user's own stats,
+                         independently of the request's memo filter.
             description: User statistics messages
         UserStats_MemoTypeStats:
             type: object
@@ -4375,6 +5631,12 @@ components:
                 token:
                     type: string
                     description: Required. The token from the emailed link.
+        VideoMetadata:
+            type: object
+            properties:
+                durationSeconds:
+                    type: number
+                    format: double
 tags:
     - name: AIService
     - name: AttachmentService
@@ -4382,5 +5644,6 @@ tags:
     - name: IdentityProviderService
     - name: InstanceService
     - name: MemoService
-    - name: ShortcutService
+    - name: SpaceService
+      description: SpaceService manages collaborative spaces and their memberships.
     - name: UserService

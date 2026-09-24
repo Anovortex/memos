@@ -80,9 +80,9 @@ const (
 	// MemoServiceDeleteMemoShareProcedure is the fully-qualified name of the MemoService's
 	// DeleteMemoShare RPC.
 	MemoServiceDeleteMemoShareProcedure = "/memos.api.v1.MemoService/DeleteMemoShare"
-	// MemoServiceGetMemoByShareProcedure is the fully-qualified name of the MemoService's
-	// GetMemoByShare RPC.
-	MemoServiceGetMemoByShareProcedure = "/memos.api.v1.MemoService/GetMemoByShare"
+	// MemoServiceGetSharedMemoProcedure is the fully-qualified name of the MemoService's GetSharedMemo
+	// RPC.
+	MemoServiceGetSharedMemoProcedure = "/memos.api.v1.MemoService/GetSharedMemo"
 	// MemoServiceGetLinkMetadataProcedure is the fully-qualified name of the MemoService's
 	// GetLinkMetadata RPC.
 	MemoServiceGetLinkMetadataProcedure = "/memos.api.v1.MemoService/GetLinkMetadata"
@@ -94,16 +94,18 @@ const (
 // MemoServiceClient is a client for the memos.api.v1.MemoService service.
 type MemoServiceClient interface {
 	// CreateMemo creates a memo. The request body is a Memo; set its content
-	// (Markdown) and visibility (PRIVATE | PROTECTED | PUBLIC, default PRIVATE).
+	// (Markdown) and visibility (PRIVATE | PROTECTED | PUBLIC | SPACE,
+	// default PRIVATE).
 	// The memo is owned by the authenticated user; requires authentication.
 	CreateMemo(context.Context, *connect.Request[v1.CreateMemoRequest]) (*connect.Response[v1.Memo], error)
-	// ListMemos lists memos with pagination and filter.
+	// ListMemos lists readable non-comment memos with pagination and filter.
 	ListMemos(context.Context, *connect.Request[v1.ListMemosRequest]) (*connect.Response[v1.ListMemosResponse], error)
 	// GetMemo gets a memo.
 	GetMemo(context.Context, *connect.Request[v1.GetMemoRequest]) (*connect.Response[v1.Memo], error)
 	// UpdateMemo updates a memo.
 	UpdateMemo(context.Context, *connect.Request[v1.UpdateMemoRequest]) (*connect.Response[v1.Memo], error)
-	// DeleteMemo deletes a memo.
+	// DeleteMemo deletes only the named memo and its owned resources. It removes
+	// incident relations but never deletes another memo.
 	DeleteMemo(context.Context, *connect.Request[v1.DeleteMemoRequest]) (*connect.Response[emptypb.Empty], error)
 	// SetMemoAttachments replaces the full set of attachments on a memo with the
 	// provided list (not an append). Pass the complete desired set; an empty list
@@ -111,32 +113,33 @@ type MemoServiceClient interface {
 	SetMemoAttachments(context.Context, *connect.Request[v1.SetMemoAttachmentsRequest]) (*connect.Response[emptypb.Empty], error)
 	// ListMemoAttachments lists attachments for a memo.
 	ListMemoAttachments(context.Context, *connect.Request[v1.ListMemoAttachmentsRequest]) (*connect.Response[v1.ListMemoAttachmentsResponse], error)
-	// SetMemoRelations replaces the full set of relations on a memo with the
-	// provided list (not an append). Pass the complete desired set; an empty list
-	// clears all relations. Idempotent.
+	// SetMemoRelations replaces the full set of mutable REFERENCE relations on a
+	// memo. COMMENT relations are immutable creation context and are rejected by
+	// this RPC. An empty list clears references without changing COMMENT.
 	SetMemoRelations(context.Context, *connect.Request[v1.SetMemoRelationsRequest]) (*connect.Response[emptypb.Empty], error)
 	// ListMemoRelations lists relations for a memo.
 	ListMemoRelations(context.Context, *connect.Request[v1.ListMemoRelationsRequest]) (*connect.Response[v1.ListMemoRelationsResponse], error)
-	// CreateMemoComment creates a comment for a memo.
+	// CreateMemoComment atomically creates an independent memo plus one immutable
+	// COMMENT context relation to the named memo. The new memo keeps its own
+	// placement, visibility, authorship, and lifecycle.
 	CreateMemoComment(context.Context, *connect.Request[v1.CreateMemoCommentRequest]) (*connect.Response[v1.Memo], error)
 	// ListMemoComments lists comments for a memo.
 	ListMemoComments(context.Context, *connect.Request[v1.ListMemoCommentsRequest]) (*connect.Response[v1.ListMemoCommentsResponse], error)
 	// ListMemoReactions lists reactions for a memo.
 	ListMemoReactions(context.Context, *connect.Request[v1.ListMemoReactionsRequest]) (*connect.Response[v1.ListMemoReactionsResponse], error)
-	// UpsertMemoReaction adds or updates the authenticated user's reaction on a
-	// memo. The reaction's content_id is the memo's resource name (memos/{memo}).
+	// UpsertMemoReaction adds or updates the authenticated user's reaction on a memo.
 	UpsertMemoReaction(context.Context, *connect.Request[v1.UpsertMemoReactionRequest]) (*connect.Response[v1.Reaction], error)
 	// DeleteMemoReaction deletes a reaction for a memo.
 	DeleteMemoReaction(context.Context, *connect.Request[v1.DeleteMemoReactionRequest]) (*connect.Response[emptypb.Empty], error)
-	// CreateMemoShare creates a share link for a memo. Requires authentication as the memo creator.
+	// CreateMemoShare creates a share link for a memo. Requires the memo creator or an instance administrator.
 	CreateMemoShare(context.Context, *connect.Request[v1.CreateMemoShareRequest]) (*connect.Response[v1.MemoShare], error)
-	// ListMemoShares lists all share links for a memo. Requires authentication as the memo creator.
+	// ListMemoShares lists all share links for a memo. Requires the memo creator or an instance administrator.
 	ListMemoShares(context.Context, *connect.Request[v1.ListMemoSharesRequest]) (*connect.Response[v1.ListMemoSharesResponse], error)
-	// DeleteMemoShare revokes a share link. Requires authentication as the memo creator.
+	// DeleteMemoShare revokes a share link. Requires the memo creator or an instance administrator.
 	DeleteMemoShare(context.Context, *connect.Request[v1.DeleteMemoShareRequest]) (*connect.Response[emptypb.Empty], error)
-	// GetMemoByShare resolves a share token to its memo. No authentication required.
+	// GetSharedMemo resolves a share token to its memo. No authentication required.
 	// Returns NOT_FOUND if the token is invalid or expired.
-	GetMemoByShare(context.Context, *connect.Request[v1.GetMemoByShareRequest]) (*connect.Response[v1.Memo], error)
+	GetSharedMemo(context.Context, *connect.Request[v1.GetSharedMemoRequest]) (*connect.Response[v1.Memo], error)
 	// GetLinkMetadata gets metadata for a link.
 	GetLinkMetadata(context.Context, *connect.Request[v1.GetLinkMetadataRequest]) (*connect.Response[v1.LinkMetadata], error)
 	// BatchGetLinkMetadata gets metadata for links.
@@ -256,10 +259,10 @@ func NewMemoServiceClient(httpClient connect.HTTPClient, baseURL string, opts ..
 			connect.WithSchema(memoServiceMethods.ByName("DeleteMemoShare")),
 			connect.WithClientOptions(opts...),
 		),
-		getMemoByShare: connect.NewClient[v1.GetMemoByShareRequest, v1.Memo](
+		getSharedMemo: connect.NewClient[v1.GetSharedMemoRequest, v1.Memo](
 			httpClient,
-			baseURL+MemoServiceGetMemoByShareProcedure,
-			connect.WithSchema(memoServiceMethods.ByName("GetMemoByShare")),
+			baseURL+MemoServiceGetSharedMemoProcedure,
+			connect.WithSchema(memoServiceMethods.ByName("GetSharedMemo")),
 			connect.WithClientOptions(opts...),
 		),
 		getLinkMetadata: connect.NewClient[v1.GetLinkMetadataRequest, v1.LinkMetadata](
@@ -296,7 +299,7 @@ type memoServiceClient struct {
 	createMemoShare      *connect.Client[v1.CreateMemoShareRequest, v1.MemoShare]
 	listMemoShares       *connect.Client[v1.ListMemoSharesRequest, v1.ListMemoSharesResponse]
 	deleteMemoShare      *connect.Client[v1.DeleteMemoShareRequest, emptypb.Empty]
-	getMemoByShare       *connect.Client[v1.GetMemoByShareRequest, v1.Memo]
+	getSharedMemo        *connect.Client[v1.GetSharedMemoRequest, v1.Memo]
 	getLinkMetadata      *connect.Client[v1.GetLinkMetadataRequest, v1.LinkMetadata]
 	batchGetLinkMetadata *connect.Client[v1.BatchGetLinkMetadataRequest, v1.BatchGetLinkMetadataResponse]
 }
@@ -386,9 +389,9 @@ func (c *memoServiceClient) DeleteMemoShare(ctx context.Context, req *connect.Re
 	return c.deleteMemoShare.CallUnary(ctx, req)
 }
 
-// GetMemoByShare calls memos.api.v1.MemoService.GetMemoByShare.
-func (c *memoServiceClient) GetMemoByShare(ctx context.Context, req *connect.Request[v1.GetMemoByShareRequest]) (*connect.Response[v1.Memo], error) {
-	return c.getMemoByShare.CallUnary(ctx, req)
+// GetSharedMemo calls memos.api.v1.MemoService.GetSharedMemo.
+func (c *memoServiceClient) GetSharedMemo(ctx context.Context, req *connect.Request[v1.GetSharedMemoRequest]) (*connect.Response[v1.Memo], error) {
+	return c.getSharedMemo.CallUnary(ctx, req)
 }
 
 // GetLinkMetadata calls memos.api.v1.MemoService.GetLinkMetadata.
@@ -404,16 +407,18 @@ func (c *memoServiceClient) BatchGetLinkMetadata(ctx context.Context, req *conne
 // MemoServiceHandler is an implementation of the memos.api.v1.MemoService service.
 type MemoServiceHandler interface {
 	// CreateMemo creates a memo. The request body is a Memo; set its content
-	// (Markdown) and visibility (PRIVATE | PROTECTED | PUBLIC, default PRIVATE).
+	// (Markdown) and visibility (PRIVATE | PROTECTED | PUBLIC | SPACE,
+	// default PRIVATE).
 	// The memo is owned by the authenticated user; requires authentication.
 	CreateMemo(context.Context, *connect.Request[v1.CreateMemoRequest]) (*connect.Response[v1.Memo], error)
-	// ListMemos lists memos with pagination and filter.
+	// ListMemos lists readable non-comment memos with pagination and filter.
 	ListMemos(context.Context, *connect.Request[v1.ListMemosRequest]) (*connect.Response[v1.ListMemosResponse], error)
 	// GetMemo gets a memo.
 	GetMemo(context.Context, *connect.Request[v1.GetMemoRequest]) (*connect.Response[v1.Memo], error)
 	// UpdateMemo updates a memo.
 	UpdateMemo(context.Context, *connect.Request[v1.UpdateMemoRequest]) (*connect.Response[v1.Memo], error)
-	// DeleteMemo deletes a memo.
+	// DeleteMemo deletes only the named memo and its owned resources. It removes
+	// incident relations but never deletes another memo.
 	DeleteMemo(context.Context, *connect.Request[v1.DeleteMemoRequest]) (*connect.Response[emptypb.Empty], error)
 	// SetMemoAttachments replaces the full set of attachments on a memo with the
 	// provided list (not an append). Pass the complete desired set; an empty list
@@ -421,32 +426,33 @@ type MemoServiceHandler interface {
 	SetMemoAttachments(context.Context, *connect.Request[v1.SetMemoAttachmentsRequest]) (*connect.Response[emptypb.Empty], error)
 	// ListMemoAttachments lists attachments for a memo.
 	ListMemoAttachments(context.Context, *connect.Request[v1.ListMemoAttachmentsRequest]) (*connect.Response[v1.ListMemoAttachmentsResponse], error)
-	// SetMemoRelations replaces the full set of relations on a memo with the
-	// provided list (not an append). Pass the complete desired set; an empty list
-	// clears all relations. Idempotent.
+	// SetMemoRelations replaces the full set of mutable REFERENCE relations on a
+	// memo. COMMENT relations are immutable creation context and are rejected by
+	// this RPC. An empty list clears references without changing COMMENT.
 	SetMemoRelations(context.Context, *connect.Request[v1.SetMemoRelationsRequest]) (*connect.Response[emptypb.Empty], error)
 	// ListMemoRelations lists relations for a memo.
 	ListMemoRelations(context.Context, *connect.Request[v1.ListMemoRelationsRequest]) (*connect.Response[v1.ListMemoRelationsResponse], error)
-	// CreateMemoComment creates a comment for a memo.
+	// CreateMemoComment atomically creates an independent memo plus one immutable
+	// COMMENT context relation to the named memo. The new memo keeps its own
+	// placement, visibility, authorship, and lifecycle.
 	CreateMemoComment(context.Context, *connect.Request[v1.CreateMemoCommentRequest]) (*connect.Response[v1.Memo], error)
 	// ListMemoComments lists comments for a memo.
 	ListMemoComments(context.Context, *connect.Request[v1.ListMemoCommentsRequest]) (*connect.Response[v1.ListMemoCommentsResponse], error)
 	// ListMemoReactions lists reactions for a memo.
 	ListMemoReactions(context.Context, *connect.Request[v1.ListMemoReactionsRequest]) (*connect.Response[v1.ListMemoReactionsResponse], error)
-	// UpsertMemoReaction adds or updates the authenticated user's reaction on a
-	// memo. The reaction's content_id is the memo's resource name (memos/{memo}).
+	// UpsertMemoReaction adds or updates the authenticated user's reaction on a memo.
 	UpsertMemoReaction(context.Context, *connect.Request[v1.UpsertMemoReactionRequest]) (*connect.Response[v1.Reaction], error)
 	// DeleteMemoReaction deletes a reaction for a memo.
 	DeleteMemoReaction(context.Context, *connect.Request[v1.DeleteMemoReactionRequest]) (*connect.Response[emptypb.Empty], error)
-	// CreateMemoShare creates a share link for a memo. Requires authentication as the memo creator.
+	// CreateMemoShare creates a share link for a memo. Requires the memo creator or an instance administrator.
 	CreateMemoShare(context.Context, *connect.Request[v1.CreateMemoShareRequest]) (*connect.Response[v1.MemoShare], error)
-	// ListMemoShares lists all share links for a memo. Requires authentication as the memo creator.
+	// ListMemoShares lists all share links for a memo. Requires the memo creator or an instance administrator.
 	ListMemoShares(context.Context, *connect.Request[v1.ListMemoSharesRequest]) (*connect.Response[v1.ListMemoSharesResponse], error)
-	// DeleteMemoShare revokes a share link. Requires authentication as the memo creator.
+	// DeleteMemoShare revokes a share link. Requires the memo creator or an instance administrator.
 	DeleteMemoShare(context.Context, *connect.Request[v1.DeleteMemoShareRequest]) (*connect.Response[emptypb.Empty], error)
-	// GetMemoByShare resolves a share token to its memo. No authentication required.
+	// GetSharedMemo resolves a share token to its memo. No authentication required.
 	// Returns NOT_FOUND if the token is invalid or expired.
-	GetMemoByShare(context.Context, *connect.Request[v1.GetMemoByShareRequest]) (*connect.Response[v1.Memo], error)
+	GetSharedMemo(context.Context, *connect.Request[v1.GetSharedMemoRequest]) (*connect.Response[v1.Memo], error)
 	// GetLinkMetadata gets metadata for a link.
 	GetLinkMetadata(context.Context, *connect.Request[v1.GetLinkMetadataRequest]) (*connect.Response[v1.LinkMetadata], error)
 	// BatchGetLinkMetadata gets metadata for links.
@@ -562,10 +568,10 @@ func NewMemoServiceHandler(svc MemoServiceHandler, opts ...connect.HandlerOption
 		connect.WithSchema(memoServiceMethods.ByName("DeleteMemoShare")),
 		connect.WithHandlerOptions(opts...),
 	)
-	memoServiceGetMemoByShareHandler := connect.NewUnaryHandler(
-		MemoServiceGetMemoByShareProcedure,
-		svc.GetMemoByShare,
-		connect.WithSchema(memoServiceMethods.ByName("GetMemoByShare")),
+	memoServiceGetSharedMemoHandler := connect.NewUnaryHandler(
+		MemoServiceGetSharedMemoProcedure,
+		svc.GetSharedMemo,
+		connect.WithSchema(memoServiceMethods.ByName("GetSharedMemo")),
 		connect.WithHandlerOptions(opts...),
 	)
 	memoServiceGetLinkMetadataHandler := connect.NewUnaryHandler(
@@ -616,8 +622,8 @@ func NewMemoServiceHandler(svc MemoServiceHandler, opts ...connect.HandlerOption
 			memoServiceListMemoSharesHandler.ServeHTTP(w, r)
 		case MemoServiceDeleteMemoShareProcedure:
 			memoServiceDeleteMemoShareHandler.ServeHTTP(w, r)
-		case MemoServiceGetMemoByShareProcedure:
-			memoServiceGetMemoByShareHandler.ServeHTTP(w, r)
+		case MemoServiceGetSharedMemoProcedure:
+			memoServiceGetSharedMemoHandler.ServeHTTP(w, r)
 		case MemoServiceGetLinkMetadataProcedure:
 			memoServiceGetLinkMetadataHandler.ServeHTTP(w, r)
 		case MemoServiceBatchGetLinkMetadataProcedure:
@@ -699,8 +705,8 @@ func (UnimplementedMemoServiceHandler) DeleteMemoShare(context.Context, *connect
 	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("memos.api.v1.MemoService.DeleteMemoShare is not implemented"))
 }
 
-func (UnimplementedMemoServiceHandler) GetMemoByShare(context.Context, *connect.Request[v1.GetMemoByShareRequest]) (*connect.Response[v1.Memo], error) {
-	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("memos.api.v1.MemoService.GetMemoByShare is not implemented"))
+func (UnimplementedMemoServiceHandler) GetSharedMemo(context.Context, *connect.Request[v1.GetSharedMemoRequest]) (*connect.Response[v1.Memo], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("memos.api.v1.MemoService.GetSharedMemo is not implemented"))
 }
 
 func (UnimplementedMemoServiceHandler) GetLinkMetadata(context.Context, *connect.Request[v1.GetLinkMetadataRequest]) (*connect.Response[v1.LinkMetadata], error) {

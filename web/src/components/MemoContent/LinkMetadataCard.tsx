@@ -6,6 +6,7 @@ import { cn } from "@/lib/utils";
 interface LinkMetadataCardProps {
   url: string;
   fallback: React.ReactNode;
+  enabled?: boolean;
 }
 
 function getHostname(url: string): string {
@@ -16,9 +17,9 @@ function getHostname(url: string): string {
   }
 }
 
-const LinkMetadataCard = ({ url, fallback }: LinkMetadataCardProps) => {
+const LinkMetadataCard = ({ url, fallback, enabled = true }: LinkMetadataCardProps) => {
   const [imageFailed, setImageFailed] = useState(false);
-  const { data: metadata, isSuccess } = useLinkMetadata(url);
+  const { data: metadata, isSuccess } = useLinkMetadata(url, { enabled });
 
   const title = metadata?.title.trim() ?? "";
   const description = metadata?.description.trim() ?? "";
@@ -50,7 +51,7 @@ const LinkMetadataCard = ({ url, fallback }: LinkMetadataCardProps) => {
         {description && <span className="line-clamp-1 text-xs leading-4 text-muted-foreground sm:line-clamp-2">{description}</span>}
       </span>
       {image && !imageFailed && (
-        <span className="flex w-24 shrink-0 items-center border-l border-border/70 bg-muted/40 sm:w-40">
+        <span className="flex w-24 shrink-0 items-center border-s border-border/70 bg-muted/40 sm:w-40">
           <span className="aspect-[1.91/1] w-full overflow-hidden">
             <img
               src={image}
@@ -58,6 +59,7 @@ const LinkMetadataCard = ({ url, fallback }: LinkMetadataCardProps) => {
               className="h-full w-full object-cover transition-transform duration-200 group-hover:scale-[1.01]"
               loading="lazy"
               decoding="async"
+              referrerPolicy="no-referrer"
               onError={() => setImageFailed(true)}
             />
           </span>

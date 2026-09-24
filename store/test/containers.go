@@ -31,8 +31,10 @@ const (
 	testPassword = "test"
 
 	// Memos container settings for migration testing.
-	MemosDockerImage   = "neosmemo/memos"
-	StableMemosVersion = "stable" // Always points to the latest stable release
+	MemosDockerImage = "neosmemo/memos"
+	// PreBaselineMemosVersion exercises the mandatory v0.31.0 intermediate upgrade.
+	// Keep this pinned: the current binary no longer ships its migration history.
+	PreBaselineMemosVersion = "0.30.0"
 
 	mysqlNetworkAlias    = "memos-mysql"
 	postgresNetworkAlias = "memos-postgres"
@@ -99,7 +101,7 @@ func GetMySQLDSN(t *testing.T) string {
 		}
 
 		container, err := mysql.Run(ctx,
-			"mysql:8",
+			"mysql:8.4",
 			mysql.WithDatabase("init_db"),
 			mysql.WithUsername("root"),
 			mysql.WithPassword(testPassword),

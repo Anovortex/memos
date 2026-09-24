@@ -1,10 +1,10 @@
-import { create } from "@bufbuild/protobuf";
-import { FieldMaskSchema, timestampDate } from "@bufbuild/protobuf/wkt";
+import { timestampDate } from "@bufbuild/protobuf/wkt";
 import { AtSignIcon, CheckIcon, MessageSquareIcon, TrashIcon, XIcon } from "lucide-react";
 import toast from "react-hot-toast";
 import UserAvatar from "@/components/UserAvatar";
-import { userServiceClient } from "@/connect";
 import useNavigateTo from "@/hooks/useNavigateTo";
+import { useArchiveNotification, useDeleteNotification } from "@/hooks/useUserQueries";
+import { handleError } from "@/lib/error";
 import { cn } from "@/lib/utils";
 import { UserNotification, UserNotification_Status } from "@/types/proto/api/v1/user_service_pb";
 import { useTranslate } from "@/utils/i18n";
@@ -15,28 +15,30 @@ interface Props {
 
 function MemoMentionMessage({ notification }: Props) {
   const t = useTranslate();
+  const archiveNotification = useArchiveNotification();
+  const deleteNotification = useDeleteNotification();
   const navigateTo = useNavigateTo();
   const mentionPayload = notification.payload?.case === "memoMention" ? notification.payload.value : undefined;
   const sender = notification.senderUser;
 
   const handleArchiveMessage = async (silence = false) => {
-    await userServiceClient.updateUserNotification({
-      notification: {
-        name: notification.name,
-        status: UserNotification_Status.ARCHIVED,
-      },
-      updateMask: create(FieldMaskSchema, { paths: ["status"] }),
-    });
-    if (!silence) {
-      toast.success(t("message.archived-successfully"));
+    try {
+      await archiveNotification.mutateAsync(notification.name);
+      if (!silence) {
+        toast.success(t("message.archived-successfully"));
+      }
+    } catch (error) {
+      handleError(error, toast.error, { context: "Archive notification" });
     }
   };
 
   const handleDeleteMessage = async () => {
-    await userServiceClient.deleteUserNotification({
-      name: notification.name,
-    });
-    toast.success(t("message.deleted-successfully"));
+    try {
+      await deleteNotification.mutateAsync(notification.name);
+      toast.success(t("message.deleted-successfully"));
+    } catch (error) {
+      handleError(error, toast.error, { context: "Delete notification" });
+    }
   };
 
   if (!mentionPayload) {
@@ -137,9 +139,10 @@ function MemoMentionMessage({ notification }: Props) {
             </div>
           )}
 
-          <div
+          <button
+            type="button"
             onClick={handleNavigate}
-            className="p-2 sm:p-3 rounded-lg bg-gradient-to-br from-primary/[0.06] to-primary/[0.03] hover:from-primary/[0.1] hover:to-primary/[0.06] cursor-pointer border border-primary/30 hover:border-primary/50 transition-all duration-200 group/comment shadow-sm hover:shadow"
+            className="w-full p-2 text-left sm:p-3 rounded-lg bg-gradient-to-br from-primary/[0.06] to-primary/[0.03] hover:from-primary/[0.1] hover:to-primary/[0.06] cursor-pointer border border-primary/30 hover:border-primary/50 transition-all duration-200 group/comment shadow-sm hover:shadow"
           >
             <div className="flex items-start gap-2">
               <div className="w-5 h-5 flex items-center justify-center shrink-0">
@@ -154,7 +157,7 @@ function MemoMentionMessage({ notification }: Props) {
                 </p>
               </div>
             </div>
-          </div>
+          </button>
         </div>
       </div>
     </div>

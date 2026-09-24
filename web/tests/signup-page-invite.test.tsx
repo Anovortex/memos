@@ -29,11 +29,7 @@ vi.mock("@/components/AuthFooter", () => ({ default: () => null }));
 vi.mock("@/utils/i18n", () => ({ useTranslate: () => (key: string) => key }));
 
 // Structurally a JWT; the page only reads the payload, the server checks the signature.
-const encode = (value: object) =>
-  btoa(JSON.stringify(value))
-    .replace(/\+/g, "-")
-    .replace(/\//g, "_")
-    .replace(/=+$/, "");
+const encode = (value: object) => btoa(JSON.stringify(value)).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
 const inviteToken = `${encode({ alg: "HS256", typ: "JWT" })}.${encode({ type: "invite", email: "invited@example.com" })}.signature`;
 
 const renderPage = (path: string) =>
@@ -71,7 +67,8 @@ describe("<SignUp> with an invite on a closed instance", () => {
     fireEvent.click(screen.getByRole("button", { name: "common.sign-up" }));
 
     await waitFor(() => expect(mocks.createUser).toHaveBeenCalledTimes(1));
-    expect(mocks.createUser).toHaveBeenCalledWith(
+    // Upstream passes the challenge headers as a second argument; only the request matters here.
+    expect(mocks.createUser.mock.calls[0][0]).toEqual(
       expect.objectContaining({
         inviteToken,
         user: expect.objectContaining({ username: "invited", email: "invited@example.com" }),

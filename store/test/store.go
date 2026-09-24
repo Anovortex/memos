@@ -58,6 +58,22 @@ func NewTestingStoreWithDSN(_ context.Context, t *testing.T, driver, dsn string)
 	return store
 }
 
+// createSpaceMemberForTest keeps fixtures concise while exercising the same
+// invitation and acceptance flow used by production code.
+func createSpaceMemberForTest(ctx context.Context, testStore *store.Store, create *store.SpaceMember, actorUserID int32) (*store.SpaceMember, error) {
+	if _, err := testStore.CreateSpaceInvitation(ctx, &store.SpaceInvitation{
+		SpaceID: create.SpaceID,
+		UserID:  create.UserID,
+		Role:    create.Role,
+	}, actorUserID); err != nil {
+		return nil, err
+	}
+	return testStore.AcceptSpaceInvitation(ctx, &store.AcceptSpaceInvitation{
+		SpaceID: create.SpaceID,
+		UserID:  create.UserID,
+	}, create.UserID)
+}
+
 func getUnusedPort() int {
 	// Get a random unused port
 	listener, err := net.Listen("tcp", "localhost:0")
@@ -108,4 +124,23 @@ func getDriverFromEnv() string {
 		driver = "sqlite"
 	}
 	return driver
+}
+
+// skipRegexFiltersOnD1 skips tests whose matches() patterns go beyond
+// literal text with anchors: D1 has no REGEXP operator, so the filter engine
+// only expresses those and rejects everything else at compile time.
+func skipRegexFiltersOnD1(t *testing.T) {
+	t.Helper()
+	if getDriverFromEnv() == "d1" {
+		t.Skip("only literal regular expressions are supported on Cloudflare D1")
+	}
+}
+
+// skipUnicodeFoldOnD1 skips tests that need Unicode case folding: D1 cannot
+// register custom functions, so it folds with the ASCII-only LOWER().
+func skipUnicodeFoldOnD1(t *testing.T) {
+	t.Helper()
+	if getDriverFromEnv() == "d1" {
+		t.Skip("Cloudflare D1 folds case with ASCII-only LOWER()")
+	}
 }

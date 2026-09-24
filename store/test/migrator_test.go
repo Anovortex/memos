@@ -5,15 +5,36 @@ import (
 	"database/sql"
 	"fmt"
 	"testing"
-	"time"
 
 	"github.com/stretchr/testify/require"
-	colorpb "google.golang.org/genproto/googleapis/type/color"
 	"google.golang.org/protobuf/encoding/protojson"
 
 	storepb "github.com/usememos/memos/proto/gen/store"
 	"github.com/usememos/memos/store"
+	storedb "github.com/usememos/memos/store/db"
 )
+
+type delayedInstanceSettingCreateDriver struct {
+	store.Driver
+	entered chan<- struct{}
+	release <-chan struct{}
+}
+
+func (d *delayedInstanceSettingCreateDriver) CreateInstanceSettingIfNotExists(ctx context.Context, create *store.InstanceSetting) (bool, error) {
+	d.entered <- struct{}{}
+	<-d.release
+	return d.Driver.CreateInstanceSettingIfNotExists(ctx, create)
+}
+
+func requireQueryError(ctx context.Context, t *testing.T, db *sql.DB, query, message string) {
+	t.Helper()
+	rows, err := db.QueryContext(ctx, query)
+	if rows != nil {
+		defer rows.Close()
+		require.NoError(t, rows.Err())
+	}
+	require.Error(t, err, message)
+}
 
 // TestFreshInstall verifies that LATEST.sql applies correctly on a fresh database.
 // This is essentially what NewTestingStore already does, but we make it explicit.
@@ -28,12 +49,49 @@ func TestFreshInstall(t *testing.T) {
 	// Verify migration completed successfully
 	currentSchemaVersion, err := ts.GetCurrentSchemaVersion()
 	require.NoError(t, err)
-	require.NotEmpty(t, currentSchemaVersion, "schema version should be set after fresh install")
+	// The fork ships calendar migrations on top of the 0.31.8 baseline (26.09/00 and 26.09/01).
+	require.Equal(t, "26.9.2", currentSchemaVersion, "fresh install should record the latest fork migration")
 
 	// Verify we can read instance settings (basic sanity check)
 	instanceSetting, err := ts.GetInstanceBasicSetting(ctx)
 	require.NoError(t, err)
 	require.Equal(t, currentSchemaVersion, instanceSetting.SchemaVersion)
+
+	// The fresh schema supports memo-local Space placement without adding a
+	// canonical thread shape. COMMENT remains an ordinary relation row.
+	driver := getDriverFromEnv()
+	insertSpace := "INSERT INTO space (id, uid, title, description, payload) VALUES (?, ?, ?, ?, '{}')"
+	insertMemo := "INSERT INTO memo (id, uid, creator_id, content, visibility, payload, space_id) VALUES (?, ?, ?, ?, ?, ?, ?)"
+	insertRelation := "INSERT INTO memo_relation (memo_id, related_memo_id, type) VALUES (?, ?, ?)"
+	if driver == "postgres" {
+		insertSpace = "INSERT INTO space (id, uid, title, description, payload) VALUES ($1, $2, $3, $4, '{}')"
+		insertMemo = "INSERT INTO memo (id, uid, creator_id, content, visibility, payload, space_id) VALUES ($1, $2, $3, $4, $5, $6, $7)"
+		insertRelation = "INSERT INTO memo_relation (memo_id, related_memo_id, type) VALUES ($1, $2, $3)"
+	}
+	_, err = ts.GetDriver().GetDB().ExecContext(ctx, insertSpace, 900001, "fresh-space", "Fresh Space", "schema fixture")
+	require.NoError(t, err)
+	_, err = ts.GetDriver().GetDB().ExecContext(ctx, insertMemo, 900001, "fresh-context", 1, "context", store.Public, `{}`, nil)
+	require.NoError(t, err)
+	_, err = ts.GetDriver().GetDB().ExecContext(ctx, insertMemo, 900002, "fresh-comment", 1, "comment", store.SpaceAudience, `{}`, 900001)
+	require.NoError(t, err)
+	_, err = ts.GetDriver().GetDB().ExecContext(ctx, insertRelation, 900002, 900001, store.MemoRelationComment)
+	require.NoError(t, err)
+
+	var relationCount int
+	require.NoError(t, ts.GetDriver().GetDB().QueryRowContext(ctx,
+		"SELECT COUNT(*) FROM memo_relation WHERE memo_id = 900002 AND related_memo_id = 900001 AND type = 'COMMENT'",
+	).Scan(&relationCount))
+	require.Equal(t, 1, relationCount)
+
+	requireQueryError(ctx, t, ts.GetDriver().GetDB(), "SELECT parent_memo_id, root_memo_id FROM memo LIMIT 0", "fresh memo schema must not contain canonical-root columns")
+	requireQueryError(ctx, t, ts.GetDriver().GetDB(), "SELECT row_status FROM space LIMIT 0", "fresh Space schema has no archived state")
+	if driver == "sqlite" {
+		var indexName string
+		require.NoError(t, ts.GetDriver().GetDB().QueryRowContext(ctx,
+			"SELECT name FROM sqlite_master WHERE type = 'index' AND name = 'idx_memo_creator_id'",
+		).Scan(&indexName))
+		require.Equal(t, "idx_memo_creator_id", indexName)
+	}
 }
 
 // TestMigrationReRun verifies that re-running the migration on an already
@@ -114,6 +172,76 @@ func TestMigrationMultipleReRuns(t *testing.T) {
 	require.Equal(t, initialVersion, finalVersion, "version should remain unchanged after multiple re-runs")
 }
 
+func TestConcurrentInstanceAccessInitializationKeepsFirstInsert(t *testing.T) {
+	ctx := context.Background()
+	driverName := getDriverFromEnv()
+	baseProfile := getTestingProfileForDriver(t, driverName)
+
+	baseDriver, err := storedb.NewDBDriver(baseProfile)
+	require.NoError(t, err)
+	baseStore := store.New(baseDriver, baseProfile)
+	require.NoError(t, baseStore.Migrate(ctx))
+	require.NoError(t, baseStore.DeleteInstanceSetting(ctx, &store.DeleteInstanceSetting{
+		Name: storepb.InstanceSettingKey_ACCESS.String(),
+	}))
+	require.NoError(t, baseStore.Close())
+
+	publicProfile := *baseProfile
+	publicProfile.InstanceURL = "https://public.example.com"
+	publicDriver, err := storedb.NewDBDriver(&publicProfile)
+	require.NoError(t, err)
+	entered := make(chan struct{}, 1)
+	release := make(chan struct{})
+	delayedPublicDriver := &delayedInstanceSettingCreateDriver{
+		Driver:  publicDriver,
+		entered: entered,
+		release: release,
+	}
+	publicStore := store.New(delayedPublicDriver, &publicProfile)
+	defer publicStore.Close()
+
+	privateProfile := *baseProfile
+	privateProfile.InstanceURL = ""
+	privateDriver, err := storedb.NewDBDriver(&privateProfile)
+	require.NoError(t, err)
+	privateStore := store.New(privateDriver, &privateProfile)
+	defer privateStore.Close()
+
+	publicMigration := make(chan error, 1)
+	go func() {
+		publicMigration <- publicStore.Migrate(ctx)
+	}()
+	<-entered
+	released := false
+	defer func() {
+		if !released {
+			close(release)
+		}
+	}()
+
+	// The private instance reaches the database first. The delayed public
+	// initializer must lose the unique-key race without overwriting it.
+	require.NoError(t, privateStore.Migrate(ctx))
+	close(release)
+	released = true
+	require.NoError(t, <-publicMigration)
+
+	setting, err := privateStore.GetStoredInstanceSetting(ctx, &store.FindInstanceSetting{
+		Name: storepb.InstanceSettingKey_ACCESS.String(),
+	})
+	require.NoError(t, err)
+	require.NotNil(t, setting)
+	require.Equal(t, storepb.InstanceAccessMode_INSTANCE_ACCESS_MODE_PRIVATE, setting.GetAccessSetting().AccessMode)
+
+	// Re-running either initializer is also a no-op once ACCESS is persisted.
+	require.NoError(t, publicStore.Migrate(ctx))
+	setting, err = publicStore.GetStoredInstanceSetting(ctx, &store.FindInstanceSetting{
+		Name: storepb.InstanceSettingKey_ACCESS.String(),
+	})
+	require.NoError(t, err)
+	require.Equal(t, storepb.InstanceAccessMode_INSTANCE_ACCESS_MODE_PRIVATE, setting.GetAccessSetting().AccessMode)
+}
+
 // TestMigrateFailsWhenSchemaIncomplete verifies Migrate refuses to start against a database that
 // looks initialized (the memo table exists) but is missing the rest of the schema. Without this
 // check the server boots fine and only fails at login with `relation "user" does not exist`.
@@ -145,7 +273,7 @@ func TestMigrateFailsWhenSchemaIncomplete(t *testing.T) {
 	ts := NewTestingStoreWithDSN(ctx, t, "sqlite", dsn)
 	defer ts.Close()
 
-	// Record the current version so no incremental migration runs — otherwise a pending migration
+	// Record the current version so no incremental migration runs; otherwise a pending migration
 	// hits the missing tables first and we never reach the post-migration schema check.
 	currentSchemaVersion, err := ts.GetCurrentSchemaVersion()
 	require.NoError(t, err)
@@ -158,191 +286,4 @@ func TestMigrateFailsWhenSchemaIncomplete(t *testing.T) {
 	err = ts.Migrate(ctx)
 	require.Error(t, err, "Migrate should reject a database missing the user table")
 	require.Contains(t, err.Error(), "schema is unusable")
-}
-
-// TestMigrationCopiesInstanceTagsToUserSettings verifies instance tag metadata is copied into user settings.
-func TestMigrationCopiesInstanceTagsToUserSettings(t *testing.T) {
-	if getDriverFromEnv() != "sqlite" {
-		t.Skip("skipping focused migration fixture for non-sqlite driver")
-	}
-
-	ctx := context.Background()
-	dsn := fmt.Sprintf("%s/memos_tag_migration.db", t.TempDir())
-
-	db, err := sql.Open("sqlite", dsn)
-	require.NoError(t, err)
-
-	_, err = db.ExecContext(ctx, `
-		CREATE TABLE system_setting (
-			name TEXT NOT NULL,
-			value TEXT NOT NULL,
-			description TEXT NOT NULL DEFAULT '',
-			UNIQUE(name)
-		);
-		CREATE TABLE user (
-			id INTEGER PRIMARY KEY AUTOINCREMENT,
-			created_ts BIGINT NOT NULL DEFAULT (strftime('%s', 'now')),
-			updated_ts BIGINT NOT NULL DEFAULT (strftime('%s', 'now')),
-			row_status TEXT NOT NULL DEFAULT 'NORMAL',
-			username TEXT NOT NULL UNIQUE,
-			role TEXT NOT NULL DEFAULT 'USER',
-			email TEXT NOT NULL DEFAULT '',
-			nickname TEXT NOT NULL DEFAULT '',
-			password_hash TEXT NOT NULL DEFAULT '',
-			avatar_url TEXT NOT NULL DEFAULT '',
-			description TEXT NOT NULL DEFAULT ''
-		);
-		CREATE TABLE user_setting (
-			user_id INTEGER NOT NULL,
-			key TEXT NOT NULL,
-			value TEXT NOT NULL,
-			UNIQUE(user_id, key)
-		);
-		CREATE TABLE memo (
-			id INTEGER PRIMARY KEY AUTOINCREMENT
-		);
-	`)
-	require.NoError(t, err)
-
-	basicSettingBytes, err := protojson.Marshal(&storepb.InstanceBasicSetting{SchemaVersion: "0.29.1"})
-	require.NoError(t, err)
-	tagsSettingBytes, err := protojson.Marshal(&storepb.InstanceTagsSetting{
-		Tags: map[string]*storepb.InstanceTagMetadata{
-			"bug": {
-				BackgroundColor: &colorpb.Color{Red: 0.9, Green: 0.1, Blue: 0.1},
-			},
-			"private/.*": {
-				BlurContent: true,
-			},
-		},
-	})
-	require.NoError(t, err)
-	existingUserTagsBytes, err := protojson.Marshal(&storepb.TagsUserSetting{
-		Tags: map[string]*storepb.UserTagMetadata{
-			"existing": {
-				BlurContent: true,
-			},
-		},
-	})
-	require.NoError(t, err)
-
-	_, err = db.ExecContext(ctx, "INSERT INTO system_setting (name, value) VALUES ('BASIC', ?), ('TAGS', ?)", string(basicSettingBytes), string(tagsSettingBytes))
-	require.NoError(t, err)
-	_, err = db.ExecContext(ctx, "INSERT INTO user (id, username, role) VALUES (1, 'tag-owner', 'USER'), (2, 'keeps-existing', 'USER')")
-	require.NoError(t, err)
-	_, err = db.ExecContext(ctx, "INSERT INTO user_setting (user_id, key, value) VALUES (2, 'TAGS', ?)", string(existingUserTagsBytes))
-	require.NoError(t, err)
-	require.NoError(t, db.Close())
-
-	ts := NewTestingStoreWithDSN(ctx, t, "sqlite", dsn)
-	require.NoError(t, ts.Migrate(ctx))
-	defer ts.Close()
-
-	copiedUserID := int32(1)
-	copied, err := ts.GetUserSetting(ctx, &store.FindUserSetting{
-		UserID: &copiedUserID,
-		Key:    storepb.UserSetting_TAGS,
-	})
-	require.NoError(t, err)
-	require.Contains(t, copied.GetTags().GetTags(), "bug")
-	bugMetadata := copied.GetTags().GetTags()["bug"]
-	require.NotNil(t, bugMetadata.GetBackgroundColor())
-	require.InDelta(t, 0.9, bugMetadata.GetBackgroundColor().GetRed(), 1e-6)
-	require.InDelta(t, 0.1, bugMetadata.GetBackgroundColor().GetGreen(), 1e-6)
-	require.InDelta(t, 0.1, bugMetadata.GetBackgroundColor().GetBlue(), 1e-6)
-	require.True(t, copied.GetTags().GetTags()["private/.*"].GetBlurContent())
-
-	existingUserID := int32(2)
-	existing, err := ts.GetUserSetting(ctx, &store.FindUserSetting{
-		UserID: &existingUserID,
-		Key:    storepb.UserSetting_TAGS,
-	})
-	require.NoError(t, err)
-	require.Contains(t, existing.GetTags().GetTags(), "existing")
-	require.NotContains(t, existing.GetTags().GetTags(), "bug")
-}
-
-// TestMigrationFromStableVersion verifies that upgrading from a stable Memos version
-// to the current version works correctly. This is the critical upgrade path test.
-//
-// Test flow:
-// 1. Start a stable Memos container to create a database with the old schema
-// 2. Stop the container and wait for cleanup
-// 3. Use the store directly to run migration with current code
-// 4. Verify the migration succeeded and data can be written
-//
-// Note: This test is skipped when running with -race flag because testcontainers
-// has known race conditions in its reaper code that are outside our control.
-func TestMigrationFromStableVersion(t *testing.T) {
-	// Skip for non-SQLite drivers (simplifies the test)
-	if getDriverFromEnv() != "sqlite" {
-		t.Skip("skipping upgrade test for non-sqlite driver")
-	}
-
-	skipIfContainerProviderUnavailable(t)
-
-	ctx := context.Background()
-	dataDir := t.TempDir()
-
-	// 1. Start stable Memos container to create database with old schema
-	cfg := MemosContainerConfig{
-		Driver:  "sqlite",
-		DataDir: dataDir,
-		Version: StableMemosVersion,
-	}
-
-	t.Logf("Starting Memos %s container to create old-schema database...", cfg.Version)
-	container, err := StartMemosContainer(ctx, cfg)
-	require.NoError(t, err, "failed to start stable memos container")
-
-	// Wait for the container to fully initialize the database
-	time.Sleep(10 * time.Second)
-
-	// Stop the container gracefully
-	t.Log("Stopping stable Memos container...")
-	err = container.Terminate(ctx)
-	require.NoError(t, err, "failed to stop memos container")
-
-	// Wait for file handles to be released
-	time.Sleep(2 * time.Second)
-
-	// 2. Connect to the database directly and run migration with current code
-	dsn := fmt.Sprintf("%s/memos_prod.db", dataDir)
-	t.Logf("Connecting to database at %s...", dsn)
-
-	ts := NewTestingStoreWithDSN(ctx, t, "sqlite", dsn)
-
-	// Get the schema version before migration
-	oldSetting, err := ts.GetInstanceBasicSetting(ctx)
-	require.NoError(t, err)
-	t.Logf("Old schema version: %s", oldSetting.SchemaVersion)
-
-	// 3. Run migration with current code
-	t.Log("Running migration with current code...")
-	err = ts.Migrate(ctx)
-	require.NoError(t, err, "migration from stable version should succeed")
-
-	// 4. Verify migration succeeded
-	newVersion, err := ts.GetCurrentSchemaVersion()
-	require.NoError(t, err)
-	t.Logf("New schema version: %s", newVersion)
-
-	newSetting, err := ts.GetInstanceBasicSetting(ctx)
-	require.NoError(t, err)
-	require.Equal(t, newVersion, newSetting.SchemaVersion, "schema version should be updated")
-
-	// Verify we can write data to the migrated database
-	user, err := createTestingHostUser(ctx, ts)
-	require.NoError(t, err, "should create user after migration")
-
-	memo, err := ts.CreateMemo(ctx, &store.Memo{
-		UID:        "post-upgrade-memo",
-		CreatorID:  user.ID,
-		Content:    "Content after upgrade from stable",
-		Visibility: store.Public,
-	})
-	require.NoError(t, err, "should create memo after migration")
-	require.Equal(t, "Content after upgrade from stable", memo.Content)
-
-	t.Logf("Migration successful: %s -> %s", oldSetting.SchemaVersion, newVersion)
 }

@@ -1,27 +1,33 @@
 import {
   ArchiveIcon,
+  BellIcon,
   CheckIcon,
   GlobeIcon,
   InfoIcon,
   LogOutIcon,
   MailPlusIcon,
+  MoreVerticalIcon,
   PaletteIcon,
   SettingsIcon,
   SquareUserIcon,
   User2Icon,
 } from "lucide-react";
+import { matchPath, useLocation } from "react-router-dom";
+import { useAppSidebar } from "@/contexts/AppSidebarContext";
 import { useAuth } from "@/contexts/AuthContext";
 import useCurrentUser from "@/hooks/useCurrentUser";
 import { useDialog } from "@/hooks/useDialog";
 import { useSSEConnectionStatus } from "@/hooks/useLiveMemoRefresh";
 import useNavigateTo from "@/hooks/useNavigateTo";
-import { useUpdateUserGeneralSetting } from "@/hooks/useUserQueries";
+import { useNotifications, useUpdateUserGeneralSetting } from "@/hooks/useUserQueries";
 import { cn } from "@/lib/utils";
 import { Routes } from "@/router";
+import { UserNotification_Status } from "@/types/proto/api/v1/user_service_pb";
 import { getLocaleWithFallback, loadLocale, useTranslate } from "@/utils/i18n";
 import { isTeamsActive } from "@/utils/plan";
 import { getThemeWithFallback, loadTheme, THEME_OPTIONS } from "@/utils/theme";
 import { isSuperUser } from "@/utils/user";
+import { SIDEBAR_LEADING_SLOT_CLASSES, sidebarSurfaceVariants } from "./AppSidebar/sidebar-layout";
 import InviteUserDialog from "./InviteUserDialog";
 import { LocaleSearchList } from "./LocalePicker";
 import UserAvatar from "./UserAvatar";
@@ -29,6 +35,7 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuSeparator,
   DropdownMenuSub,
   DropdownMenuSubContent,
   DropdownMenuSubTrigger,
@@ -43,17 +50,25 @@ interface Props {
 const UserMenu = (props: Props) => {
   const { collapsed } = props;
   const t = useTranslate();
+  const location = useLocation();
   const navigateTo = useNavigateTo();
+  const { setMobileOpen } = useAppSidebar();
   const currentUser = useCurrentUser();
   const { userGeneralSetting, userPackageSetting, refetchSettings, logout } = useAuth();
   const { mutate: updateUserGeneralSetting } = useUpdateUserGeneralSetting(currentUser?.name);
+  const { data: notifications = [] } = useNotifications();
   const sseStatus = useSSEConnectionStatus();
   const currentLocale = getLocaleWithFallback(userGeneralSetting?.locale);
   const currentTheme = getThemeWithFallback(userGeneralSetting?.theme);
-  // Profile, archive and member invites are member surfaces; the operator
-  // invites from the dashboard instead.
+  const inboxActive = Boolean(matchPath(Routes.INBOX, location.pathname));
+  const archivedActive = Boolean(matchPath(Routes.ARCHIVED, location.pathname));
+  const unreadCount = notifications.filter((notification) => notification.status === UserNotification_Status.UNREAD).length;
+  const userLabel = currentUser?.displayName || currentUser?.username || t("common.profile");
+  const triggerLabel = `${userLabel}, ${t("common.more")}${unreadCount > 0 ? `, ${unreadCount} ${t("inbox.unread")}` : ""}`;
+  const inboxLabel = unreadCount > 0 ? `${t("common.inbox")}, ${unreadCount} ${t("inbox.unread")}` : t("common.inbox");
+  // The operator has no notes, so the note surfaces stay out of their menu;
+  // a member invites only while on Teams (the server checks the same thing).
   const operator = isSuperUser(currentUser);
-  // A member invites only while on Teams; the server checks the same thing.
   const canInvite = !operator && isTeamsActive(userPackageSetting);
   const inviteDialog = useDialog();
 
@@ -94,7 +109,7 @@ const UserMenu = (props: Props) => {
     try {
       // Then clear user-specific localStorage items
       // Preserve app-wide settings (theme, locale, view preferences, tag view settings)
-      const keysToPreserve = ["memos-theme", "memos-locale", "memos-view-setting", "tag-view-as-tree", "tag-tree-auto-expand"];
+      const keysToPreserve = ["memos-theme", "memos-locale", "memos-view-setting", "tag-view-as-tree"];
       const keysToRemove: string[] = [];
 
       for (let i = 0; i < localStorage.length; i++) {
@@ -113,23 +128,27 @@ const UserMenu = (props: Props) => {
     window.location.replace(Routes.AUTH);
   };
 
+  const navigateFromMenu = (path: string) => {
+    setMobileOpen(false);
+    navigateTo(path);
+  };
+
   return (
     <>
       <DropdownMenu>
         <DropdownMenuTrigger
-          nativeButton={false}
           disabled={!currentUser}
-          render={
-            <div
-              className={cn("w-auto flex flex-row justify-start items-center cursor-pointer text-foreground", collapsed ? "px-1" : "px-3")}
-            />
-          }
+          aria-label={triggerLabel}
+          className={cn(
+            sidebarSurfaceVariants({ role: collapsed ? "accountCollapsed" : "account" }),
+            "cursor-pointer text-start text-foreground transition-colors hover:bg-sidebar-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring/50 data-popup-open:bg-sidebar-accent",
+          )}
         >
-          <div className="relative shrink-0">
+          <div className={cn(SIDEBAR_LEADING_SLOT_CLASSES, "relative")}>
             {currentUser?.avatarUrl ? (
-              <UserAvatar avatarUrl={currentUser?.avatarUrl} />
+              <UserAvatar className="size-5 rounded-[5px]" avatarUrl={currentUser?.avatarUrl} />
             ) : (
-              <User2Icon className="w-6 mx-auto h-auto text-muted-foreground" />
+              <User2Icon className="me-auto size-4 text-muted-foreground" />
             )}
             {sseStatus !== "connected" && (
               <Tooltip>
@@ -137,7 +156,7 @@ const UserMenu = (props: Props) => {
                   render={
                     <span
                       className={cn(
-                        "absolute -bottom-0.5 -right-0.5 size-2.5 rounded-full border-2 border-background",
+                        "absolute -bottom-0.5 -end-0.5 size-2.5 rounded-full border-2 border-background",
                         sseStatus === "connecting" ? "bg-muted-foreground animate-pulse" : "bg-destructive",
                       )}
                     />
@@ -148,34 +167,69 @@ const UserMenu = (props: Props) => {
             )}
           </div>
           {!collapsed && (
-            <span className="ml-2 text-lg font-medium text-foreground grow truncate">
-              {currentUser?.displayName || currentUser?.username}
+            <span data-sidebar-label className="min-w-0 flex-1 truncate text-start text-[13px] font-medium text-foreground">
+              {userLabel}
+            </span>
+          )}
+          {!collapsed && (
+            <span data-sidebar-trailing className="relative flex size-5 shrink-0 items-center justify-center">
+              <MoreVerticalIcon className="size-4 text-muted-foreground/70" strokeWidth={1.8} />
+              {unreadCount > 0 && (
+                <span
+                  aria-hidden="true"
+                  data-inbox-unread-indicator
+                  className="absolute end-0 top-0 size-1.5 rounded-full bg-primary ring-2 ring-sidebar"
+                />
+              )}
             </span>
           )}
         </DropdownMenuTrigger>
-        <DropdownMenuContent align="start">
+        <DropdownMenuContent align={collapsed ? "start" : "center"} className={cn(!collapsed && "w-[calc(var(--anchor-width)-1.5rem)]")}>
           {!operator && (
-            <DropdownMenuItem onClick={() => navigateTo(`/u/${encodeURIComponent(currentUser?.username ?? "")}`)}>
-              <SquareUserIcon className="size-4 text-muted-foreground" />
-              {t("common.profile")}
-            </DropdownMenuItem>
+            <>
+              <DropdownMenuItem onClick={() => navigateFromMenu(`/u/${encodeURIComponent(currentUser?.username ?? "")}`)}>
+                <SquareUserIcon className="size-4 text-muted-foreground" />
+                {t("common.profile")}
+              </DropdownMenuItem>
+              <DropdownMenuItem
+                aria-label={inboxLabel}
+                aria-current={inboxActive ? "page" : undefined}
+                className={cn(inboxActive && "bg-accent text-accent-foreground")}
+                onClick={() => navigateFromMenu(Routes.INBOX)}
+              >
+                <BellIcon className="size-4 text-muted-foreground" />
+                <span className="min-w-0 flex-1">{t("common.inbox")}</span>
+                {unreadCount > 0 && (
+                  <span
+                    aria-hidden="true"
+                    className="ms-auto min-w-5 rounded-full bg-primary/10 px-1.5 text-center text-[10px] font-medium text-primary"
+                  >
+                    {unreadCount > 99 ? "99+" : unreadCount}
+                  </span>
+                )}
+              </DropdownMenuItem>
+              <DropdownMenuItem
+                aria-current={archivedActive ? "page" : undefined}
+                className={cn(archivedActive && "bg-accent text-accent-foreground")}
+                onClick={() => navigateFromMenu(Routes.ARCHIVED)}
+              >
+                <ArchiveIcon className="size-4 text-muted-foreground" />
+                {t("common.archived")}
+              </DropdownMenuItem>
+              {canInvite && (
+                <DropdownMenuItem
+                  onClick={() => {
+                    setMobileOpen(false);
+                    inviteDialog.open();
+                  }}
+                >
+                  <MailPlusIcon className="size-4 text-muted-foreground" />
+                  {t("setting.member.invite")}
+                </DropdownMenuItem>
+              )}
+              <DropdownMenuSeparator />
+            </>
           )}
-          {!operator && (
-            <DropdownMenuItem onClick={() => navigateTo(Routes.ARCHIVED)}>
-              <ArchiveIcon className="size-4 text-muted-foreground" />
-              {t("common.archived")}
-            </DropdownMenuItem>
-          )}
-          {canInvite && (
-            <DropdownMenuItem onClick={inviteDialog.open}>
-              <MailPlusIcon className="size-4 text-muted-foreground" />
-              {t("setting.member.invite")}
-            </DropdownMenuItem>
-          )}
-          <DropdownMenuItem onClick={() => navigateTo(Routes.ABOUT)}>
-            <InfoIcon className="size-4 text-muted-foreground" />
-            {t("common.about")}
-          </DropdownMenuItem>
           <DropdownMenuSub>
             <DropdownMenuSubTrigger>
               <GlobeIcon className="size-4 text-muted-foreground" />
@@ -200,10 +254,15 @@ const UserMenu = (props: Props) => {
               ))}
             </DropdownMenuSubContent>
           </DropdownMenuSub>
-          <DropdownMenuItem onClick={() => navigateTo(Routes.SETTING)}>
+          <DropdownMenuItem onClick={() => navigateFromMenu(Routes.ABOUT)}>
+            <InfoIcon className="size-4 text-muted-foreground" />
+            {t("common.about")}
+          </DropdownMenuItem>
+          <DropdownMenuItem onClick={() => navigateFromMenu(Routes.SETTING)}>
             <SettingsIcon className="size-4 text-muted-foreground" />
             {t("common.settings")}
           </DropdownMenuItem>
+          <DropdownMenuSeparator />
           <DropdownMenuItem onClick={handleSignOut}>
             <LogOutIcon className="size-4 text-muted-foreground" />
             {t("common.sign-out")}

@@ -8,6 +8,7 @@ package apiv1
 
 import (
 	_ "google.golang.org/genproto/googleapis/api/annotations"
+	httpbody "google.golang.org/genproto/googleapis/api/httpbody"
 	color "google.golang.org/genproto/googleapis/type/color"
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
@@ -78,6 +79,62 @@ func (User_Role) EnumDescriptor() ([]byte, []int) {
 	return file_api_v1_user_service_proto_rawDescGZIP(), []int{0, 0}
 }
 
+// What the importer does with a memo whose UID the user already holds.
+type ImportMemosRequest_ConflictPolicy int32
+
+const (
+	ImportMemosRequest_CONFLICT_POLICY_UNSPECIFIED ImportMemosRequest_ConflictPolicy = 0
+	// Leave the existing memo untouched. This is the default.
+	ImportMemosRequest_SKIP ImportMemosRequest_ConflictPolicy = 1
+	// Update the existing memo's content and metadata from the archive.
+	ImportMemosRequest_REPLACE ImportMemosRequest_ConflictPolicy = 2
+	// Keep the existing memo and create the archive version under a fresh UID.
+	ImportMemosRequest_DUPLICATE ImportMemosRequest_ConflictPolicy = 3
+)
+
+// Enum value maps for ImportMemosRequest_ConflictPolicy.
+var (
+	ImportMemosRequest_ConflictPolicy_name = map[int32]string{
+		0: "CONFLICT_POLICY_UNSPECIFIED",
+		1: "SKIP",
+		2: "REPLACE",
+		3: "DUPLICATE",
+	}
+	ImportMemosRequest_ConflictPolicy_value = map[string]int32{
+		"CONFLICT_POLICY_UNSPECIFIED": 0,
+		"SKIP":                        1,
+		"REPLACE":                     2,
+		"DUPLICATE":                   3,
+	}
+)
+
+func (x ImportMemosRequest_ConflictPolicy) Enum() *ImportMemosRequest_ConflictPolicy {
+	p := new(ImportMemosRequest_ConflictPolicy)
+	*p = x
+	return p
+}
+
+func (x ImportMemosRequest_ConflictPolicy) String() string {
+	return protoimpl.X.EnumStringOf(x.Descriptor(), protoreflect.EnumNumber(x))
+}
+
+func (ImportMemosRequest_ConflictPolicy) Descriptor() protoreflect.EnumDescriptor {
+	return file_api_v1_user_service_proto_enumTypes[1].Descriptor()
+}
+
+func (ImportMemosRequest_ConflictPolicy) Type() protoreflect.EnumType {
+	return &file_api_v1_user_service_proto_enumTypes[1]
+}
+
+func (x ImportMemosRequest_ConflictPolicy) Number() protoreflect.EnumNumber {
+	return protoreflect.EnumNumber(x)
+}
+
+// Deprecated: Use ImportMemosRequest_ConflictPolicy.Descriptor instead.
+func (ImportMemosRequest_ConflictPolicy) EnumDescriptor() ([]byte, []int) {
+	return file_api_v1_user_service_proto_rawDescGZIP(), []int{13, 0}
+}
+
 // Enumeration of user setting keys.
 type UserSetting_Key int32
 
@@ -122,11 +179,11 @@ func (x UserSetting_Key) String() string {
 }
 
 func (UserSetting_Key) Descriptor() protoreflect.EnumDescriptor {
-	return file_api_v1_user_service_proto_enumTypes[1].Descriptor()
+	return file_api_v1_user_service_proto_enumTypes[2].Descriptor()
 }
 
 func (UserSetting_Key) Type() protoreflect.EnumType {
-	return &file_api_v1_user_service_proto_enumTypes[1]
+	return &file_api_v1_user_service_proto_enumTypes[2]
 }
 
 func (x UserSetting_Key) Number() protoreflect.EnumNumber {
@@ -135,7 +192,7 @@ func (x UserSetting_Key) Number() protoreflect.EnumNumber {
 
 // Deprecated: Use UserSetting_Key.Descriptor instead.
 func (UserSetting_Key) EnumDescriptor() ([]byte, []int) {
-	return file_api_v1_user_service_proto_rawDescGZIP(), []int{15, 0}
+	return file_api_v1_user_service_proto_rawDescGZIP(), []int{22, 0}
 }
 
 type UserSetting_PackageSetting_Plan int32
@@ -171,11 +228,11 @@ func (x UserSetting_PackageSetting_Plan) String() string {
 }
 
 func (UserSetting_PackageSetting_Plan) Descriptor() protoreflect.EnumDescriptor {
-	return file_api_v1_user_service_proto_enumTypes[2].Descriptor()
+	return file_api_v1_user_service_proto_enumTypes[3].Descriptor()
 }
 
 func (UserSetting_PackageSetting_Plan) Type() protoreflect.EnumType {
-	return &file_api_v1_user_service_proto_enumTypes[2]
+	return &file_api_v1_user_service_proto_enumTypes[3]
 }
 
 func (x UserSetting_PackageSetting_Plan) Number() protoreflect.EnumNumber {
@@ -184,7 +241,7 @@ func (x UserSetting_PackageSetting_Plan) Number() protoreflect.EnumNumber {
 
 // Deprecated: Use UserSetting_PackageSetting_Plan.Descriptor instead.
 func (UserSetting_PackageSetting_Plan) EnumDescriptor() ([]byte, []int) {
-	return file_api_v1_user_service_proto_rawDescGZIP(), []int{15, 4, 0}
+	return file_api_v1_user_service_proto_rawDescGZIP(), []int{22, 4, 0}
 }
 
 type UserNotification_Status int32
@@ -220,11 +277,11 @@ func (x UserNotification_Status) String() string {
 }
 
 func (UserNotification_Status) Descriptor() protoreflect.EnumDescriptor {
-	return file_api_v1_user_service_proto_enumTypes[3].Descriptor()
+	return file_api_v1_user_service_proto_enumTypes[4].Descriptor()
 }
 
 func (UserNotification_Status) Type() protoreflect.EnumType {
-	return &file_api_v1_user_service_proto_enumTypes[3]
+	return &file_api_v1_user_service_proto_enumTypes[4]
 }
 
 func (x UserNotification_Status) Number() protoreflect.EnumNumber {
@@ -233,7 +290,7 @@ func (x UserNotification_Status) Number() protoreflect.EnumNumber {
 
 // Deprecated: Use UserNotification_Status.Descriptor instead.
 func (UserNotification_Status) EnumDescriptor() ([]byte, []int) {
-	return file_api_v1_user_service_proto_rawDescGZIP(), []int{40, 0}
+	return file_api_v1_user_service_proto_rawDescGZIP(), []int{54, 0}
 }
 
 type UserNotification_Type int32
@@ -242,6 +299,7 @@ const (
 	UserNotification_TYPE_UNSPECIFIED UserNotification_Type = 0
 	UserNotification_MEMO_COMMENT     UserNotification_Type = 1
 	UserNotification_MEMO_MENTION     UserNotification_Type = 2
+	UserNotification_SPACE_INVITATION UserNotification_Type = 3
 )
 
 // Enum value maps for UserNotification_Type.
@@ -250,11 +308,13 @@ var (
 		0: "TYPE_UNSPECIFIED",
 		1: "MEMO_COMMENT",
 		2: "MEMO_MENTION",
+		3: "SPACE_INVITATION",
 	}
 	UserNotification_Type_value = map[string]int32{
 		"TYPE_UNSPECIFIED": 0,
 		"MEMO_COMMENT":     1,
 		"MEMO_MENTION":     2,
+		"SPACE_INVITATION": 3,
 	}
 )
 
@@ -269,11 +329,11 @@ func (x UserNotification_Type) String() string {
 }
 
 func (UserNotification_Type) Descriptor() protoreflect.EnumDescriptor {
-	return file_api_v1_user_service_proto_enumTypes[4].Descriptor()
+	return file_api_v1_user_service_proto_enumTypes[5].Descriptor()
 }
 
 func (UserNotification_Type) Type() protoreflect.EnumType {
-	return &file_api_v1_user_service_proto_enumTypes[4]
+	return &file_api_v1_user_service_proto_enumTypes[5]
 }
 
 func (x UserNotification_Type) Number() protoreflect.EnumNumber {
@@ -282,7 +342,58 @@ func (x UserNotification_Type) Number() protoreflect.EnumNumber {
 
 // Deprecated: Use UserNotification_Type.Descriptor instead.
 func (UserNotification_Type) EnumDescriptor() ([]byte, []int) {
-	return file_api_v1_user_service_proto_rawDescGZIP(), []int{40, 1}
+	return file_api_v1_user_service_proto_rawDescGZIP(), []int{54, 1}
+}
+
+type UserNotification_SpaceInvitationPayload_State int32
+
+const (
+	UserNotification_SpaceInvitationPayload_STATE_UNSPECIFIED UserNotification_SpaceInvitationPayload_State = 0
+	// The receiver has not yet accepted or declined the invitation.
+	UserNotification_SpaceInvitationPayload_PENDING UserNotification_SpaceInvitationPayload_State = 1
+	// The receiver accepted the invitation and is an active member.
+	UserNotification_SpaceInvitationPayload_ACCEPTED UserNotification_SpaceInvitationPayload_State = 2
+)
+
+// Enum value maps for UserNotification_SpaceInvitationPayload_State.
+var (
+	UserNotification_SpaceInvitationPayload_State_name = map[int32]string{
+		0: "STATE_UNSPECIFIED",
+		1: "PENDING",
+		2: "ACCEPTED",
+	}
+	UserNotification_SpaceInvitationPayload_State_value = map[string]int32{
+		"STATE_UNSPECIFIED": 0,
+		"PENDING":           1,
+		"ACCEPTED":          2,
+	}
+)
+
+func (x UserNotification_SpaceInvitationPayload_State) Enum() *UserNotification_SpaceInvitationPayload_State {
+	p := new(UserNotification_SpaceInvitationPayload_State)
+	*p = x
+	return p
+}
+
+func (x UserNotification_SpaceInvitationPayload_State) String() string {
+	return protoimpl.X.EnumStringOf(x.Descriptor(), protoreflect.EnumNumber(x))
+}
+
+func (UserNotification_SpaceInvitationPayload_State) Descriptor() protoreflect.EnumDescriptor {
+	return file_api_v1_user_service_proto_enumTypes[6].Descriptor()
+}
+
+func (UserNotification_SpaceInvitationPayload_State) Type() protoreflect.EnumType {
+	return &file_api_v1_user_service_proto_enumTypes[6]
+}
+
+func (x UserNotification_SpaceInvitationPayload_State) Number() protoreflect.EnumNumber {
+	return protoreflect.EnumNumber(x)
+}
+
+// Deprecated: Use UserNotification_SpaceInvitationPayload_State.Descriptor instead.
+func (UserNotification_SpaceInvitationPayload_State) EnumDescriptor() ([]byte, []int) {
+	return file_api_v1_user_service_proto_rawDescGZIP(), []int{54, 2, 0}
 }
 
 type User struct {
@@ -294,7 +405,9 @@ type User struct {
 	Role User_Role `protobuf:"varint,2,opt,name=role,proto3,enum=memos.api.v1.User_Role" json:"role,omitempty"`
 	// Required. The unique username for login.
 	Username string `protobuf:"bytes,3,opt,name=username,proto3" json:"username,omitempty"`
-	// Optional. The email address of the user.
+	// Optional. The email address of the user. Stored trimmed and lowercased;
+	// empty means no address. An address belongs to at most one user on the
+	// instance, so writes that would reuse one fail with ALREADY_EXISTS.
 	Email string `protobuf:"bytes,4,opt,name=email,proto3" json:"email,omitempty"`
 	// Optional. The display name of the user.
 	DisplayName string `protobuf:"bytes,5,opt,name=display_name,json=displayName,proto3" json:"display_name,omitempty"`
@@ -657,7 +770,7 @@ func (x *BatchGetUsersResponse) GetUsers() []*User {
 type GetUserRequest struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
 	// Required. The resource name of the user.
-	// Format: users/{username}
+	// Format: users/{user}
 	Name string `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
 	// Optional. The fields to return in the response.
 	// If not specified, all fields are returned.
@@ -714,9 +827,9 @@ type CreateUserRequest struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
 	// Required. The user to create.
 	User *User `protobuf:"bytes,1,opt,name=user,proto3" json:"user,omitempty"`
-	// Optional. The user ID to use for this user.
-	// If empty, a unique ID will be generated.
-	// Must match the pattern [a-z0-9-]+
+	// Optional. The resource ID to use for this user. If set, it must equal
+	// user.username and follow the username format.
+	// Format: ^[a-zA-Z0-9]([a-zA-Z0-9-]{0,34}[a-zA-Z0-9])?$
 	UserId string `protobuf:"bytes,2,opt,name=user_id,json=userId,proto3" json:"user_id,omitempty"`
 	// Optional. If set, validate the request but don't actually create the user.
 	ValidateOnly bool `protobuf:"varint,3,opt,name=validate_only,json=validateOnly,proto3" json:"validate_only,omitempty"`
@@ -1042,8 +1155,8 @@ func (x *DeleteUserRequest) GetForce() bool {
 // User statistics messages
 type UserStats struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
-	// The resource name of the user whose stats these are.
-	// Format: users/{user}
+	// The resource name of the user statistics singleton.
+	// Format: users/{user}/stats
 	Name string `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
 	// The stats of memo types.
 	MemoTypeStats *UserStats_MemoTypeStats `protobuf:"bytes,3,opt,name=memo_type_stats,json=memoTypeStats,proto3" json:"memo_type_stats,omitempty"`
@@ -1059,8 +1172,13 @@ type UserStats struct {
 	PinnedMemos []string `protobuf:"bytes,5,rep,name=pinned_memos,json=pinnedMemos,proto3" json:"pinned_memos,omitempty"`
 	// Total memo count.
 	TotalMemoCount int32 `protobuf:"varint,6,opt,name=total_memo_count,json=totalMemoCount,proto3" json:"total_memo_count,omitempty"`
-	unknownFields  protoimpl.UnknownFields
-	sizeCache      protoimpl.SizeCache
+	// Total persisted attachment size in bytes, including unlinked uploads and
+	// attachments in all spaces. Excludes temporary uploads and derived files.
+	// Returned only by GetUserStats for the authenticated user's own stats,
+	// independently of the request's memo filter.
+	AttachmentStorageBytes *int64 `protobuf:"varint,9,opt,name=attachment_storage_bytes,json=attachmentStorageBytes,proto3,oneof" json:"attachment_storage_bytes,omitempty"`
+	unknownFields          protoimpl.UnknownFields
+	sizeCache              protoimpl.SizeCache
 }
 
 func (x *UserStats) Reset() {
@@ -1142,18 +1260,641 @@ func (x *UserStats) GetTotalMemoCount() int32 {
 	return 0
 }
 
-type GetUserStatsRequest struct {
+func (x *UserStats) GetAttachmentStorageBytes() int64 {
+	if x != nil && x.AttachmentStorageBytes != nil {
+		return *x.AttachmentStorageBytes
+	}
+	return 0
+}
+
+type ExportMemosRequest struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
-	// Required. The resource name of the user.
+	// Required. The user whose memos are exported. Must be the caller.
 	// Format: users/{user}
 	Name          string `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
+func (x *ExportMemosRequest) Reset() {
+	*x = ExportMemosRequest{}
+	mi := &file_api_v1_user_service_proto_msgTypes[12]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ExportMemosRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ExportMemosRequest) ProtoMessage() {}
+
+func (x *ExportMemosRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_api_v1_user_service_proto_msgTypes[12]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ExportMemosRequest.ProtoReflect.Descriptor instead.
+func (*ExportMemosRequest) Descriptor() ([]byte, []int) {
+	return file_api_v1_user_service_proto_rawDescGZIP(), []int{12}
+}
+
+func (x *ExportMemosRequest) GetName() string {
+	if x != nil {
+		return x.Name
+	}
+	return ""
+}
+
+type ImportMemosRequest struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// Required. The user who receives the memos. Must be the caller.
+	// Format: users/{user}
+	Name string `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
+	// Required. Start a new upload or continue an existing one.
+	//
+	// Types that are valid to be assigned to Upload:
+	//
+	//	*ImportMemosRequest_Spec
+	//	*ImportMemosRequest_UploadId
+	Upload isImportMemosRequest_Upload `protobuf_oneof:"upload"`
+	// Required. Zero-based byte offset at which data is written. Must equal the
+	// committed size, except when retrying the most recently accepted chunk
+	// with identical bytes and offset, which is accepted without writing again.
+	WriteOffset int64 `protobuf:"varint,4,opt,name=write_offset,json=writeOffset,proto3" json:"write_offset,omitempty"`
+	// Optional. Archive bytes, at most max_chunk_size long. With no data and
+	// finish_write false, the call reports progress without writing, and
+	// write_offset is ignored.
+	Data []byte `protobuf:"bytes,5,opt,name=data,proto3" json:"data,omitempty"`
+	// Optional. Finish the upload after writing data. The committed size must
+	// then equal total_size. The archive is validated and, unless
+	// validate_only is set, imported. Any later call for an imported upload
+	// returns the same report.
+	FinishWrite bool `protobuf:"varint,6,opt,name=finish_write,json=finishWrite,proto3" json:"finish_write,omitempty"`
+	// Optional. On a finishing call, validate the archive and return the plan
+	// without importing. The upload stays staged so a later finishing call can
+	// import it.
+	ValidateOnly bool `protobuf:"varint,7,opt,name=validate_only,json=validateOnly,proto3" json:"validate_only,omitempty"`
+	// Optional. Read on the finishing call that imports. Unspecified means SKIP.
+	ConflictPolicy ImportMemosRequest_ConflictPolicy `protobuf:"varint,8,opt,name=conflict_policy,json=conflictPolicy,proto3,enum=memos.api.v1.ImportMemosRequest_ConflictPolicy" json:"conflict_policy,omitempty"`
+	unknownFields  protoimpl.UnknownFields
+	sizeCache      protoimpl.SizeCache
+}
+
+func (x *ImportMemosRequest) Reset() {
+	*x = ImportMemosRequest{}
+	mi := &file_api_v1_user_service_proto_msgTypes[13]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ImportMemosRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ImportMemosRequest) ProtoMessage() {}
+
+func (x *ImportMemosRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_api_v1_user_service_proto_msgTypes[13]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ImportMemosRequest.ProtoReflect.Descriptor instead.
+func (*ImportMemosRequest) Descriptor() ([]byte, []int) {
+	return file_api_v1_user_service_proto_rawDescGZIP(), []int{13}
+}
+
+func (x *ImportMemosRequest) GetName() string {
+	if x != nil {
+		return x.Name
+	}
+	return ""
+}
+
+func (x *ImportMemosRequest) GetUpload() isImportMemosRequest_Upload {
+	if x != nil {
+		return x.Upload
+	}
+	return nil
+}
+
+func (x *ImportMemosRequest) GetSpec() *ImportMemosSpec {
+	if x != nil {
+		if x, ok := x.Upload.(*ImportMemosRequest_Spec); ok {
+			return x.Spec
+		}
+	}
+	return nil
+}
+
+func (x *ImportMemosRequest) GetUploadId() string {
+	if x != nil {
+		if x, ok := x.Upload.(*ImportMemosRequest_UploadId); ok {
+			return x.UploadId
+		}
+	}
+	return ""
+}
+
+func (x *ImportMemosRequest) GetWriteOffset() int64 {
+	if x != nil {
+		return x.WriteOffset
+	}
+	return 0
+}
+
+func (x *ImportMemosRequest) GetData() []byte {
+	if x != nil {
+		return x.Data
+	}
+	return nil
+}
+
+func (x *ImportMemosRequest) GetFinishWrite() bool {
+	if x != nil {
+		return x.FinishWrite
+	}
+	return false
+}
+
+func (x *ImportMemosRequest) GetValidateOnly() bool {
+	if x != nil {
+		return x.ValidateOnly
+	}
+	return false
+}
+
+func (x *ImportMemosRequest) GetConflictPolicy() ImportMemosRequest_ConflictPolicy {
+	if x != nil {
+		return x.ConflictPolicy
+	}
+	return ImportMemosRequest_CONFLICT_POLICY_UNSPECIFIED
+}
+
+type isImportMemosRequest_Upload interface {
+	isImportMemosRequest_Upload()
+}
+
+type ImportMemosRequest_Spec struct {
+	// Starts a new upload. The same call may also carry data and finish_write.
+	Spec *ImportMemosSpec `protobuf:"bytes,2,opt,name=spec,proto3,oneof"`
+}
+
+type ImportMemosRequest_UploadId struct {
+	// Continues the upload identified by a previous response.
+	UploadId string `protobuf:"bytes,3,opt,name=upload_id,json=uploadId,proto3,oneof"`
+}
+
+func (*ImportMemosRequest_Spec) isImportMemosRequest_Upload() {}
+
+func (*ImportMemosRequest_UploadId) isImportMemosRequest_Upload() {}
+
+type ImportMemosSpec struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// Optional. Total size of the archive in bytes.
+	TotalSize     int64 `protobuf:"varint,1,opt,name=total_size,json=totalSize,proto3" json:"total_size,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ImportMemosSpec) Reset() {
+	*x = ImportMemosSpec{}
+	mi := &file_api_v1_user_service_proto_msgTypes[14]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ImportMemosSpec) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ImportMemosSpec) ProtoMessage() {}
+
+func (x *ImportMemosSpec) ProtoReflect() protoreflect.Message {
+	mi := &file_api_v1_user_service_proto_msgTypes[14]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ImportMemosSpec.ProtoReflect.Descriptor instead.
+func (*ImportMemosSpec) Descriptor() ([]byte, []int) {
+	return file_api_v1_user_service_proto_rawDescGZIP(), []int{14}
+}
+
+func (x *ImportMemosSpec) GetTotalSize() int64 {
+	if x != nil {
+		return x.TotalSize
+	}
+	return 0
+}
+
+type ImportMemosResponse struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// Opaque ID for subsequent calls. This is not a resource name.
+	UploadId string `protobuf:"bytes,1,opt,name=upload_id,json=uploadId,proto3" json:"upload_id,omitempty"`
+	// Number of archive bytes committed so far.
+	CommittedSize int64 `protobuf:"varint,2,opt,name=committed_size,json=committedSize,proto3" json:"committed_size,omitempty"`
+	// Maximum number of data bytes accepted in one call.
+	MaxChunkSize int32 `protobuf:"varint,3,opt,name=max_chunk_size,json=maxChunkSize,proto3" json:"max_chunk_size,omitempty"`
+	// Set once the upload has been finished.
+	//
+	// Types that are valid to be assigned to Result:
+	//
+	//	*ImportMemosResponse_Plan
+	//	*ImportMemosResponse_Report
+	Result        isImportMemosResponse_Result `protobuf_oneof:"result"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ImportMemosResponse) Reset() {
+	*x = ImportMemosResponse{}
+	mi := &file_api_v1_user_service_proto_msgTypes[15]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ImportMemosResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ImportMemosResponse) ProtoMessage() {}
+
+func (x *ImportMemosResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_api_v1_user_service_proto_msgTypes[15]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ImportMemosResponse.ProtoReflect.Descriptor instead.
+func (*ImportMemosResponse) Descriptor() ([]byte, []int) {
+	return file_api_v1_user_service_proto_rawDescGZIP(), []int{15}
+}
+
+func (x *ImportMemosResponse) GetUploadId() string {
+	if x != nil {
+		return x.UploadId
+	}
+	return ""
+}
+
+func (x *ImportMemosResponse) GetCommittedSize() int64 {
+	if x != nil {
+		return x.CommittedSize
+	}
+	return 0
+}
+
+func (x *ImportMemosResponse) GetMaxChunkSize() int32 {
+	if x != nil {
+		return x.MaxChunkSize
+	}
+	return 0
+}
+
+func (x *ImportMemosResponse) GetResult() isImportMemosResponse_Result {
+	if x != nil {
+		return x.Result
+	}
+	return nil
+}
+
+func (x *ImportMemosResponse) GetPlan() *MemoImportPlan {
+	if x != nil {
+		if x, ok := x.Result.(*ImportMemosResponse_Plan); ok {
+			return x.Plan
+		}
+	}
+	return nil
+}
+
+func (x *ImportMemosResponse) GetReport() *MemoImportReport {
+	if x != nil {
+		if x, ok := x.Result.(*ImportMemosResponse_Report); ok {
+			return x.Report
+		}
+	}
+	return nil
+}
+
+type isImportMemosResponse_Result interface {
+	isImportMemosResponse_Result()
+}
+
+type ImportMemosResponse_Plan struct {
+	// What the import would do. Set by a finishing call with validate_only.
+	Plan *MemoImportPlan `protobuf:"bytes,4,opt,name=plan,proto3,oneof"`
+}
+
+type ImportMemosResponse_Report struct {
+	// What the import did. Set by a finishing call that imported.
+	Report *MemoImportReport `protobuf:"bytes,5,opt,name=report,proto3,oneof"`
+}
+
+func (*ImportMemosResponse_Plan) isImportMemosResponse_Result() {}
+
+func (*ImportMemosResponse_Report) isImportMemosResponse_Result() {}
+
+// MemoImportIssue is one warning or failure of an import, tied to the memo
+// UID from the archive when there is one.
+type MemoImportIssue struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// The archive memo UID the issue concerns, if any.
+	Memo          string `protobuf:"bytes,1,opt,name=memo,proto3" json:"memo,omitempty"`
+	Message       string `protobuf:"bytes,2,opt,name=message,proto3" json:"message,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *MemoImportIssue) Reset() {
+	*x = MemoImportIssue{}
+	mi := &file_api_v1_user_service_proto_msgTypes[16]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *MemoImportIssue) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*MemoImportIssue) ProtoMessage() {}
+
+func (x *MemoImportIssue) ProtoReflect() protoreflect.Message {
+	mi := &file_api_v1_user_service_proto_msgTypes[16]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use MemoImportIssue.ProtoReflect.Descriptor instead.
+func (*MemoImportIssue) Descriptor() ([]byte, []int) {
+	return file_api_v1_user_service_proto_rawDescGZIP(), []int{16}
+}
+
+func (x *MemoImportIssue) GetMemo() string {
+	if x != nil {
+		return x.Memo
+	}
+	return ""
+}
+
+func (x *MemoImportIssue) GetMessage() string {
+	if x != nil {
+		return x.Message
+	}
+	return ""
+}
+
+// MemoImportPlan describes what importing a staged archive would do.
+type MemoImportPlan struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// When the archive was written.
+	ExportTime *timestamppb.Timestamp `protobuf:"bytes,1,opt,name=export_time,json=exportTime,proto3" json:"export_time,omitempty"`
+	// Username of the user who exported the archive.
+	Exporter string `protobuf:"bytes,2,opt,name=exporter,proto3" json:"exporter,omitempty"`
+	// The software that wrote the archive.
+	Generator string `protobuf:"bytes,3,opt,name=generator,proto3" json:"generator,omitempty"`
+	// Number of memo records in the archive.
+	Memos int32 `protobuf:"varint,4,opt,name=memos,proto3" json:"memos,omitempty"`
+	// Number of attachment files in the archive.
+	Attachments int32 `protobuf:"varint,5,opt,name=attachments,proto3" json:"attachments,omitempty"`
+	// Memos whose UID nobody on the instance holds.
+	New int32 `protobuf:"varint,6,opt,name=new,proto3" json:"new,omitempty"`
+	// Memos the user already holds; the conflict policy applies to them.
+	Existing int32 `protobuf:"varint,7,opt,name=existing,proto3" json:"existing,omitempty"`
+	// Memos whose UID another account holds; they are imported under fresh UIDs.
+	Renamed int32 `protobuf:"varint,8,opt,name=renamed,proto3" json:"renamed,omitempty"`
+	// Deviations the archive reader corrected while validating.
+	Warnings      []*MemoImportIssue `protobuf:"bytes,9,rep,name=warnings,proto3" json:"warnings,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *MemoImportPlan) Reset() {
+	*x = MemoImportPlan{}
+	mi := &file_api_v1_user_service_proto_msgTypes[17]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *MemoImportPlan) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*MemoImportPlan) ProtoMessage() {}
+
+func (x *MemoImportPlan) ProtoReflect() protoreflect.Message {
+	mi := &file_api_v1_user_service_proto_msgTypes[17]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use MemoImportPlan.ProtoReflect.Descriptor instead.
+func (*MemoImportPlan) Descriptor() ([]byte, []int) {
+	return file_api_v1_user_service_proto_rawDescGZIP(), []int{17}
+}
+
+func (x *MemoImportPlan) GetExportTime() *timestamppb.Timestamp {
+	if x != nil {
+		return x.ExportTime
+	}
+	return nil
+}
+
+func (x *MemoImportPlan) GetExporter() string {
+	if x != nil {
+		return x.Exporter
+	}
+	return ""
+}
+
+func (x *MemoImportPlan) GetGenerator() string {
+	if x != nil {
+		return x.Generator
+	}
+	return ""
+}
+
+func (x *MemoImportPlan) GetMemos() int32 {
+	if x != nil {
+		return x.Memos
+	}
+	return 0
+}
+
+func (x *MemoImportPlan) GetAttachments() int32 {
+	if x != nil {
+		return x.Attachments
+	}
+	return 0
+}
+
+func (x *MemoImportPlan) GetNew() int32 {
+	if x != nil {
+		return x.New
+	}
+	return 0
+}
+
+func (x *MemoImportPlan) GetExisting() int32 {
+	if x != nil {
+		return x.Existing
+	}
+	return 0
+}
+
+func (x *MemoImportPlan) GetRenamed() int32 {
+	if x != nil {
+		return x.Renamed
+	}
+	return 0
+}
+
+func (x *MemoImportPlan) GetWarnings() []*MemoImportIssue {
+	if x != nil {
+		return x.Warnings
+	}
+	return nil
+}
+
+// MemoImportReport is the outcome of an import.
+type MemoImportReport struct {
+	state    protoimpl.MessageState `protogen:"open.v1"`
+	Created  int32                  `protobuf:"varint,1,opt,name=created,proto3" json:"created,omitempty"`
+	Updated  int32                  `protobuf:"varint,2,opt,name=updated,proto3" json:"updated,omitempty"`
+	Skipped  int32                  `protobuf:"varint,3,opt,name=skipped,proto3" json:"skipped,omitempty"`
+	Failed   int32                  `protobuf:"varint,4,opt,name=failed,proto3" json:"failed,omitempty"`
+	Warnings []*MemoImportIssue     `protobuf:"bytes,5,rep,name=warnings,proto3" json:"warnings,omitempty"`
+	// One entry per failed memo, with the reason.
+	Failures      []*MemoImportIssue `protobuf:"bytes,6,rep,name=failures,proto3" json:"failures,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *MemoImportReport) Reset() {
+	*x = MemoImportReport{}
+	mi := &file_api_v1_user_service_proto_msgTypes[18]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *MemoImportReport) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*MemoImportReport) ProtoMessage() {}
+
+func (x *MemoImportReport) ProtoReflect() protoreflect.Message {
+	mi := &file_api_v1_user_service_proto_msgTypes[18]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use MemoImportReport.ProtoReflect.Descriptor instead.
+func (*MemoImportReport) Descriptor() ([]byte, []int) {
+	return file_api_v1_user_service_proto_rawDescGZIP(), []int{18}
+}
+
+func (x *MemoImportReport) GetCreated() int32 {
+	if x != nil {
+		return x.Created
+	}
+	return 0
+}
+
+func (x *MemoImportReport) GetUpdated() int32 {
+	if x != nil {
+		return x.Updated
+	}
+	return 0
+}
+
+func (x *MemoImportReport) GetSkipped() int32 {
+	if x != nil {
+		return x.Skipped
+	}
+	return 0
+}
+
+func (x *MemoImportReport) GetFailed() int32 {
+	if x != nil {
+		return x.Failed
+	}
+	return 0
+}
+
+func (x *MemoImportReport) GetWarnings() []*MemoImportIssue {
+	if x != nil {
+		return x.Warnings
+	}
+	return nil
+}
+
+func (x *MemoImportReport) GetFailures() []*MemoImportIssue {
+	if x != nil {
+		return x.Failures
+	}
+	return nil
+}
+
+type GetUserStatsRequest struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// Required. The resource name of the user.
+	// Format: users/{user}
+	Name string `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
+	// Optional. CEL expression selecting the readable non-comment memos to
+	// include. Supports the same fields as ListMemos, including `space`.
+	Filter        string `protobuf:"bytes,2,opt,name=filter,proto3" json:"filter,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
 func (x *GetUserStatsRequest) Reset() {
 	*x = GetUserStatsRequest{}
-	mi := &file_api_v1_user_service_proto_msgTypes[12]
+	mi := &file_api_v1_user_service_proto_msgTypes[19]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1165,7 +1906,7 @@ func (x *GetUserStatsRequest) String() string {
 func (*GetUserStatsRequest) ProtoMessage() {}
 
 func (x *GetUserStatsRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_api_v1_user_service_proto_msgTypes[12]
+	mi := &file_api_v1_user_service_proto_msgTypes[19]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1178,12 +1919,19 @@ func (x *GetUserStatsRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetUserStatsRequest.ProtoReflect.Descriptor instead.
 func (*GetUserStatsRequest) Descriptor() ([]byte, []int) {
-	return file_api_v1_user_service_proto_rawDescGZIP(), []int{12}
+	return file_api_v1_user_service_proto_rawDescGZIP(), []int{19}
 }
 
 func (x *GetUserStatsRequest) GetName() string {
 	if x != nil {
 		return x.Name
+	}
+	return ""
+}
+
+func (x *GetUserStatsRequest) GetFilter() string {
+	if x != nil {
+		return x.Filter
 	}
 	return ""
 }
@@ -1201,7 +1949,7 @@ type ListAllUserStatsRequest struct {
 
 func (x *ListAllUserStatsRequest) Reset() {
 	*x = ListAllUserStatsRequest{}
-	mi := &file_api_v1_user_service_proto_msgTypes[13]
+	mi := &file_api_v1_user_service_proto_msgTypes[20]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1213,7 +1961,7 @@ func (x *ListAllUserStatsRequest) String() string {
 func (*ListAllUserStatsRequest) ProtoMessage() {}
 
 func (x *ListAllUserStatsRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_api_v1_user_service_proto_msgTypes[13]
+	mi := &file_api_v1_user_service_proto_msgTypes[20]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1226,7 +1974,7 @@ func (x *ListAllUserStatsRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListAllUserStatsRequest.ProtoReflect.Descriptor instead.
 func (*ListAllUserStatsRequest) Descriptor() ([]byte, []int) {
-	return file_api_v1_user_service_proto_rawDescGZIP(), []int{13}
+	return file_api_v1_user_service_proto_rawDescGZIP(), []int{20}
 }
 
 func (x *ListAllUserStatsRequest) GetState() State {
@@ -1253,7 +2001,7 @@ type ListAllUserStatsResponse struct {
 
 func (x *ListAllUserStatsResponse) Reset() {
 	*x = ListAllUserStatsResponse{}
-	mi := &file_api_v1_user_service_proto_msgTypes[14]
+	mi := &file_api_v1_user_service_proto_msgTypes[21]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1265,7 +2013,7 @@ func (x *ListAllUserStatsResponse) String() string {
 func (*ListAllUserStatsResponse) ProtoMessage() {}
 
 func (x *ListAllUserStatsResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_api_v1_user_service_proto_msgTypes[14]
+	mi := &file_api_v1_user_service_proto_msgTypes[21]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1278,7 +2026,7 @@ func (x *ListAllUserStatsResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListAllUserStatsResponse.ProtoReflect.Descriptor instead.
 func (*ListAllUserStatsResponse) Descriptor() ([]byte, []int) {
-	return file_api_v1_user_service_proto_rawDescGZIP(), []int{14}
+	return file_api_v1_user_service_proto_rawDescGZIP(), []int{21}
 }
 
 func (x *ListAllUserStatsResponse) GetStats() []*UserStats {
@@ -1292,7 +2040,7 @@ func (x *ListAllUserStatsResponse) GetStats() []*UserStats {
 type UserSetting struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
 	// The name of the user setting.
-	// Format: users/{username}/settings/{setting}, {setting} is the key for the setting.
+	// Format: users/{user}/settings/{setting}, {setting} is the key for the setting.
 	// For example, "users/steven/settings/GENERAL" for general settings.
 	Name string `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
 	// Types that are valid to be assigned to Value:
@@ -1308,7 +2056,7 @@ type UserSetting struct {
 
 func (x *UserSetting) Reset() {
 	*x = UserSetting{}
-	mi := &file_api_v1_user_service_proto_msgTypes[15]
+	mi := &file_api_v1_user_service_proto_msgTypes[22]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1320,7 +2068,7 @@ func (x *UserSetting) String() string {
 func (*UserSetting) ProtoMessage() {}
 
 func (x *UserSetting) ProtoReflect() protoreflect.Message {
-	mi := &file_api_v1_user_service_proto_msgTypes[15]
+	mi := &file_api_v1_user_service_proto_msgTypes[22]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1333,7 +2081,7 @@ func (x *UserSetting) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UserSetting.ProtoReflect.Descriptor instead.
 func (*UserSetting) Descriptor() ([]byte, []int) {
-	return file_api_v1_user_service_proto_rawDescGZIP(), []int{15}
+	return file_api_v1_user_service_proto_rawDescGZIP(), []int{22}
 }
 
 func (x *UserSetting) GetName() string {
@@ -1425,7 +2173,7 @@ type GetUserSettingRequest struct {
 
 func (x *GetUserSettingRequest) Reset() {
 	*x = GetUserSettingRequest{}
-	mi := &file_api_v1_user_service_proto_msgTypes[16]
+	mi := &file_api_v1_user_service_proto_msgTypes[23]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1437,7 +2185,7 @@ func (x *GetUserSettingRequest) String() string {
 func (*GetUserSettingRequest) ProtoMessage() {}
 
 func (x *GetUserSettingRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_api_v1_user_service_proto_msgTypes[16]
+	mi := &file_api_v1_user_service_proto_msgTypes[23]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1450,7 +2198,7 @@ func (x *GetUserSettingRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetUserSettingRequest.ProtoReflect.Descriptor instead.
 func (*GetUserSettingRequest) Descriptor() ([]byte, []int) {
-	return file_api_v1_user_service_proto_rawDescGZIP(), []int{16}
+	return file_api_v1_user_service_proto_rawDescGZIP(), []int{23}
 }
 
 func (x *GetUserSettingRequest) GetName() string {
@@ -1472,7 +2220,7 @@ type UpdateUserSettingRequest struct {
 
 func (x *UpdateUserSettingRequest) Reset() {
 	*x = UpdateUserSettingRequest{}
-	mi := &file_api_v1_user_service_proto_msgTypes[17]
+	mi := &file_api_v1_user_service_proto_msgTypes[24]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1484,7 +2232,7 @@ func (x *UpdateUserSettingRequest) String() string {
 func (*UpdateUserSettingRequest) ProtoMessage() {}
 
 func (x *UpdateUserSettingRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_api_v1_user_service_proto_msgTypes[17]
+	mi := &file_api_v1_user_service_proto_msgTypes[24]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1497,7 +2245,7 @@ func (x *UpdateUserSettingRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UpdateUserSettingRequest.ProtoReflect.Descriptor instead.
 func (*UpdateUserSettingRequest) Descriptor() ([]byte, []int) {
-	return file_api_v1_user_service_proto_rawDescGZIP(), []int{17}
+	return file_api_v1_user_service_proto_rawDescGZIP(), []int{24}
 }
 
 func (x *UpdateUserSettingRequest) GetSetting() *UserSetting {
@@ -1534,7 +2282,7 @@ type ListUserSettingsRequest struct {
 
 func (x *ListUserSettingsRequest) Reset() {
 	*x = ListUserSettingsRequest{}
-	mi := &file_api_v1_user_service_proto_msgTypes[18]
+	mi := &file_api_v1_user_service_proto_msgTypes[25]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1546,7 +2294,7 @@ func (x *ListUserSettingsRequest) String() string {
 func (*ListUserSettingsRequest) ProtoMessage() {}
 
 func (x *ListUserSettingsRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_api_v1_user_service_proto_msgTypes[18]
+	mi := &file_api_v1_user_service_proto_msgTypes[25]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1559,7 +2307,7 @@ func (x *ListUserSettingsRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListUserSettingsRequest.ProtoReflect.Descriptor instead.
 func (*ListUserSettingsRequest) Descriptor() ([]byte, []int) {
-	return file_api_v1_user_service_proto_rawDescGZIP(), []int{18}
+	return file_api_v1_user_service_proto_rawDescGZIP(), []int{25}
 }
 
 func (x *ListUserSettingsRequest) GetParent() string {
@@ -1597,7 +2345,7 @@ type ListUserSettingsResponse struct {
 
 func (x *ListUserSettingsResponse) Reset() {
 	*x = ListUserSettingsResponse{}
-	mi := &file_api_v1_user_service_proto_msgTypes[19]
+	mi := &file_api_v1_user_service_proto_msgTypes[26]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1609,7 +2357,7 @@ func (x *ListUserSettingsResponse) String() string {
 func (*ListUserSettingsResponse) ProtoMessage() {}
 
 func (x *ListUserSettingsResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_api_v1_user_service_proto_msgTypes[19]
+	mi := &file_api_v1_user_service_proto_msgTypes[26]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1622,7 +2370,7 @@ func (x *ListUserSettingsResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListUserSettingsResponse.ProtoReflect.Descriptor instead.
 func (*ListUserSettingsResponse) Descriptor() ([]byte, []int) {
-	return file_api_v1_user_service_proto_rawDescGZIP(), []int{19}
+	return file_api_v1_user_service_proto_rawDescGZIP(), []int{26}
 }
 
 func (x *ListUserSettingsResponse) GetSettings() []*UserSetting {
@@ -1639,6 +2387,383 @@ func (x *ListUserSettingsResponse) GetNextPageToken() string {
 	return ""
 }
 
+// Saved memo view messages
+type MemoView struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// The resource name of the memo view.
+	// Format: users/{user}/views/{view}
+	Name string `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
+	// The title of the memo view.
+	Title string `protobuf:"bytes,2,opt,name=title,proto3" json:"title,omitempty"`
+	// The CEL filter expression for the memo view, using the same grammar as the
+	// ListMemos `filter` argument. Reuse it by passing this value to ListMemos.
+	Filter string `protobuf:"bytes,3,opt,name=filter,proto3" json:"filter,omitempty"`
+	// Optional. Display icon. Omit when updating with the "icon" mask to reset
+	// to the default view icon.
+	Icon          *MemoView_Icon `protobuf:"bytes,4,opt,name=icon,proto3" json:"icon,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *MemoView) Reset() {
+	*x = MemoView{}
+	mi := &file_api_v1_user_service_proto_msgTypes[27]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *MemoView) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*MemoView) ProtoMessage() {}
+
+func (x *MemoView) ProtoReflect() protoreflect.Message {
+	mi := &file_api_v1_user_service_proto_msgTypes[27]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use MemoView.ProtoReflect.Descriptor instead.
+func (*MemoView) Descriptor() ([]byte, []int) {
+	return file_api_v1_user_service_proto_rawDescGZIP(), []int{27}
+}
+
+func (x *MemoView) GetName() string {
+	if x != nil {
+		return x.Name
+	}
+	return ""
+}
+
+func (x *MemoView) GetTitle() string {
+	if x != nil {
+		return x.Title
+	}
+	return ""
+}
+
+func (x *MemoView) GetFilter() string {
+	if x != nil {
+		return x.Filter
+	}
+	return ""
+}
+
+func (x *MemoView) GetIcon() *MemoView_Icon {
+	if x != nil {
+		return x.Icon
+	}
+	return nil
+}
+
+type ListMemoViewsRequest struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// Required. The parent resource where memo views are listed.
+	// Format: users/{user}
+	Parent        string `protobuf:"bytes,1,opt,name=parent,proto3" json:"parent,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ListMemoViewsRequest) Reset() {
+	*x = ListMemoViewsRequest{}
+	mi := &file_api_v1_user_service_proto_msgTypes[28]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ListMemoViewsRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ListMemoViewsRequest) ProtoMessage() {}
+
+func (x *ListMemoViewsRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_api_v1_user_service_proto_msgTypes[28]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ListMemoViewsRequest.ProtoReflect.Descriptor instead.
+func (*ListMemoViewsRequest) Descriptor() ([]byte, []int) {
+	return file_api_v1_user_service_proto_rawDescGZIP(), []int{28}
+}
+
+func (x *ListMemoViewsRequest) GetParent() string {
+	if x != nil {
+		return x.Parent
+	}
+	return ""
+}
+
+type ListMemoViewsResponse struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// The list of memo views.
+	MemoViews     []*MemoView `protobuf:"bytes,1,rep,name=memo_views,json=memoViews,proto3" json:"memo_views,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ListMemoViewsResponse) Reset() {
+	*x = ListMemoViewsResponse{}
+	mi := &file_api_v1_user_service_proto_msgTypes[29]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ListMemoViewsResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ListMemoViewsResponse) ProtoMessage() {}
+
+func (x *ListMemoViewsResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_api_v1_user_service_proto_msgTypes[29]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ListMemoViewsResponse.ProtoReflect.Descriptor instead.
+func (*ListMemoViewsResponse) Descriptor() ([]byte, []int) {
+	return file_api_v1_user_service_proto_rawDescGZIP(), []int{29}
+}
+
+func (x *ListMemoViewsResponse) GetMemoViews() []*MemoView {
+	if x != nil {
+		return x.MemoViews
+	}
+	return nil
+}
+
+type GetMemoViewRequest struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// Required. The resource name of the memo view to retrieve.
+	// Format: users/{user}/views/{view}
+	Name          string `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GetMemoViewRequest) Reset() {
+	*x = GetMemoViewRequest{}
+	mi := &file_api_v1_user_service_proto_msgTypes[30]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetMemoViewRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetMemoViewRequest) ProtoMessage() {}
+
+func (x *GetMemoViewRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_api_v1_user_service_proto_msgTypes[30]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetMemoViewRequest.ProtoReflect.Descriptor instead.
+func (*GetMemoViewRequest) Descriptor() ([]byte, []int) {
+	return file_api_v1_user_service_proto_rawDescGZIP(), []int{30}
+}
+
+func (x *GetMemoViewRequest) GetName() string {
+	if x != nil {
+		return x.Name
+	}
+	return ""
+}
+
+type CreateMemoViewRequest struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// Required. The parent resource where this memo view will be created.
+	// Format: users/{user}
+	Parent string `protobuf:"bytes,1,opt,name=parent,proto3" json:"parent,omitempty"`
+	// Required. The memo view to create.
+	MemoView *MemoView `protobuf:"bytes,2,opt,name=memo_view,json=memoView,proto3" json:"memo_view,omitempty"`
+	// Optional. If set, validate the request, but do not actually create the memo view.
+	ValidateOnly  bool `protobuf:"varint,3,opt,name=validate_only,json=validateOnly,proto3" json:"validate_only,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *CreateMemoViewRequest) Reset() {
+	*x = CreateMemoViewRequest{}
+	mi := &file_api_v1_user_service_proto_msgTypes[31]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *CreateMemoViewRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*CreateMemoViewRequest) ProtoMessage() {}
+
+func (x *CreateMemoViewRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_api_v1_user_service_proto_msgTypes[31]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use CreateMemoViewRequest.ProtoReflect.Descriptor instead.
+func (*CreateMemoViewRequest) Descriptor() ([]byte, []int) {
+	return file_api_v1_user_service_proto_rawDescGZIP(), []int{31}
+}
+
+func (x *CreateMemoViewRequest) GetParent() string {
+	if x != nil {
+		return x.Parent
+	}
+	return ""
+}
+
+func (x *CreateMemoViewRequest) GetMemoView() *MemoView {
+	if x != nil {
+		return x.MemoView
+	}
+	return nil
+}
+
+func (x *CreateMemoViewRequest) GetValidateOnly() bool {
+	if x != nil {
+		return x.ValidateOnly
+	}
+	return false
+}
+
+type UpdateMemoViewRequest struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// Required. The memo view resource which replaces the resource on the server.
+	MemoView *MemoView `protobuf:"bytes,1,opt,name=memo_view,json=memoView,proto3" json:"memo_view,omitempty"`
+	// Optional. The list of fields to update.
+	UpdateMask    *fieldmaskpb.FieldMask `protobuf:"bytes,2,opt,name=update_mask,json=updateMask,proto3" json:"update_mask,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *UpdateMemoViewRequest) Reset() {
+	*x = UpdateMemoViewRequest{}
+	mi := &file_api_v1_user_service_proto_msgTypes[32]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *UpdateMemoViewRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*UpdateMemoViewRequest) ProtoMessage() {}
+
+func (x *UpdateMemoViewRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_api_v1_user_service_proto_msgTypes[32]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use UpdateMemoViewRequest.ProtoReflect.Descriptor instead.
+func (*UpdateMemoViewRequest) Descriptor() ([]byte, []int) {
+	return file_api_v1_user_service_proto_rawDescGZIP(), []int{32}
+}
+
+func (x *UpdateMemoViewRequest) GetMemoView() *MemoView {
+	if x != nil {
+		return x.MemoView
+	}
+	return nil
+}
+
+func (x *UpdateMemoViewRequest) GetUpdateMask() *fieldmaskpb.FieldMask {
+	if x != nil {
+		return x.UpdateMask
+	}
+	return nil
+}
+
+type DeleteMemoViewRequest struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// Required. The resource name of the memo view to delete.
+	// Format: users/{user}/views/{view}
+	Name          string `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *DeleteMemoViewRequest) Reset() {
+	*x = DeleteMemoViewRequest{}
+	mi := &file_api_v1_user_service_proto_msgTypes[33]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *DeleteMemoViewRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*DeleteMemoViewRequest) ProtoMessage() {}
+
+func (x *DeleteMemoViewRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_api_v1_user_service_proto_msgTypes[33]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use DeleteMemoViewRequest.ProtoReflect.Descriptor instead.
+func (*DeleteMemoViewRequest) Descriptor() ([]byte, []int) {
+	return file_api_v1_user_service_proto_rawDescGZIP(), []int{33}
+}
+
+func (x *DeleteMemoViewRequest) GetName() string {
+	if x != nil {
+		return x.Name
+	}
+	return ""
+}
+
 // LinkedIdentity represents an SSO identity linked to a user account.
 type LinkedIdentity struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
@@ -1646,7 +2771,7 @@ type LinkedIdentity struct {
 	// Format: users/{user}/linkedIdentities/{linked_identity}
 	Name string `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
 	// The resource name of the identity provider.
-	// Format: identity-providers/{uid}
+	// Format: identity-providers/{idp}
 	IdpName string `protobuf:"bytes,2,opt,name=idp_name,json=idpName,proto3" json:"idp_name,omitempty"`
 	// The external user identifier from the identity provider.
 	ExternUid     string `protobuf:"bytes,3,opt,name=extern_uid,json=externUid,proto3" json:"extern_uid,omitempty"`
@@ -1656,7 +2781,7 @@ type LinkedIdentity struct {
 
 func (x *LinkedIdentity) Reset() {
 	*x = LinkedIdentity{}
-	mi := &file_api_v1_user_service_proto_msgTypes[20]
+	mi := &file_api_v1_user_service_proto_msgTypes[34]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1668,7 +2793,7 @@ func (x *LinkedIdentity) String() string {
 func (*LinkedIdentity) ProtoMessage() {}
 
 func (x *LinkedIdentity) ProtoReflect() protoreflect.Message {
-	mi := &file_api_v1_user_service_proto_msgTypes[20]
+	mi := &file_api_v1_user_service_proto_msgTypes[34]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1681,7 +2806,7 @@ func (x *LinkedIdentity) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use LinkedIdentity.ProtoReflect.Descriptor instead.
 func (*LinkedIdentity) Descriptor() ([]byte, []int) {
-	return file_api_v1_user_service_proto_rawDescGZIP(), []int{20}
+	return file_api_v1_user_service_proto_rawDescGZIP(), []int{34}
 }
 
 func (x *LinkedIdentity) GetName() string {
@@ -1716,7 +2841,7 @@ type ListLinkedIdentitiesRequest struct {
 
 func (x *ListLinkedIdentitiesRequest) Reset() {
 	*x = ListLinkedIdentitiesRequest{}
-	mi := &file_api_v1_user_service_proto_msgTypes[21]
+	mi := &file_api_v1_user_service_proto_msgTypes[35]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1728,7 +2853,7 @@ func (x *ListLinkedIdentitiesRequest) String() string {
 func (*ListLinkedIdentitiesRequest) ProtoMessage() {}
 
 func (x *ListLinkedIdentitiesRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_api_v1_user_service_proto_msgTypes[21]
+	mi := &file_api_v1_user_service_proto_msgTypes[35]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1741,7 +2866,7 @@ func (x *ListLinkedIdentitiesRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListLinkedIdentitiesRequest.ProtoReflect.Descriptor instead.
 func (*ListLinkedIdentitiesRequest) Descriptor() ([]byte, []int) {
-	return file_api_v1_user_service_proto_rawDescGZIP(), []int{21}
+	return file_api_v1_user_service_proto_rawDescGZIP(), []int{35}
 }
 
 func (x *ListLinkedIdentitiesRequest) GetParent() string {
@@ -1761,7 +2886,7 @@ type ListLinkedIdentitiesResponse struct {
 
 func (x *ListLinkedIdentitiesResponse) Reset() {
 	*x = ListLinkedIdentitiesResponse{}
-	mi := &file_api_v1_user_service_proto_msgTypes[22]
+	mi := &file_api_v1_user_service_proto_msgTypes[36]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1773,7 +2898,7 @@ func (x *ListLinkedIdentitiesResponse) String() string {
 func (*ListLinkedIdentitiesResponse) ProtoMessage() {}
 
 func (x *ListLinkedIdentitiesResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_api_v1_user_service_proto_msgTypes[22]
+	mi := &file_api_v1_user_service_proto_msgTypes[36]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1786,7 +2911,7 @@ func (x *ListLinkedIdentitiesResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListLinkedIdentitiesResponse.ProtoReflect.Descriptor instead.
 func (*ListLinkedIdentitiesResponse) Descriptor() ([]byte, []int) {
-	return file_api_v1_user_service_proto_rawDescGZIP(), []int{22}
+	return file_api_v1_user_service_proto_rawDescGZIP(), []int{36}
 }
 
 func (x *ListLinkedIdentitiesResponse) GetLinkedIdentities() []*LinkedIdentity {
@@ -1802,7 +2927,7 @@ type CreateLinkedIdentityRequest struct {
 	// Format: users/{user}
 	Parent string `protobuf:"bytes,1,opt,name=parent,proto3" json:"parent,omitempty"`
 	// Required. The identity provider to link.
-	// Format: identity-providers/{uid}
+	// Format: identity-providers/{idp}
 	IdpName string `protobuf:"bytes,2,opt,name=idp_name,json=idpName,proto3" json:"idp_name,omitempty"`
 	// Required. The authorization code from the identity provider.
 	Code string `protobuf:"bytes,3,opt,name=code,proto3" json:"code,omitempty"`
@@ -1816,7 +2941,7 @@ type CreateLinkedIdentityRequest struct {
 
 func (x *CreateLinkedIdentityRequest) Reset() {
 	*x = CreateLinkedIdentityRequest{}
-	mi := &file_api_v1_user_service_proto_msgTypes[23]
+	mi := &file_api_v1_user_service_proto_msgTypes[37]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1828,7 +2953,7 @@ func (x *CreateLinkedIdentityRequest) String() string {
 func (*CreateLinkedIdentityRequest) ProtoMessage() {}
 
 func (x *CreateLinkedIdentityRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_api_v1_user_service_proto_msgTypes[23]
+	mi := &file_api_v1_user_service_proto_msgTypes[37]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1841,7 +2966,7 @@ func (x *CreateLinkedIdentityRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CreateLinkedIdentityRequest.ProtoReflect.Descriptor instead.
 func (*CreateLinkedIdentityRequest) Descriptor() ([]byte, []int) {
-	return file_api_v1_user_service_proto_rawDescGZIP(), []int{23}
+	return file_api_v1_user_service_proto_rawDescGZIP(), []int{37}
 }
 
 func (x *CreateLinkedIdentityRequest) GetParent() string {
@@ -1890,7 +3015,7 @@ type GetLinkedIdentityRequest struct {
 
 func (x *GetLinkedIdentityRequest) Reset() {
 	*x = GetLinkedIdentityRequest{}
-	mi := &file_api_v1_user_service_proto_msgTypes[24]
+	mi := &file_api_v1_user_service_proto_msgTypes[38]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1902,7 +3027,7 @@ func (x *GetLinkedIdentityRequest) String() string {
 func (*GetLinkedIdentityRequest) ProtoMessage() {}
 
 func (x *GetLinkedIdentityRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_api_v1_user_service_proto_msgTypes[24]
+	mi := &file_api_v1_user_service_proto_msgTypes[38]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1915,7 +3040,7 @@ func (x *GetLinkedIdentityRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetLinkedIdentityRequest.ProtoReflect.Descriptor instead.
 func (*GetLinkedIdentityRequest) Descriptor() ([]byte, []int) {
-	return file_api_v1_user_service_proto_rawDescGZIP(), []int{24}
+	return file_api_v1_user_service_proto_rawDescGZIP(), []int{38}
 }
 
 func (x *GetLinkedIdentityRequest) GetName() string {
@@ -1936,7 +3061,7 @@ type DeleteLinkedIdentityRequest struct {
 
 func (x *DeleteLinkedIdentityRequest) Reset() {
 	*x = DeleteLinkedIdentityRequest{}
-	mi := &file_api_v1_user_service_proto_msgTypes[25]
+	mi := &file_api_v1_user_service_proto_msgTypes[39]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1948,7 +3073,7 @@ func (x *DeleteLinkedIdentityRequest) String() string {
 func (*DeleteLinkedIdentityRequest) ProtoMessage() {}
 
 func (x *DeleteLinkedIdentityRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_api_v1_user_service_proto_msgTypes[25]
+	mi := &file_api_v1_user_service_proto_msgTypes[39]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1961,7 +3086,7 @@ func (x *DeleteLinkedIdentityRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DeleteLinkedIdentityRequest.ProtoReflect.Descriptor instead.
 func (*DeleteLinkedIdentityRequest) Descriptor() ([]byte, []int) {
-	return file_api_v1_user_service_proto_rawDescGZIP(), []int{25}
+	return file_api_v1_user_service_proto_rawDescGZIP(), []int{39}
 }
 
 func (x *DeleteLinkedIdentityRequest) GetName() string {
@@ -1992,7 +3117,7 @@ type PersonalAccessToken struct {
 
 func (x *PersonalAccessToken) Reset() {
 	*x = PersonalAccessToken{}
-	mi := &file_api_v1_user_service_proto_msgTypes[26]
+	mi := &file_api_v1_user_service_proto_msgTypes[40]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2004,7 +3129,7 @@ func (x *PersonalAccessToken) String() string {
 func (*PersonalAccessToken) ProtoMessage() {}
 
 func (x *PersonalAccessToken) ProtoReflect() protoreflect.Message {
-	mi := &file_api_v1_user_service_proto_msgTypes[26]
+	mi := &file_api_v1_user_service_proto_msgTypes[40]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2017,7 +3142,7 @@ func (x *PersonalAccessToken) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use PersonalAccessToken.ProtoReflect.Descriptor instead.
 func (*PersonalAccessToken) Descriptor() ([]byte, []int) {
-	return file_api_v1_user_service_proto_rawDescGZIP(), []int{26}
+	return file_api_v1_user_service_proto_rawDescGZIP(), []int{40}
 }
 
 func (x *PersonalAccessToken) GetName() string {
@@ -2070,7 +3195,7 @@ type ListPersonalAccessTokensRequest struct {
 
 func (x *ListPersonalAccessTokensRequest) Reset() {
 	*x = ListPersonalAccessTokensRequest{}
-	mi := &file_api_v1_user_service_proto_msgTypes[27]
+	mi := &file_api_v1_user_service_proto_msgTypes[41]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2082,7 +3207,7 @@ func (x *ListPersonalAccessTokensRequest) String() string {
 func (*ListPersonalAccessTokensRequest) ProtoMessage() {}
 
 func (x *ListPersonalAccessTokensRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_api_v1_user_service_proto_msgTypes[27]
+	mi := &file_api_v1_user_service_proto_msgTypes[41]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2095,7 +3220,7 @@ func (x *ListPersonalAccessTokensRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListPersonalAccessTokensRequest.ProtoReflect.Descriptor instead.
 func (*ListPersonalAccessTokensRequest) Descriptor() ([]byte, []int) {
-	return file_api_v1_user_service_proto_rawDescGZIP(), []int{27}
+	return file_api_v1_user_service_proto_rawDescGZIP(), []int{41}
 }
 
 func (x *ListPersonalAccessTokensRequest) GetParent() string {
@@ -2131,7 +3256,7 @@ type ListPersonalAccessTokensResponse struct {
 
 func (x *ListPersonalAccessTokensResponse) Reset() {
 	*x = ListPersonalAccessTokensResponse{}
-	mi := &file_api_v1_user_service_proto_msgTypes[28]
+	mi := &file_api_v1_user_service_proto_msgTypes[42]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2143,7 +3268,7 @@ func (x *ListPersonalAccessTokensResponse) String() string {
 func (*ListPersonalAccessTokensResponse) ProtoMessage() {}
 
 func (x *ListPersonalAccessTokensResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_api_v1_user_service_proto_msgTypes[28]
+	mi := &file_api_v1_user_service_proto_msgTypes[42]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2156,7 +3281,7 @@ func (x *ListPersonalAccessTokensResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListPersonalAccessTokensResponse.ProtoReflect.Descriptor instead.
 func (*ListPersonalAccessTokensResponse) Descriptor() ([]byte, []int) {
-	return file_api_v1_user_service_proto_rawDescGZIP(), []int{28}
+	return file_api_v1_user_service_proto_rawDescGZIP(), []int{42}
 }
 
 func (x *ListPersonalAccessTokensResponse) GetPersonalAccessTokens() []*PersonalAccessToken {
@@ -2188,7 +3313,7 @@ type CreatePersonalAccessTokenRequest struct {
 
 func (x *CreatePersonalAccessTokenRequest) Reset() {
 	*x = CreatePersonalAccessTokenRequest{}
-	mi := &file_api_v1_user_service_proto_msgTypes[29]
+	mi := &file_api_v1_user_service_proto_msgTypes[43]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2200,7 +3325,7 @@ func (x *CreatePersonalAccessTokenRequest) String() string {
 func (*CreatePersonalAccessTokenRequest) ProtoMessage() {}
 
 func (x *CreatePersonalAccessTokenRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_api_v1_user_service_proto_msgTypes[29]
+	mi := &file_api_v1_user_service_proto_msgTypes[43]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2213,7 +3338,7 @@ func (x *CreatePersonalAccessTokenRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CreatePersonalAccessTokenRequest.ProtoReflect.Descriptor instead.
 func (*CreatePersonalAccessTokenRequest) Descriptor() ([]byte, []int) {
-	return file_api_v1_user_service_proto_rawDescGZIP(), []int{29}
+	return file_api_v1_user_service_proto_rawDescGZIP(), []int{43}
 }
 
 func (x *CreatePersonalAccessTokenRequest) GetParent() string {
@@ -2250,7 +3375,7 @@ type CreatePersonalAccessTokenResponse struct {
 
 func (x *CreatePersonalAccessTokenResponse) Reset() {
 	*x = CreatePersonalAccessTokenResponse{}
-	mi := &file_api_v1_user_service_proto_msgTypes[30]
+	mi := &file_api_v1_user_service_proto_msgTypes[44]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2262,7 +3387,7 @@ func (x *CreatePersonalAccessTokenResponse) String() string {
 func (*CreatePersonalAccessTokenResponse) ProtoMessage() {}
 
 func (x *CreatePersonalAccessTokenResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_api_v1_user_service_proto_msgTypes[30]
+	mi := &file_api_v1_user_service_proto_msgTypes[44]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2275,7 +3400,7 @@ func (x *CreatePersonalAccessTokenResponse) ProtoReflect() protoreflect.Message 
 
 // Deprecated: Use CreatePersonalAccessTokenResponse.ProtoReflect.Descriptor instead.
 func (*CreatePersonalAccessTokenResponse) Descriptor() ([]byte, []int) {
-	return file_api_v1_user_service_proto_rawDescGZIP(), []int{30}
+	return file_api_v1_user_service_proto_rawDescGZIP(), []int{44}
 }
 
 func (x *CreatePersonalAccessTokenResponse) GetPersonalAccessToken() *PersonalAccessToken {
@@ -2303,7 +3428,7 @@ type DeletePersonalAccessTokenRequest struct {
 
 func (x *DeletePersonalAccessTokenRequest) Reset() {
 	*x = DeletePersonalAccessTokenRequest{}
-	mi := &file_api_v1_user_service_proto_msgTypes[31]
+	mi := &file_api_v1_user_service_proto_msgTypes[45]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2315,7 +3440,7 @@ func (x *DeletePersonalAccessTokenRequest) String() string {
 func (*DeletePersonalAccessTokenRequest) ProtoMessage() {}
 
 func (x *DeletePersonalAccessTokenRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_api_v1_user_service_proto_msgTypes[31]
+	mi := &file_api_v1_user_service_proto_msgTypes[45]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2328,7 +3453,7 @@ func (x *DeletePersonalAccessTokenRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DeletePersonalAccessTokenRequest.ProtoReflect.Descriptor instead.
 func (*DeletePersonalAccessTokenRequest) Descriptor() ([]byte, []int) {
-	return file_api_v1_user_service_proto_rawDescGZIP(), []int{31}
+	return file_api_v1_user_service_proto_rawDescGZIP(), []int{45}
 }
 
 func (x *DeletePersonalAccessTokenRequest) GetName() string {
@@ -2363,7 +3488,7 @@ type UserWebhook struct {
 
 func (x *UserWebhook) Reset() {
 	*x = UserWebhook{}
-	mi := &file_api_v1_user_service_proto_msgTypes[32]
+	mi := &file_api_v1_user_service_proto_msgTypes[46]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2375,7 +3500,7 @@ func (x *UserWebhook) String() string {
 func (*UserWebhook) ProtoMessage() {}
 
 func (x *UserWebhook) ProtoReflect() protoreflect.Message {
-	mi := &file_api_v1_user_service_proto_msgTypes[32]
+	mi := &file_api_v1_user_service_proto_msgTypes[46]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2388,7 +3513,7 @@ func (x *UserWebhook) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UserWebhook.ProtoReflect.Descriptor instead.
 func (*UserWebhook) Descriptor() ([]byte, []int) {
-	return file_api_v1_user_service_proto_rawDescGZIP(), []int{32}
+	return file_api_v1_user_service_proto_rawDescGZIP(), []int{46}
 }
 
 func (x *UserWebhook) GetName() string {
@@ -2451,7 +3576,7 @@ type ListUserWebhooksRequest struct {
 
 func (x *ListUserWebhooksRequest) Reset() {
 	*x = ListUserWebhooksRequest{}
-	mi := &file_api_v1_user_service_proto_msgTypes[33]
+	mi := &file_api_v1_user_service_proto_msgTypes[47]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2463,7 +3588,7 @@ func (x *ListUserWebhooksRequest) String() string {
 func (*ListUserWebhooksRequest) ProtoMessage() {}
 
 func (x *ListUserWebhooksRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_api_v1_user_service_proto_msgTypes[33]
+	mi := &file_api_v1_user_service_proto_msgTypes[47]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2476,7 +3601,7 @@ func (x *ListUserWebhooksRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListUserWebhooksRequest.ProtoReflect.Descriptor instead.
 func (*ListUserWebhooksRequest) Descriptor() ([]byte, []int) {
-	return file_api_v1_user_service_proto_rawDescGZIP(), []int{33}
+	return file_api_v1_user_service_proto_rawDescGZIP(), []int{47}
 }
 
 func (x *ListUserWebhooksRequest) GetParent() string {
@@ -2496,7 +3621,7 @@ type ListUserWebhooksResponse struct {
 
 func (x *ListUserWebhooksResponse) Reset() {
 	*x = ListUserWebhooksResponse{}
-	mi := &file_api_v1_user_service_proto_msgTypes[34]
+	mi := &file_api_v1_user_service_proto_msgTypes[48]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2508,7 +3633,7 @@ func (x *ListUserWebhooksResponse) String() string {
 func (*ListUserWebhooksResponse) ProtoMessage() {}
 
 func (x *ListUserWebhooksResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_api_v1_user_service_proto_msgTypes[34]
+	mi := &file_api_v1_user_service_proto_msgTypes[48]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2521,7 +3646,7 @@ func (x *ListUserWebhooksResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListUserWebhooksResponse.ProtoReflect.Descriptor instead.
 func (*ListUserWebhooksResponse) Descriptor() ([]byte, []int) {
-	return file_api_v1_user_service_proto_rawDescGZIP(), []int{34}
+	return file_api_v1_user_service_proto_rawDescGZIP(), []int{48}
 }
 
 func (x *ListUserWebhooksResponse) GetWebhooks() []*UserWebhook {
@@ -2544,7 +3669,7 @@ type CreateUserWebhookRequest struct {
 
 func (x *CreateUserWebhookRequest) Reset() {
 	*x = CreateUserWebhookRequest{}
-	mi := &file_api_v1_user_service_proto_msgTypes[35]
+	mi := &file_api_v1_user_service_proto_msgTypes[49]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2556,7 +3681,7 @@ func (x *CreateUserWebhookRequest) String() string {
 func (*CreateUserWebhookRequest) ProtoMessage() {}
 
 func (x *CreateUserWebhookRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_api_v1_user_service_proto_msgTypes[35]
+	mi := &file_api_v1_user_service_proto_msgTypes[49]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2569,7 +3694,7 @@ func (x *CreateUserWebhookRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CreateUserWebhookRequest.ProtoReflect.Descriptor instead.
 func (*CreateUserWebhookRequest) Descriptor() ([]byte, []int) {
-	return file_api_v1_user_service_proto_rawDescGZIP(), []int{35}
+	return file_api_v1_user_service_proto_rawDescGZIP(), []int{49}
 }
 
 func (x *CreateUserWebhookRequest) GetParent() string {
@@ -2598,7 +3723,7 @@ type UpdateUserWebhookRequest struct {
 
 func (x *UpdateUserWebhookRequest) Reset() {
 	*x = UpdateUserWebhookRequest{}
-	mi := &file_api_v1_user_service_proto_msgTypes[36]
+	mi := &file_api_v1_user_service_proto_msgTypes[50]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2610,7 +3735,7 @@ func (x *UpdateUserWebhookRequest) String() string {
 func (*UpdateUserWebhookRequest) ProtoMessage() {}
 
 func (x *UpdateUserWebhookRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_api_v1_user_service_proto_msgTypes[36]
+	mi := &file_api_v1_user_service_proto_msgTypes[50]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2623,7 +3748,7 @@ func (x *UpdateUserWebhookRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UpdateUserWebhookRequest.ProtoReflect.Descriptor instead.
 func (*UpdateUserWebhookRequest) Descriptor() ([]byte, []int) {
-	return file_api_v1_user_service_proto_rawDescGZIP(), []int{36}
+	return file_api_v1_user_service_proto_rawDescGZIP(), []int{50}
 }
 
 func (x *UpdateUserWebhookRequest) GetWebhook() *UserWebhook {
@@ -2651,7 +3776,7 @@ type DeleteUserWebhookRequest struct {
 
 func (x *DeleteUserWebhookRequest) Reset() {
 	*x = DeleteUserWebhookRequest{}
-	mi := &file_api_v1_user_service_proto_msgTypes[37]
+	mi := &file_api_v1_user_service_proto_msgTypes[51]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2663,7 +3788,7 @@ func (x *DeleteUserWebhookRequest) String() string {
 func (*DeleteUserWebhookRequest) ProtoMessage() {}
 
 func (x *DeleteUserWebhookRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_api_v1_user_service_proto_msgTypes[37]
+	mi := &file_api_v1_user_service_proto_msgTypes[51]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2676,7 +3801,7 @@ func (x *DeleteUserWebhookRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DeleteUserWebhookRequest.ProtoReflect.Descriptor instead.
 func (*DeleteUserWebhookRequest) Descriptor() ([]byte, []int) {
-	return file_api_v1_user_service_proto_rawDescGZIP(), []int{37}
+	return file_api_v1_user_service_proto_rawDescGZIP(), []int{51}
 }
 
 func (x *DeleteUserWebhookRequest) GetName() string {
@@ -2697,7 +3822,7 @@ type GetUserWebhookSigningSecretRequest struct {
 
 func (x *GetUserWebhookSigningSecretRequest) Reset() {
 	*x = GetUserWebhookSigningSecretRequest{}
-	mi := &file_api_v1_user_service_proto_msgTypes[38]
+	mi := &file_api_v1_user_service_proto_msgTypes[52]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2709,7 +3834,7 @@ func (x *GetUserWebhookSigningSecretRequest) String() string {
 func (*GetUserWebhookSigningSecretRequest) ProtoMessage() {}
 
 func (x *GetUserWebhookSigningSecretRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_api_v1_user_service_proto_msgTypes[38]
+	mi := &file_api_v1_user_service_proto_msgTypes[52]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2722,7 +3847,7 @@ func (x *GetUserWebhookSigningSecretRequest) ProtoReflect() protoreflect.Message
 
 // Deprecated: Use GetUserWebhookSigningSecretRequest.ProtoReflect.Descriptor instead.
 func (*GetUserWebhookSigningSecretRequest) Descriptor() ([]byte, []int) {
-	return file_api_v1_user_service_proto_rawDescGZIP(), []int{38}
+	return file_api_v1_user_service_proto_rawDescGZIP(), []int{52}
 }
 
 func (x *GetUserWebhookSigningSecretRequest) GetName() string {
@@ -2742,7 +3867,7 @@ type GetUserWebhookSigningSecretResponse struct {
 
 func (x *GetUserWebhookSigningSecretResponse) Reset() {
 	*x = GetUserWebhookSigningSecretResponse{}
-	mi := &file_api_v1_user_service_proto_msgTypes[39]
+	mi := &file_api_v1_user_service_proto_msgTypes[53]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2754,7 +3879,7 @@ func (x *GetUserWebhookSigningSecretResponse) String() string {
 func (*GetUserWebhookSigningSecretResponse) ProtoMessage() {}
 
 func (x *GetUserWebhookSigningSecretResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_api_v1_user_service_proto_msgTypes[39]
+	mi := &file_api_v1_user_service_proto_msgTypes[53]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2767,7 +3892,7 @@ func (x *GetUserWebhookSigningSecretResponse) ProtoReflect() protoreflect.Messag
 
 // Deprecated: Use GetUserWebhookSigningSecretResponse.ProtoReflect.Descriptor instead.
 func (*GetUserWebhookSigningSecretResponse) Descriptor() ([]byte, []int) {
-	return file_api_v1_user_service_proto_rawDescGZIP(), []int{39}
+	return file_api_v1_user_service_proto_rawDescGZIP(), []int{53}
 }
 
 func (x *GetUserWebhookSigningSecretResponse) GetSigningSecret() string {
@@ -2797,6 +3922,7 @@ type UserNotification struct {
 	//
 	//	*UserNotification_MemoComment
 	//	*UserNotification_MemoMention
+	//	*UserNotification_SpaceInvitation
 	Payload       isUserNotification_Payload `protobuf_oneof:"payload"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
@@ -2804,7 +3930,7 @@ type UserNotification struct {
 
 func (x *UserNotification) Reset() {
 	*x = UserNotification{}
-	mi := &file_api_v1_user_service_proto_msgTypes[40]
+	mi := &file_api_v1_user_service_proto_msgTypes[54]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2816,7 +3942,7 @@ func (x *UserNotification) String() string {
 func (*UserNotification) ProtoMessage() {}
 
 func (x *UserNotification) ProtoReflect() protoreflect.Message {
-	mi := &file_api_v1_user_service_proto_msgTypes[40]
+	mi := &file_api_v1_user_service_proto_msgTypes[54]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2829,7 +3955,7 @@ func (x *UserNotification) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UserNotification.ProtoReflect.Descriptor instead.
 func (*UserNotification) Descriptor() ([]byte, []int) {
-	return file_api_v1_user_service_proto_rawDescGZIP(), []int{40}
+	return file_api_v1_user_service_proto_rawDescGZIP(), []int{54}
 }
 
 func (x *UserNotification) GetName() string {
@@ -2899,6 +4025,15 @@ func (x *UserNotification) GetMemoMention() *UserNotification_MemoMentionPayload
 	return nil
 }
 
+func (x *UserNotification) GetSpaceInvitation() *UserNotification_SpaceInvitationPayload {
+	if x != nil {
+		if x, ok := x.Payload.(*UserNotification_SpaceInvitation); ok {
+			return x.SpaceInvitation
+		}
+	}
+	return nil
+}
+
 type isUserNotification_Payload interface {
 	isUserNotification_Payload()
 }
@@ -2911,9 +4046,15 @@ type UserNotification_MemoMention struct {
 	MemoMention *UserNotification_MemoMentionPayload `protobuf:"bytes,7,opt,name=memo_mention,json=memoMention,proto3,oneof"`
 }
 
+type UserNotification_SpaceInvitation struct {
+	SpaceInvitation *UserNotification_SpaceInvitationPayload `protobuf:"bytes,9,opt,name=space_invitation,json=spaceInvitation,proto3,oneof"`
+}
+
 func (*UserNotification_MemoComment) isUserNotification_Payload() {}
 
 func (*UserNotification_MemoMention) isUserNotification_Payload() {}
+
+func (*UserNotification_SpaceInvitation) isUserNotification_Payload() {}
 
 type ListUserNotificationsRequest struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
@@ -2929,7 +4070,7 @@ type ListUserNotificationsRequest struct {
 
 func (x *ListUserNotificationsRequest) Reset() {
 	*x = ListUserNotificationsRequest{}
-	mi := &file_api_v1_user_service_proto_msgTypes[41]
+	mi := &file_api_v1_user_service_proto_msgTypes[55]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2941,7 +4082,7 @@ func (x *ListUserNotificationsRequest) String() string {
 func (*ListUserNotificationsRequest) ProtoMessage() {}
 
 func (x *ListUserNotificationsRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_api_v1_user_service_proto_msgTypes[41]
+	mi := &file_api_v1_user_service_proto_msgTypes[55]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2954,7 +4095,7 @@ func (x *ListUserNotificationsRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListUserNotificationsRequest.ProtoReflect.Descriptor instead.
 func (*ListUserNotificationsRequest) Descriptor() ([]byte, []int) {
-	return file_api_v1_user_service_proto_rawDescGZIP(), []int{41}
+	return file_api_v1_user_service_proto_rawDescGZIP(), []int{55}
 }
 
 func (x *ListUserNotificationsRequest) GetParent() string {
@@ -2995,7 +4136,7 @@ type ListUserNotificationsResponse struct {
 
 func (x *ListUserNotificationsResponse) Reset() {
 	*x = ListUserNotificationsResponse{}
-	mi := &file_api_v1_user_service_proto_msgTypes[42]
+	mi := &file_api_v1_user_service_proto_msgTypes[56]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3007,7 +4148,7 @@ func (x *ListUserNotificationsResponse) String() string {
 func (*ListUserNotificationsResponse) ProtoMessage() {}
 
 func (x *ListUserNotificationsResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_api_v1_user_service_proto_msgTypes[42]
+	mi := &file_api_v1_user_service_proto_msgTypes[56]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3020,7 +4161,7 @@ func (x *ListUserNotificationsResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListUserNotificationsResponse.ProtoReflect.Descriptor instead.
 func (*ListUserNotificationsResponse) Descriptor() ([]byte, []int) {
-	return file_api_v1_user_service_proto_rawDescGZIP(), []int{42}
+	return file_api_v1_user_service_proto_rawDescGZIP(), []int{56}
 }
 
 func (x *ListUserNotificationsResponse) GetNotifications() []*UserNotification {
@@ -3047,7 +4188,7 @@ type UpdateUserNotificationRequest struct {
 
 func (x *UpdateUserNotificationRequest) Reset() {
 	*x = UpdateUserNotificationRequest{}
-	mi := &file_api_v1_user_service_proto_msgTypes[43]
+	mi := &file_api_v1_user_service_proto_msgTypes[57]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3059,7 +4200,7 @@ func (x *UpdateUserNotificationRequest) String() string {
 func (*UpdateUserNotificationRequest) ProtoMessage() {}
 
 func (x *UpdateUserNotificationRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_api_v1_user_service_proto_msgTypes[43]
+	mi := &file_api_v1_user_service_proto_msgTypes[57]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3072,7 +4213,7 @@ func (x *UpdateUserNotificationRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UpdateUserNotificationRequest.ProtoReflect.Descriptor instead.
 func (*UpdateUserNotificationRequest) Descriptor() ([]byte, []int) {
-	return file_api_v1_user_service_proto_rawDescGZIP(), []int{43}
+	return file_api_v1_user_service_proto_rawDescGZIP(), []int{57}
 }
 
 func (x *UpdateUserNotificationRequest) GetNotification() *UserNotification {
@@ -3099,7 +4240,7 @@ type DeleteUserNotificationRequest struct {
 
 func (x *DeleteUserNotificationRequest) Reset() {
 	*x = DeleteUserNotificationRequest{}
-	mi := &file_api_v1_user_service_proto_msgTypes[44]
+	mi := &file_api_v1_user_service_proto_msgTypes[58]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3111,7 +4252,7 @@ func (x *DeleteUserNotificationRequest) String() string {
 func (*DeleteUserNotificationRequest) ProtoMessage() {}
 
 func (x *DeleteUserNotificationRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_api_v1_user_service_proto_msgTypes[44]
+	mi := &file_api_v1_user_service_proto_msgTypes[58]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3124,7 +4265,7 @@ func (x *DeleteUserNotificationRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DeleteUserNotificationRequest.ProtoReflect.Descriptor instead.
 func (*DeleteUserNotificationRequest) Descriptor() ([]byte, []int) {
-	return file_api_v1_user_service_proto_rawDescGZIP(), []int{44}
+	return file_api_v1_user_service_proto_rawDescGZIP(), []int{58}
 }
 
 func (x *DeleteUserNotificationRequest) GetName() string {
@@ -3147,7 +4288,7 @@ type UserStats_MemoTypeStats struct {
 
 func (x *UserStats_MemoTypeStats) Reset() {
 	*x = UserStats_MemoTypeStats{}
-	mi := &file_api_v1_user_service_proto_msgTypes[46]
+	mi := &file_api_v1_user_service_proto_msgTypes[60]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3159,7 +4300,7 @@ func (x *UserStats_MemoTypeStats) String() string {
 func (*UserStats_MemoTypeStats) ProtoMessage() {}
 
 func (x *UserStats_MemoTypeStats) ProtoReflect() protoreflect.Message {
-	mi := &file_api_v1_user_service_proto_msgTypes[46]
+	mi := &file_api_v1_user_service_proto_msgTypes[60]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3213,14 +4354,16 @@ type UserSetting_GeneralSetting struct {
 	// The preferred theme of the user.
 	// This references a CSS file in the web/public/themes/ directory.
 	// If not set, the default theme will be used.
-	Theme         string `protobuf:"bytes,4,opt,name=theme,proto3" json:"theme,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
+	Theme string `protobuf:"bytes,4,opt,name=theme,proto3" json:"theme,omitempty"`
+	// Whether the official client should save metadata from future media uploads.
+	SaveMediaMetadata bool `protobuf:"varint,5,opt,name=save_media_metadata,json=saveMediaMetadata,proto3" json:"save_media_metadata,omitempty"`
+	unknownFields     protoimpl.UnknownFields
+	sizeCache         protoimpl.SizeCache
 }
 
 func (x *UserSetting_GeneralSetting) Reset() {
 	*x = UserSetting_GeneralSetting{}
-	mi := &file_api_v1_user_service_proto_msgTypes[47]
+	mi := &file_api_v1_user_service_proto_msgTypes[61]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3232,7 +4375,7 @@ func (x *UserSetting_GeneralSetting) String() string {
 func (*UserSetting_GeneralSetting) ProtoMessage() {}
 
 func (x *UserSetting_GeneralSetting) ProtoReflect() protoreflect.Message {
-	mi := &file_api_v1_user_service_proto_msgTypes[47]
+	mi := &file_api_v1_user_service_proto_msgTypes[61]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3245,7 +4388,7 @@ func (x *UserSetting_GeneralSetting) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UserSetting_GeneralSetting.ProtoReflect.Descriptor instead.
 func (*UserSetting_GeneralSetting) Descriptor() ([]byte, []int) {
-	return file_api_v1_user_service_proto_rawDescGZIP(), []int{15, 0}
+	return file_api_v1_user_service_proto_rawDescGZIP(), []int{22, 0}
 }
 
 func (x *UserSetting_GeneralSetting) GetLocale() string {
@@ -3269,6 +4412,13 @@ func (x *UserSetting_GeneralSetting) GetTheme() string {
 	return ""
 }
 
+func (x *UserSetting_GeneralSetting) GetSaveMediaMetadata() bool {
+	if x != nil {
+		return x.SaveMediaMetadata
+	}
+	return false
+}
+
 // Tag metadata for user-specific display rules.
 type UserSetting_TagMetadata struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
@@ -3283,7 +4433,7 @@ type UserSetting_TagMetadata struct {
 
 func (x *UserSetting_TagMetadata) Reset() {
 	*x = UserSetting_TagMetadata{}
-	mi := &file_api_v1_user_service_proto_msgTypes[48]
+	mi := &file_api_v1_user_service_proto_msgTypes[62]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3295,7 +4445,7 @@ func (x *UserSetting_TagMetadata) String() string {
 func (*UserSetting_TagMetadata) ProtoMessage() {}
 
 func (x *UserSetting_TagMetadata) ProtoReflect() protoreflect.Message {
-	mi := &file_api_v1_user_service_proto_msgTypes[48]
+	mi := &file_api_v1_user_service_proto_msgTypes[62]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3308,7 +4458,7 @@ func (x *UserSetting_TagMetadata) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UserSetting_TagMetadata.ProtoReflect.Descriptor instead.
 func (*UserSetting_TagMetadata) Descriptor() ([]byte, []int) {
-	return file_api_v1_user_service_proto_rawDescGZIP(), []int{15, 1}
+	return file_api_v1_user_service_proto_rawDescGZIP(), []int{22, 1}
 }
 
 func (x *UserSetting_TagMetadata) GetBackgroundColor() *color.Color {
@@ -3337,7 +4487,7 @@ type UserSetting_TagsSetting struct {
 
 func (x *UserSetting_TagsSetting) Reset() {
 	*x = UserSetting_TagsSetting{}
-	mi := &file_api_v1_user_service_proto_msgTypes[49]
+	mi := &file_api_v1_user_service_proto_msgTypes[63]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3349,7 +4499,7 @@ func (x *UserSetting_TagsSetting) String() string {
 func (*UserSetting_TagsSetting) ProtoMessage() {}
 
 func (x *UserSetting_TagsSetting) ProtoReflect() protoreflect.Message {
-	mi := &file_api_v1_user_service_proto_msgTypes[49]
+	mi := &file_api_v1_user_service_proto_msgTypes[63]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3362,7 +4512,7 @@ func (x *UserSetting_TagsSetting) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UserSetting_TagsSetting.ProtoReflect.Descriptor instead.
 func (*UserSetting_TagsSetting) Descriptor() ([]byte, []int) {
-	return file_api_v1_user_service_proto_rawDescGZIP(), []int{15, 2}
+	return file_api_v1_user_service_proto_rawDescGZIP(), []int{22, 2}
 }
 
 func (x *UserSetting_TagsSetting) GetTags() map[string]*UserSetting_TagMetadata {
@@ -3383,7 +4533,7 @@ type UserSetting_WebhooksSetting struct {
 
 func (x *UserSetting_WebhooksSetting) Reset() {
 	*x = UserSetting_WebhooksSetting{}
-	mi := &file_api_v1_user_service_proto_msgTypes[50]
+	mi := &file_api_v1_user_service_proto_msgTypes[64]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3395,7 +4545,7 @@ func (x *UserSetting_WebhooksSetting) String() string {
 func (*UserSetting_WebhooksSetting) ProtoMessage() {}
 
 func (x *UserSetting_WebhooksSetting) ProtoReflect() protoreflect.Message {
-	mi := &file_api_v1_user_service_proto_msgTypes[50]
+	mi := &file_api_v1_user_service_proto_msgTypes[64]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3408,7 +4558,7 @@ func (x *UserSetting_WebhooksSetting) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UserSetting_WebhooksSetting.ProtoReflect.Descriptor instead.
 func (*UserSetting_WebhooksSetting) Descriptor() ([]byte, []int) {
-	return file_api_v1_user_service_proto_rawDescGZIP(), []int{15, 3}
+	return file_api_v1_user_service_proto_rawDescGZIP(), []int{22, 3}
 }
 
 func (x *UserSetting_WebhooksSetting) GetWebhooks() []*UserWebhook {
@@ -3418,20 +4568,24 @@ func (x *UserSetting_WebhooksSetting) GetWebhooks() []*UserWebhook {
 	return nil
 }
 
-// Operator-set package: the plan and when it lapses. Members can read
-// their own package; only the operator can update it.
+// The member's plan ("plan" in the UI): what the operator granted, when it
+// lapses, and what the member asked for. Members read their own; only the
+// operator sets plan and expiry.
 type UserSetting_PackageSetting struct {
 	state protoimpl.MessageState          `protogen:"open.v1"`
 	Plan  UserSetting_PackageSetting_Plan `protobuf:"varint,1,opt,name=plan,proto3,enum=memos.api.v1.UserSetting_PackageSetting_Plan" json:"plan,omitempty"`
 	// When the plan lapses back to FREE. Unset means it does not lapse.
-	ExpireTime    *timestamppb.Timestamp `protobuf:"bytes,2,opt,name=expire_time,json=expireTime,proto3" json:"expire_time,omitempty"`
+	ExpireTime *timestamppb.Timestamp `protobuf:"bytes,2,opt,name=expire_time,json=expireTime,proto3" json:"expire_time,omitempty"`
+	// The plan the member asked for. A member may update only this field, on
+	// their own setting; the operator's next plan change answers it.
+	RequestedPlan UserSetting_PackageSetting_Plan `protobuf:"varint,3,opt,name=requested_plan,json=requestedPlan,proto3,enum=memos.api.v1.UserSetting_PackageSetting_Plan" json:"requested_plan,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
 func (x *UserSetting_PackageSetting) Reset() {
 	*x = UserSetting_PackageSetting{}
-	mi := &file_api_v1_user_service_proto_msgTypes[51]
+	mi := &file_api_v1_user_service_proto_msgTypes[65]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3443,7 +4597,7 @@ func (x *UserSetting_PackageSetting) String() string {
 func (*UserSetting_PackageSetting) ProtoMessage() {}
 
 func (x *UserSetting_PackageSetting) ProtoReflect() protoreflect.Message {
-	mi := &file_api_v1_user_service_proto_msgTypes[51]
+	mi := &file_api_v1_user_service_proto_msgTypes[65]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3456,7 +4610,7 @@ func (x *UserSetting_PackageSetting) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UserSetting_PackageSetting.ProtoReflect.Descriptor instead.
 func (*UserSetting_PackageSetting) Descriptor() ([]byte, []int) {
-	return file_api_v1_user_service_proto_rawDescGZIP(), []int{15, 4}
+	return file_api_v1_user_service_proto_rawDescGZIP(), []int{22, 4}
 }
 
 func (x *UserSetting_PackageSetting) GetPlan() UserSetting_PackageSetting_Plan {
@@ -3472,6 +4626,97 @@ func (x *UserSetting_PackageSetting) GetExpireTime() *timestamppb.Timestamp {
 	}
 	return nil
 }
+
+func (x *UserSetting_PackageSetting) GetRequestedPlan() UserSetting_PackageSetting_Plan {
+	if x != nil {
+		return x.RequestedPlan
+	}
+	return UserSetting_PackageSetting_PLAN_UNSPECIFIED
+}
+
+type MemoView_Icon struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// Types that are valid to be assigned to Value:
+	//
+	//	*MemoView_Icon_Emoji
+	//	*MemoView_Icon_Lucide
+	Value         isMemoView_Icon_Value `protobuf_oneof:"value"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *MemoView_Icon) Reset() {
+	*x = MemoView_Icon{}
+	mi := &file_api_v1_user_service_proto_msgTypes[67]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *MemoView_Icon) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*MemoView_Icon) ProtoMessage() {}
+
+func (x *MemoView_Icon) ProtoReflect() protoreflect.Message {
+	mi := &file_api_v1_user_service_proto_msgTypes[67]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use MemoView_Icon.ProtoReflect.Descriptor instead.
+func (*MemoView_Icon) Descriptor() ([]byte, []int) {
+	return file_api_v1_user_service_proto_rawDescGZIP(), []int{27, 0}
+}
+
+func (x *MemoView_Icon) GetValue() isMemoView_Icon_Value {
+	if x != nil {
+		return x.Value
+	}
+	return nil
+}
+
+func (x *MemoView_Icon) GetEmoji() string {
+	if x != nil {
+		if x, ok := x.Value.(*MemoView_Icon_Emoji); ok {
+			return x.Emoji
+		}
+	}
+	return ""
+}
+
+func (x *MemoView_Icon) GetLucide() string {
+	if x != nil {
+		if x, ok := x.Value.(*MemoView_Icon_Lucide); ok {
+			return x.Lucide
+		}
+	}
+	return ""
+}
+
+type isMemoView_Icon_Value interface {
+	isMemoView_Icon_Value()
+}
+
+type MemoView_Icon_Emoji struct {
+	// A Unicode emoji sequence.
+	Emoji string `protobuf:"bytes,1,opt,name=emoji,proto3,oneof"`
+}
+
+type MemoView_Icon_Lucide struct {
+	// A canonical Lucide icon name, such as "leaf".
+	Lucide string `protobuf:"bytes,2,opt,name=lucide,proto3,oneof"`
+}
+
+func (*MemoView_Icon_Emoji) isMemoView_Icon_Value() {}
+
+func (*MemoView_Icon_Lucide) isMemoView_Icon_Value() {}
 
 type UserNotification_MemoCommentPayload struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
@@ -3491,7 +4736,7 @@ type UserNotification_MemoCommentPayload struct {
 
 func (x *UserNotification_MemoCommentPayload) Reset() {
 	*x = UserNotification_MemoCommentPayload{}
-	mi := &file_api_v1_user_service_proto_msgTypes[53]
+	mi := &file_api_v1_user_service_proto_msgTypes[68]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3503,7 +4748,7 @@ func (x *UserNotification_MemoCommentPayload) String() string {
 func (*UserNotification_MemoCommentPayload) ProtoMessage() {}
 
 func (x *UserNotification_MemoCommentPayload) ProtoReflect() protoreflect.Message {
-	mi := &file_api_v1_user_service_proto_msgTypes[53]
+	mi := &file_api_v1_user_service_proto_msgTypes[68]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3516,7 +4761,7 @@ func (x *UserNotification_MemoCommentPayload) ProtoReflect() protoreflect.Messag
 
 // Deprecated: Use UserNotification_MemoCommentPayload.ProtoReflect.Descriptor instead.
 func (*UserNotification_MemoCommentPayload) Descriptor() ([]byte, []int) {
-	return file_api_v1_user_service_proto_rawDescGZIP(), []int{40, 0}
+	return file_api_v1_user_service_proto_rawDescGZIP(), []int{54, 0}
 }
 
 func (x *UserNotification_MemoCommentPayload) GetMemo() string {
@@ -3565,7 +4810,7 @@ type UserNotification_MemoMentionPayload struct {
 
 func (x *UserNotification_MemoMentionPayload) Reset() {
 	*x = UserNotification_MemoMentionPayload{}
-	mi := &file_api_v1_user_service_proto_msgTypes[54]
+	mi := &file_api_v1_user_service_proto_msgTypes[69]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3577,7 +4822,7 @@ func (x *UserNotification_MemoMentionPayload) String() string {
 func (*UserNotification_MemoMentionPayload) ProtoMessage() {}
 
 func (x *UserNotification_MemoMentionPayload) ProtoReflect() protoreflect.Message {
-	mi := &file_api_v1_user_service_proto_msgTypes[54]
+	mi := &file_api_v1_user_service_proto_msgTypes[69]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3590,7 +4835,7 @@ func (x *UserNotification_MemoMentionPayload) ProtoReflect() protoreflect.Messag
 
 // Deprecated: Use UserNotification_MemoMentionPayload.ProtoReflect.Descriptor instead.
 func (*UserNotification_MemoMentionPayload) Descriptor() ([]byte, []int) {
-	return file_api_v1_user_service_proto_rawDescGZIP(), []int{40, 1}
+	return file_api_v1_user_service_proto_rawDescGZIP(), []int{54, 1}
 }
 
 func (x *UserNotification_MemoMentionPayload) GetMemo() string {
@@ -3621,11 +4866,84 @@ func (x *UserNotification_MemoMentionPayload) GetRelatedMemoSnippet() string {
 	return ""
 }
 
+type UserNotification_SpaceInvitationPayload struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// The invitation resource.
+	// Format: spaces/{space}/invitations/{username}
+	SpaceInvitation string `protobuf:"bytes,1,opt,name=space_invitation,json=spaceInvitation,proto3" json:"space_invitation,omitempty"`
+	// The read-only Space summary carried by the invitation.
+	Space *Space `protobuf:"bytes,2,opt,name=space,proto3" json:"space,omitempty"`
+	// The role the invitation offers.
+	Role SpaceMember_Role `protobuf:"varint,3,opt,name=role,proto3,enum=memos.api.v1.SpaceMember_Role" json:"role,omitempty"`
+	// The current state of the invitation for the receiver.
+	State         UserNotification_SpaceInvitationPayload_State `protobuf:"varint,4,opt,name=state,proto3,enum=memos.api.v1.UserNotification_SpaceInvitationPayload_State" json:"state,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *UserNotification_SpaceInvitationPayload) Reset() {
+	*x = UserNotification_SpaceInvitationPayload{}
+	mi := &file_api_v1_user_service_proto_msgTypes[70]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *UserNotification_SpaceInvitationPayload) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*UserNotification_SpaceInvitationPayload) ProtoMessage() {}
+
+func (x *UserNotification_SpaceInvitationPayload) ProtoReflect() protoreflect.Message {
+	mi := &file_api_v1_user_service_proto_msgTypes[70]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use UserNotification_SpaceInvitationPayload.ProtoReflect.Descriptor instead.
+func (*UserNotification_SpaceInvitationPayload) Descriptor() ([]byte, []int) {
+	return file_api_v1_user_service_proto_rawDescGZIP(), []int{54, 2}
+}
+
+func (x *UserNotification_SpaceInvitationPayload) GetSpaceInvitation() string {
+	if x != nil {
+		return x.SpaceInvitation
+	}
+	return ""
+}
+
+func (x *UserNotification_SpaceInvitationPayload) GetSpace() *Space {
+	if x != nil {
+		return x.Space
+	}
+	return nil
+}
+
+func (x *UserNotification_SpaceInvitationPayload) GetRole() SpaceMember_Role {
+	if x != nil {
+		return x.Role
+	}
+	return SpaceMember_ROLE_UNSPECIFIED
+}
+
+func (x *UserNotification_SpaceInvitationPayload) GetState() UserNotification_SpaceInvitationPayload_State {
+	if x != nil {
+		return x.State
+	}
+	return UserNotification_SpaceInvitationPayload_STATE_UNSPECIFIED
+}
+
 var File_api_v1_user_service_proto protoreflect.FileDescriptor
 
 const file_api_v1_user_service_proto_rawDesc = "" +
 	"\n" +
-	"\x19api/v1/user_service.proto\x12\fmemos.api.v1\x1a\x13api/v1/common.proto\x1a\x1cgoogle/api/annotations.proto\x1a\x17google/api/client.proto\x1a\x1fgoogle/api/field_behavior.proto\x1a\x19google/api/resource.proto\x1a\x1bgoogle/protobuf/empty.proto\x1a google/protobuf/field_mask.proto\x1a\x1fgoogle/protobuf/timestamp.proto\x1a\x17google/type/color.proto\"\xed\x04\n" +
+	"\x19api/v1/user_service.proto\x12\fmemos.api.v1\x1a\x13api/v1/common.proto\x1a\x1aapi/v1/space_service.proto\x1a\x1cgoogle/api/annotations.proto\x1a\x17google/api/client.proto\x1a\x1fgoogle/api/field_behavior.proto\x1a\x19google/api/httpbody.proto\x1a\x19google/api/resource.proto\x1a\x1bgoogle/protobuf/empty.proto\x1a google/protobuf/field_mask.proto\x1a\x1fgoogle/protobuf/timestamp.proto\x1a\x17google/type/color.proto\"\xed\x04\n" +
 	"\x04User\x12\x17\n" +
 	"\x04name\x18\x01 \x01(\tB\x03\xe0A\bR\x04name\x120\n" +
 	"\x04role\x18\x02 \x01(\x0e2\x17.memos.api.v1.User.RoleB\x03\xe0A\x02R\x04role\x12\x1f\n" +
@@ -3691,15 +5009,17 @@ const file_api_v1_user_service_proto_rawDesc = "" +
 	"\x11DeleteUserRequest\x12-\n" +
 	"\x04name\x18\x01 \x01(\tB\x19\xe0A\x02\xfaA\x13\n" +
 	"\x11memos.api.v1/UserR\x04name\x12\x19\n" +
-	"\x05force\x18\x02 \x01(\bB\x03\xe0A\x01R\x05force\"\xd7\x05\n" +
+	"\x05force\x18\x02 \x01(\bB\x03\xe0A\x01R\x05force\"\xd6\x06\n" +
 	"\tUserStats\x12\x17\n" +
 	"\x04name\x18\x01 \x01(\tB\x03\xe0A\bR\x04name\x12M\n" +
 	"\x0fmemo_type_stats\x18\x03 \x01(\v2%.memos.api.v1.UserStats.MemoTypeStatsR\rmemoTypeStats\x12B\n" +
 	"\ttag_count\x18\x04 \x03(\v2%.memos.api.v1.UserStats.TagCountEntryR\btagCount\x12R\n" +
 	"\x17memo_created_timestamps\x18\a \x03(\v2\x1a.google.protobuf.TimestampR\x15memoCreatedTimestamps\x12R\n" +
-	"\x17memo_updated_timestamps\x18\b \x03(\v2\x1a.google.protobuf.TimestampR\x15memoUpdatedTimestamps\x12!\n" +
-	"\fpinned_memos\x18\x05 \x03(\tR\vpinnedMemos\x12(\n" +
-	"\x10total_memo_count\x18\x06 \x01(\x05R\x0etotalMemoCount\x1a;\n" +
+	"\x17memo_updated_timestamps\x18\b \x03(\v2\x1a.google.protobuf.TimestampR\x15memoUpdatedTimestamps\x129\n" +
+	"\fpinned_memos\x18\x05 \x03(\tB\x16\xfaA\x13\n" +
+	"\x11memos.api.v1/MemoR\vpinnedMemos\x12(\n" +
+	"\x10total_memo_count\x18\x06 \x01(\x05R\x0etotalMemoCount\x12B\n" +
+	"\x18attachment_storage_bytes\x18\t \x01(\x03B\x03\xe0A\x03H\x00R\x16attachmentStorageBytes\x88\x01\x01\x1a;\n" +
 	"\rTagCountEntry\x12\x10\n" +
 	"\x03key\x18\x01 \x01(\tR\x03key\x12\x14\n" +
 	"\x05value\x18\x02 \x01(\x05R\x05value:\x028\x01\x1a\x8b\x01\n" +
@@ -3711,26 +5031,82 @@ const file_api_v1_user_service_proto_rawDesc = "" +
 	"\n" +
 	"todo_count\x18\x03 \x01(\x05R\ttodoCount\x12\x1d\n" +
 	"\n" +
-	"undo_count\x18\x04 \x01(\x05R\tundoCount:?\xeaA<\n" +
-	"\x16memos.api.v1/UserStats\x12\fusers/{user}*\tuserStats2\tuserStatsJ\x04\b\x02\x10\x03R\x17memo_display_timestamps\"D\n" +
+	"undo_count\x18\x04 \x01(\x05R\tundoCount:E\xeaAB\n" +
+	"\x16memos.api.v1/UserStats\x12\x12users/{user}/stats*\tuserStats2\tuserStatsB\x1b\n" +
+	"\x19_attachment_storage_bytesJ\x04\b\x02\x10\x03R\x17memo_display_timestamps\"C\n" +
+	"\x12ExportMemosRequest\x12-\n" +
+	"\x04name\x18\x01 \x01(\tB\x19\xe0A\x02\xfaA\x13\n" +
+	"\x11memos.api.v1/UserR\x04name\"\xec\x03\n" +
+	"\x12ImportMemosRequest\x12-\n" +
+	"\x04name\x18\x01 \x01(\tB\x19\xe0A\x02\xfaA\x13\n" +
+	"\x11memos.api.v1/UserR\x04name\x123\n" +
+	"\x04spec\x18\x02 \x01(\v2\x1d.memos.api.v1.ImportMemosSpecH\x00R\x04spec\x12\x1d\n" +
+	"\tupload_id\x18\x03 \x01(\tH\x00R\buploadId\x12&\n" +
+	"\fwrite_offset\x18\x04 \x01(\x03B\x03\xe0A\x02R\vwriteOffset\x12\x17\n" +
+	"\x04data\x18\x05 \x01(\fB\x03\xe0A\x01R\x04data\x12&\n" +
+	"\ffinish_write\x18\x06 \x01(\bB\x03\xe0A\x01R\vfinishWrite\x12(\n" +
+	"\rvalidate_only\x18\a \x01(\bB\x03\xe0A\x01R\fvalidateOnly\x12]\n" +
+	"\x0fconflict_policy\x18\b \x01(\x0e2/.memos.api.v1.ImportMemosRequest.ConflictPolicyB\x03\xe0A\x01R\x0econflictPolicy\"W\n" +
+	"\x0eConflictPolicy\x12\x1f\n" +
+	"\x1bCONFLICT_POLICY_UNSPECIFIED\x10\x00\x12\b\n" +
+	"\x04SKIP\x10\x01\x12\v\n" +
+	"\aREPLACE\x10\x02\x12\r\n" +
+	"\tDUPLICATE\x10\x03B\b\n" +
+	"\x06upload\"5\n" +
+	"\x0fImportMemosSpec\x12\"\n" +
+	"\n" +
+	"total_size\x18\x01 \x01(\x03B\x03\xe0A\x01R\ttotalSize\"\xf7\x01\n" +
+	"\x13ImportMemosResponse\x12\x1b\n" +
+	"\tupload_id\x18\x01 \x01(\tR\buploadId\x12%\n" +
+	"\x0ecommitted_size\x18\x02 \x01(\x03R\rcommittedSize\x12$\n" +
+	"\x0emax_chunk_size\x18\x03 \x01(\x05R\fmaxChunkSize\x122\n" +
+	"\x04plan\x18\x04 \x01(\v2\x1c.memos.api.v1.MemoImportPlanH\x00R\x04plan\x128\n" +
+	"\x06report\x18\x05 \x01(\v2\x1e.memos.api.v1.MemoImportReportH\x00R\x06reportB\b\n" +
+	"\x06result\"?\n" +
+	"\x0fMemoImportIssue\x12\x12\n" +
+	"\x04memo\x18\x01 \x01(\tR\x04memo\x12\x18\n" +
+	"\amessage\x18\x02 \x01(\tR\amessage\"\xc2\x02\n" +
+	"\x0eMemoImportPlan\x12;\n" +
+	"\vexport_time\x18\x01 \x01(\v2\x1a.google.protobuf.TimestampR\n" +
+	"exportTime\x12\x1a\n" +
+	"\bexporter\x18\x02 \x01(\tR\bexporter\x12\x1c\n" +
+	"\tgenerator\x18\x03 \x01(\tR\tgenerator\x12\x14\n" +
+	"\x05memos\x18\x04 \x01(\x05R\x05memos\x12 \n" +
+	"\vattachments\x18\x05 \x01(\x05R\vattachments\x12\x10\n" +
+	"\x03new\x18\x06 \x01(\x05R\x03new\x12\x1a\n" +
+	"\bexisting\x18\a \x01(\x05R\bexisting\x12\x18\n" +
+	"\arenamed\x18\b \x01(\x05R\arenamed\x129\n" +
+	"\bwarnings\x18\t \x03(\v2\x1d.memos.api.v1.MemoImportIssueR\bwarnings\"\xee\x01\n" +
+	"\x10MemoImportReport\x12\x18\n" +
+	"\acreated\x18\x01 \x01(\x05R\acreated\x12\x18\n" +
+	"\aupdated\x18\x02 \x01(\x05R\aupdated\x12\x18\n" +
+	"\askipped\x18\x03 \x01(\x05R\askipped\x12\x16\n" +
+	"\x06failed\x18\x04 \x01(\x05R\x06failed\x129\n" +
+	"\bwarnings\x18\x05 \x03(\v2\x1d.memos.api.v1.MemoImportIssueR\bwarnings\x129\n" +
+	"\bfailures\x18\x06 \x03(\v2\x1d.memos.api.v1.MemoImportIssueR\bfailures\"z\n" +
 	"\x13GetUserStatsRequest\x12-\n" +
 	"\x04name\x18\x01 \x01(\tB\x19\xe0A\x02\xfaA\x13\n" +
-	"\x11memos.api.v1/UserR\x04name\"f\n" +
+	"\x11memos.api.v1/UserR\x04name\x12\x1b\n" +
+	"\x06filter\x18\x02 \x01(\tB\x03\xe0A\x01R\x06filterJ\x04\b\x03\x10\x04R\x05spaceR\n" +
+	"unassigned\"\x85\x01\n" +
 	"\x17ListAllUserStatsRequest\x12.\n" +
 	"\x05state\x18\x01 \x01(\x0e2\x13.memos.api.v1.StateB\x03\xe0A\x01R\x05state\x12\x1b\n" +
-	"\x06filter\x18\x02 \x01(\tB\x03\xe0A\x01R\x06filter\"I\n" +
+	"\x06filter\x18\x02 \x01(\tB\x03\xe0A\x01R\x06filterJ\x04\b\x03\x10\x04J\x04\b\x04\x10\x05R\x05spaceR\n" +
+	"unassigned\"I\n" +
 	"\x18ListAllUserStatsResponse\x12-\n" +
-	"\x05stats\x18\x01 \x03(\v2\x17.memos.api.v1.UserStatsR\x05stats\"\xf1\t\n" +
+	"\x05stats\x18\x01 \x03(\v2\x17.memos.api.v1.UserStatsR\x05stats\"\xfe\n" +
+	"\n" +
 	"\vUserSetting\x12\x17\n" +
 	"\x04name\x18\x01 \x01(\tB\x03\xe0A\bR\x04name\x12S\n" +
 	"\x0fgeneral_setting\x18\x02 \x01(\v2(.memos.api.v1.UserSetting.GeneralSettingH\x00R\x0egeneralSetting\x12V\n" +
 	"\x10webhooks_setting\x18\x05 \x01(\v2).memos.api.v1.UserSetting.WebhooksSettingH\x00R\x0fwebhooksSetting\x12J\n" +
 	"\ftags_setting\x18\x06 \x01(\v2%.memos.api.v1.UserSetting.TagsSettingH\x00R\vtagsSetting\x12S\n" +
-	"\x0fpackage_setting\x18\a \x01(\v2(.memos.api.v1.UserSetting.PackageSettingH\x00R\x0epackageSetting\x1av\n" +
+	"\x0fpackage_setting\x18\a \x01(\v2(.memos.api.v1.UserSetting.PackageSettingH\x00R\x0epackageSetting\x1a\xab\x01\n" +
 	"\x0eGeneralSetting\x12\x1b\n" +
 	"\x06locale\x18\x01 \x01(\tB\x03\xe0A\x01R\x06locale\x12,\n" +
 	"\x0fmemo_visibility\x18\x03 \x01(\tB\x03\xe0A\x01R\x0ememoVisibility\x12\x19\n" +
-	"\x05theme\x18\x04 \x01(\tB\x03\xe0A\x01R\x05theme\x1ay\n" +
+	"\x05theme\x18\x04 \x01(\tB\x03\xe0A\x01R\x05theme\x123\n" +
+	"\x13save_media_metadata\x18\x05 \x01(\bB\x03\xe0A\x01R\x11saveMediaMetadata\x1ay\n" +
 	"\vTagMetadata\x12B\n" +
 	"\x10background_color\x18\x01 \x01(\v2\x12.google.type.ColorB\x03\xe0A\x01R\x0fbackgroundColor\x12&\n" +
 	"\fblur_content\x18\x02 \x01(\bB\x03\xe0A\x01R\vblurContent\x1a\xb7\x01\n" +
@@ -3740,11 +5116,12 @@ const file_api_v1_user_service_proto_rawDesc = "" +
 	"\x03key\x18\x01 \x01(\tR\x03key\x12;\n" +
 	"\x05value\x18\x02 \x01(\v2%.memos.api.v1.UserSetting.TagMetadataR\x05value:\x028\x01\x1aH\n" +
 	"\x0fWebhooksSetting\x125\n" +
-	"\bwebhooks\x18\x01 \x03(\v2\x19.memos.api.v1.UserWebhookR\bwebhooks\x1a\xcd\x01\n" +
+	"\bwebhooks\x18\x01 \x03(\v2\x19.memos.api.v1.UserWebhookR\bwebhooks\x1a\xa8\x02\n" +
 	"\x0ePackageSetting\x12F\n" +
 	"\x04plan\x18\x01 \x01(\x0e2-.memos.api.v1.UserSetting.PackageSetting.PlanB\x03\xe0A\x01R\x04plan\x12@\n" +
 	"\vexpire_time\x18\x02 \x01(\v2\x1a.google.protobuf.TimestampB\x03\xe0A\x01R\n" +
-	"expireTime\"1\n" +
+	"expireTime\x12Y\n" +
+	"\x0erequested_plan\x18\x03 \x01(\x0e2-.memos.api.v1.UserSetting.PackageSetting.PlanB\x03\xe0A\x01R\rrequestedPlan\"1\n" +
 	"\x04Plan\x12\x14\n" +
 	"\x10PLAN_UNSPECIFIED\x10\x00\x12\b\n" +
 	"\x04FREE\x10\x01\x12\t\n" +
@@ -3754,8 +5131,8 @@ const file_api_v1_user_service_proto_rawDesc = "" +
 	"\aGENERAL\x10\x01\x12\f\n" +
 	"\bWEBHOOKS\x10\x04\x12\b\n" +
 	"\x04TAGS\x10\x05\x12\v\n" +
-	"\aPACKAGE\x10\x06:]\xeaAZ\n" +
-	"\x18memos.api.v1/UserSetting\x12#users/{username}/settings/{setting}*\fuserSettings2\vuserSettingB\a\n" +
+	"\aPACKAGE\x10\x06:Y\xeaAV\n" +
+	"\x18memos.api.v1/UserSetting\x12\x1fusers/{user}/settings/{setting}*\fuserSettings2\vuserSettingB\a\n" +
 	"\x05value\"M\n" +
 	"\x15GetUserSettingRequest\x124\n" +
 	"\x04name\x18\x01 \x01(\tB \xe0A\x02\xfaA\x1a\n" +
@@ -3772,7 +5149,36 @@ const file_api_v1_user_service_proto_rawDesc = "" +
 	"page_token\x18\x03 \x01(\tB\x03\xe0A\x01R\tpageToken\"y\n" +
 	"\x18ListUserSettingsResponse\x125\n" +
 	"\bsettings\x18\x01 \x03(\v2\x19.memos.api.v1.UserSettingR\bsettings\x12&\n" +
-	"\x0fnext_page_token\x18\x02 \x01(\tR\rnextPageToken\"\x84\x02\n" +
+	"\x0fnext_page_token\x18\x02 \x01(\tR\rnextPageToken\"\x98\x02\n" +
+	"\bMemoView\x12\x17\n" +
+	"\x04name\x18\x01 \x01(\tB\x03\xe0A\bR\x04name\x12\x19\n" +
+	"\x05title\x18\x02 \x01(\tB\x03\xe0A\x02R\x05title\x12\x1b\n" +
+	"\x06filter\x18\x03 \x01(\tB\x03\xe0A\x02R\x06filter\x124\n" +
+	"\x04icon\x18\x04 \x01(\v2\x1b.memos.api.v1.MemoView.IconB\x03\xe0A\x01R\x04icon\x1aA\n" +
+	"\x04Icon\x12\x16\n" +
+	"\x05emoji\x18\x01 \x01(\tH\x00R\x05emoji\x12\x18\n" +
+	"\x06lucide\x18\x02 \x01(\tH\x00R\x06lucideB\a\n" +
+	"\x05value:B\xeaA?\n" +
+	"\x15memos.api.v1/MemoView\x12\x19users/{user}/views/{view}*\x05views2\x04view\"M\n" +
+	"\x14ListMemoViewsRequest\x125\n" +
+	"\x06parent\x18\x01 \x01(\tB\x1d\xe0A\x02\xfaA\x17\x12\x15memos.api.v1/MemoViewR\x06parent\"N\n" +
+	"\x15ListMemoViewsResponse\x125\n" +
+	"\n" +
+	"memo_views\x18\x01 \x03(\v2\x16.memos.api.v1.MemoViewR\tmemoViews\"G\n" +
+	"\x12GetMemoViewRequest\x121\n" +
+	"\x04name\x18\x01 \x01(\tB\x1d\xe0A\x02\xfaA\x17\n" +
+	"\x15memos.api.v1/MemoViewR\x04name\"\xb2\x01\n" +
+	"\x15CreateMemoViewRequest\x125\n" +
+	"\x06parent\x18\x01 \x01(\tB\x1d\xe0A\x02\xfaA\x17\x12\x15memos.api.v1/MemoViewR\x06parent\x128\n" +
+	"\tmemo_view\x18\x02 \x01(\v2\x16.memos.api.v1.MemoViewB\x03\xe0A\x02R\bmemoView\x12(\n" +
+	"\rvalidate_only\x18\x03 \x01(\bB\x03\xe0A\x01R\fvalidateOnly\"\x93\x01\n" +
+	"\x15UpdateMemoViewRequest\x128\n" +
+	"\tmemo_view\x18\x01 \x01(\v2\x16.memos.api.v1.MemoViewB\x03\xe0A\x02R\bmemoView\x12@\n" +
+	"\vupdate_mask\x18\x02 \x01(\v2\x1a.google.protobuf.FieldMaskB\x03\xe0A\x01R\n" +
+	"updateMask\"J\n" +
+	"\x15DeleteMemoViewRequest\x121\n" +
+	"\x04name\x18\x01 \x01(\tB\x1d\xe0A\x02\xfaA\x17\n" +
+	"\x15memos.api.v1/MemoViewR\x04name\"\x84\x02\n" +
 	"\x0eLinkedIdentity\x12\x17\n" +
 	"\x04name\x18\x01 \x01(\tB\x03\xe0A\bR\x04name\x12@\n" +
 	"\bidp_name\x18\x02 \x01(\tB%\xe0A\x03\xfaA\x1f\n" +
@@ -3828,9 +5234,9 @@ const file_api_v1_user_service_proto_rawDesc = "" +
 	"\x05token\x18\x02 \x01(\tR\x05token\"`\n" +
 	" DeletePersonalAccessTokenRequest\x12<\n" +
 	"\x04name\x18\x01 \x01(\tB(\xe0A\x02\xfaA\"\n" +
-	" memos.api.v1/PersonalAccessTokenR\x04name\"\xb9\x02\n" +
-	"\vUserWebhook\x12\x12\n" +
-	"\x04name\x18\x01 \x01(\tR\x04name\x12\x10\n" +
+	" memos.api.v1/PersonalAccessTokenR\x04name\"\x99\x03\n" +
+	"\vUserWebhook\x12\x17\n" +
+	"\x04name\x18\x01 \x01(\tB\x03\xe0A\bR\x04name\x12\x10\n" +
 	"\x03url\x18\x02 \x01(\tR\x03url\x12!\n" +
 	"\fdisplay_name\x18\x03 \x01(\tR\vdisplayName\x12@\n" +
 	"\vcreate_time\x18\x04 \x01(\v2\x1a.google.protobuf.TimestampB\x03\xe0A\x03R\n" +
@@ -3838,24 +5244,27 @@ const file_api_v1_user_service_proto_rawDesc = "" +
 	"\vupdate_time\x18\x05 \x01(\v2\x1a.google.protobuf.TimestampB\x03\xe0A\x03R\n" +
 	"updateTime\x12*\n" +
 	"\x0esigning_secret\x18\x06 \x01(\tB\x03\xe0A\x04R\rsigningSecret\x121\n" +
-	"\x12signing_secret_set\x18\a \x01(\bB\x03\xe0A\x03R\x10signingSecretSet\"6\n" +
-	"\x17ListUserWebhooksRequest\x12\x1b\n" +
-	"\x06parent\x18\x01 \x01(\tB\x03\xe0A\x02R\x06parent\"Q\n" +
+	"\x12signing_secret_set\x18\a \x01(\bB\x03\xe0A\x03R\x10signingSecretSet:Y\xeaAV\n" +
+	"\x18memos.api.v1/UserWebhook\x12\x1fusers/{user}/webhooks/{webhook}*\fuserWebhooks2\vuserWebhook\"S\n" +
+	"\x17ListUserWebhooksRequest\x128\n" +
+	"\x06parent\x18\x01 \x01(\tB \xe0A\x02\xfaA\x1a\x12\x18memos.api.v1/UserWebhookR\x06parent\"Q\n" +
 	"\x18ListUserWebhooksResponse\x125\n" +
-	"\bwebhooks\x18\x01 \x03(\v2\x19.memos.api.v1.UserWebhookR\bwebhooks\"q\n" +
-	"\x18CreateUserWebhookRequest\x12\x1b\n" +
-	"\x06parent\x18\x01 \x01(\tB\x03\xe0A\x02R\x06parent\x128\n" +
+	"\bwebhooks\x18\x01 \x03(\v2\x19.memos.api.v1.UserWebhookR\bwebhooks\"\x8e\x01\n" +
+	"\x18CreateUserWebhookRequest\x128\n" +
+	"\x06parent\x18\x01 \x01(\tB \xe0A\x02\xfaA\x1a\x12\x18memos.api.v1/UserWebhookR\x06parent\x128\n" +
 	"\awebhook\x18\x02 \x01(\v2\x19.memos.api.v1.UserWebhookB\x03\xe0A\x02R\awebhook\"\x91\x01\n" +
 	"\x18UpdateUserWebhookRequest\x128\n" +
 	"\awebhook\x18\x01 \x01(\v2\x19.memos.api.v1.UserWebhookB\x03\xe0A\x02R\awebhook\x12;\n" +
 	"\vupdate_mask\x18\x02 \x01(\v2\x1a.google.protobuf.FieldMaskR\n" +
-	"updateMask\"3\n" +
-	"\x18DeleteUserWebhookRequest\x12\x17\n" +
-	"\x04name\x18\x01 \x01(\tB\x03\xe0A\x02R\x04name\"=\n" +
-	"\"GetUserWebhookSigningSecretRequest\x12\x17\n" +
-	"\x04name\x18\x01 \x01(\tB\x03\xe0A\x02R\x04name\"L\n" +
+	"updateMask\"P\n" +
+	"\x18DeleteUserWebhookRequest\x124\n" +
+	"\x04name\x18\x01 \x01(\tB \xe0A\x02\xfaA\x1a\n" +
+	"\x18memos.api.v1/UserWebhookR\x04name\"Z\n" +
+	"\"GetUserWebhookSigningSecretRequest\x124\n" +
+	"\x04name\x18\x01 \x01(\tB \xe0A\x02\xfaA\x1a\n" +
+	"\x18memos.api.v1/UserWebhookR\x04name\"L\n" +
 	"#GetUserWebhookSigningSecretResponse\x12%\n" +
-	"\x0esigning_secret\x18\x01 \x01(\tR\rsigningSecret\"\xda\b\n" +
+	"\x0esigning_secret\x18\x01 \x01(\tR\rsigningSecret\"\xaf\f\n" +
 	"\x10UserNotification\x12\x1a\n" +
 	"\x04name\x18\x01 \x01(\tB\x06\xe0A\x03\xe0A\bR\x04name\x121\n" +
 	"\x06sender\x18\x02 \x01(\tB\x19\xe0A\x03\xfaA\x13\n" +
@@ -3867,7 +5276,8 @@ const file_api_v1_user_service_proto_rawDesc = "" +
 	"createTime\x12<\n" +
 	"\x04type\x18\x05 \x01(\x0e2#.memos.api.v1.UserNotification.TypeB\x03\xe0A\x03R\x04type\x12[\n" +
 	"\fmemo_comment\x18\x06 \x01(\v21.memos.api.v1.UserNotification.MemoCommentPayloadB\x03\xe0A\x03H\x00R\vmemoComment\x12[\n" +
-	"\fmemo_mention\x18\a \x01(\v21.memos.api.v1.UserNotification.MemoMentionPayloadB\x03\xe0A\x03H\x00R\vmemoMention\x1a\xa0\x01\n" +
+	"\fmemo_mention\x18\a \x01(\v21.memos.api.v1.UserNotification.MemoMentionPayloadB\x03\xe0A\x03H\x00R\vmemoMention\x12g\n" +
+	"\x10space_invitation\x18\t \x01(\v25.memos.api.v1.UserNotification.SpaceInvitationPayloadB\x03\xe0A\x03H\x00R\x0fspaceInvitation\x1a\xa0\x01\n" +
 	"\x12MemoCommentPayload\x12\x12\n" +
 	"\x04memo\x18\x01 \x01(\tR\x04memo\x12!\n" +
 	"\frelated_memo\x18\x02 \x01(\tR\vrelatedMemo\x12!\n" +
@@ -3877,16 +5287,27 @@ const file_api_v1_user_service_proto_rawDesc = "" +
 	"\x04memo\x18\x01 \x01(\tR\x04memo\x12!\n" +
 	"\frelated_memo\x18\x02 \x01(\tR\vrelatedMemo\x12!\n" +
 	"\fmemo_snippet\x18\x03 \x01(\tR\vmemoSnippet\x120\n" +
-	"\x14related_memo_snippet\x18\x04 \x01(\tR\x12relatedMemoSnippet\":\n" +
+	"\x14related_memo_snippet\x18\x04 \x01(\tR\x12relatedMemoSnippet\x1a\xd3\x02\n" +
+	"\x16SpaceInvitationPayload\x12L\n" +
+	"\x10space_invitation\x18\x01 \x01(\tB!\xfaA\x1e\n" +
+	"\x1cmemos.api.v1/SpaceInvitationR\x0fspaceInvitation\x12)\n" +
+	"\x05space\x18\x02 \x01(\v2\x13.memos.api.v1.SpaceR\x05space\x122\n" +
+	"\x04role\x18\x03 \x01(\x0e2\x1e.memos.api.v1.SpaceMember.RoleR\x04role\x12Q\n" +
+	"\x05state\x18\x04 \x01(\x0e2;.memos.api.v1.UserNotification.SpaceInvitationPayload.StateR\x05state\"9\n" +
+	"\x05State\x12\x15\n" +
+	"\x11STATE_UNSPECIFIED\x10\x00\x12\v\n" +
+	"\aPENDING\x10\x01\x12\f\n" +
+	"\bACCEPTED\x10\x02\":\n" +
 	"\x06Status\x12\x16\n" +
 	"\x12STATUS_UNSPECIFIED\x10\x00\x12\n" +
 	"\n" +
 	"\x06UNREAD\x10\x01\x12\f\n" +
-	"\bARCHIVED\x10\x02\"@\n" +
+	"\bARCHIVED\x10\x02\"V\n" +
 	"\x04Type\x12\x14\n" +
 	"\x10TYPE_UNSPECIFIED\x10\x00\x12\x10\n" +
 	"\fMEMO_COMMENT\x10\x01\x12\x10\n" +
-	"\fMEMO_MENTION\x10\x02:p\xeaAm\n" +
+	"\fMEMO_MENTION\x10\x02\x12\x14\n" +
+	"\x10SPACE_INVITATION\x10\x03:p\xeaAm\n" +
 	"\x1dmemos.api.v1/UserNotification\x12)users/{user}/notifications/{notification}\x1a\x04name*\rnotifications2\fnotificationB\t\n" +
 	"\apayload\"\xb4\x01\n" +
 	"\x1cListUserNotificationsRequest\x121\n" +
@@ -3905,23 +5326,30 @@ const file_api_v1_user_service_proto_rawDesc = "" +
 	"updateMask\"Z\n" +
 	"\x1dDeleteUserNotificationRequest\x129\n" +
 	"\x04name\x18\x01 \x01(\tB%\xe0A\x02\xfaA\x1f\n" +
-	"\x1dmemos.api.v1/UserNotificationR\x04name2\xc0\x1f\n" +
+	"\x1dmemos.api.v1/UserNotificationR\x04name2\x83'\n" +
 	"\vUserService\x12c\n" +
 	"\tListUsers\x12\x1e.memos.api.v1.ListUsersRequest\x1a\x1f.memos.api.v1.ListUsersResponse\"\x15\x82\xd3\xe4\x93\x02\x0f\x12\r/api/v1/users\x12{\n" +
 	"\rBatchGetUsers\x12\".memos.api.v1.BatchGetUsersRequest\x1a#.memos.api.v1.BatchGetUsersResponse\"!\x82\xd3\xe4\x93\x02\x1b:\x01*\"\x16/api/v1/users:batchGet\x12b\n" +
-	"\aGetUser\x12\x1c.memos.api.v1.GetUserRequest\x1a\x12.memos.api.v1.User\"%\xdaA\x04name\x82\xd3\xe4\x93\x02\x18\x12\x16/api/v1/{name=users/*}\x12e\n" +
+	"\aGetUser\x12\x1c.memos.api.v1.GetUserRequest\x1a\x12.memos.api.v1.User\"%\xdaA\x04name\x82\xd3\xe4\x93\x02\x18\x12\x16/api/v1/{name=users/*}\x12m\n" +
 	"\n" +
-	"CreateUser\x12\x1f.memos.api.v1.CreateUserRequest\x1a\x12.memos.api.v1.User\"\"\xdaA\x04user\x82\xd3\xe4\x93\x02\x15:\x04user\"\r/api/v1/users\x12t\n" +
+	"CreateUser\x12\x1f.memos.api.v1.CreateUserRequest\x1a\x12.memos.api.v1.User\"*\xdaA\fuser,user_id\x82\xd3\xe4\x93\x02\x15:\x04user\"\r/api/v1/users\x12t\n" +
 	"\x10CreateUserInvite\x12%.memos.api.v1.CreateUserInviteRequest\x1a\x18.memos.api.v1.UserInvite\"\x1f\x82\xd3\xe4\x93\x02\x19:\x01*\"\x14/api/v1/users:invite\x12\x7f\n" +
 	"\n" +
 	"UpdateUser\x12\x1f.memos.api.v1.UpdateUserRequest\x1a\x12.memos.api.v1.User\"<\xdaA\x10user,update_mask\x82\xd3\xe4\x93\x02#:\x04user2\x1b/api/v1/{user.name=users/*}\x12l\n" +
 	"\n" +
 	"DeleteUser\x12\x1f.memos.api.v1.DeleteUserRequest\x1a\x16.google.protobuf.Empty\"%\xdaA\x04name\x82\xd3\xe4\x93\x02\x18*\x16/api/v1/{name=users/*}\x12~\n" +
 	"\x10ListAllUserStats\x12%.memos.api.v1.ListAllUserStatsRequest\x1a&.memos.api.v1.ListAllUserStatsResponse\"\x1b\x82\xd3\xe4\x93\x02\x15\x12\x13/api/v1/users:stats\x12z\n" +
-	"\fGetUserStats\x12!.memos.api.v1.GetUserStatsRequest\x1a\x17.memos.api.v1.UserStats\".\xdaA\x04name\x82\xd3\xe4\x93\x02!\x12\x1f/api/v1/{name=users/*}:getStats\x12\x82\x01\n" +
+	"\fGetUserStats\x12!.memos.api.v1.GetUserStatsRequest\x1a\x17.memos.api.v1.UserStats\".\xdaA\x04name\x82\xd3\xe4\x93\x02!\x12\x1f/api/v1/{name=users/*}:getStats\x12x\n" +
+	"\vExportMemos\x12 .memos.api.v1.ExportMemosRequest\x1a\x14.google.api.HttpBody\"1\xdaA\x04name\x82\xd3\xe4\x93\x02$\x12\"/api/v1/{name=users/*}:exportMemos\x12\x81\x01\n" +
+	"\vImportMemos\x12 .memos.api.v1.ImportMemosRequest\x1a!.memos.api.v1.ImportMemosResponse\"-\x82\xd3\xe4\x93\x02':\x01*\"\"/api/v1/{name=users/*}:importMemos\x12\x82\x01\n" +
 	"\x0eGetUserSetting\x12#.memos.api.v1.GetUserSettingRequest\x1a\x19.memos.api.v1.UserSetting\"0\xdaA\x04name\x82\xd3\xe4\x93\x02#\x12!/api/v1/{name=users/*/settings/*}\x12\xa8\x01\n" +
 	"\x11UpdateUserSetting\x12&.memos.api.v1.UpdateUserSettingRequest\x1a\x19.memos.api.v1.UserSetting\"P\xdaA\x13setting,update_mask\x82\xd3\xe4\x93\x024:\asetting2)/api/v1/{setting.name=users/*/settings/*}\x12\x95\x01\n" +
-	"\x10ListUserSettings\x12%.memos.api.v1.ListUserSettingsRequest\x1a&.memos.api.v1.ListUserSettingsResponse\"2\xdaA\x06parent\x82\xd3\xe4\x93\x02#\x12!/api/v1/{parent=users/*}/settings\x12\xa9\x01\n" +
+	"\x10ListUserSettings\x12%.memos.api.v1.ListUserSettingsRequest\x1a&.memos.api.v1.ListUserSettingsResponse\"2\xdaA\x06parent\x82\xd3\xe4\x93\x02#\x12!/api/v1/{parent=users/*}/settings\x12\x89\x01\n" +
+	"\rListMemoViews\x12\".memos.api.v1.ListMemoViewsRequest\x1a#.memos.api.v1.ListMemoViewsResponse\"/\xdaA\x06parent\x82\xd3\xe4\x93\x02 \x12\x1e/api/v1/{parent=users/*}/views\x12v\n" +
+	"\vGetMemoView\x12 .memos.api.v1.GetMemoViewRequest\x1a\x16.memos.api.v1.MemoView\"-\xdaA\x04name\x82\xd3\xe4\x93\x02 \x12\x1e/api/v1/{name=users/*/views/*}\x12\x93\x01\n" +
+	"\x0eCreateMemoView\x12#.memos.api.v1.CreateMemoViewRequest\x1a\x16.memos.api.v1.MemoView\"D\xdaA\x10parent,memo_view\x82\xd3\xe4\x93\x02+:\tmemo_view\"\x1e/api/v1/{parent=users/*}/views\x12\xa2\x01\n" +
+	"\x0eUpdateMemoView\x12#.memos.api.v1.UpdateMemoViewRequest\x1a\x16.memos.api.v1.MemoView\"S\xdaA\x15memo_view,update_mask\x82\xd3\xe4\x93\x025:\tmemo_view2(/api/v1/{memo_view.name=users/*/views/*}\x12|\n" +
+	"\x0eDeleteMemoView\x12#.memos.api.v1.DeleteMemoViewRequest\x1a\x16.google.protobuf.Empty\"-\xdaA\x04name\x82\xd3\xe4\x93\x02 *\x1e/api/v1/{name=users/*/views/*}\x12\xa9\x01\n" +
 	"\x14ListLinkedIdentities\x12).memos.api.v1.ListLinkedIdentitiesRequest\x1a*.memos.api.v1.ListLinkedIdentitiesResponse\":\xdaA\x06parent\x82\xd3\xe4\x93\x02+\x12)/api/v1/{parent=users/*}/linkedIdentities\x12\xa7\x01\n" +
 	"\x14CreateLinkedIdentity\x12).memos.api.v1.CreateLinkedIdentityRequest\x1a\x1c.memos.api.v1.LinkedIdentity\"F\xdaA\x0fparent,idp_name\x82\xd3\xe4\x93\x02.:\x01*\")/api/v1/{parent=users/*}/linkedIdentities\x12\x93\x01\n" +
 	"\x11GetLinkedIdentity\x12&.memos.api.v1.GetLinkedIdentityRequest\x1a\x1c.memos.api.v1.LinkedIdentity\"8\xdaA\x04name\x82\xd3\xe4\x93\x02+\x12)/api/v1/{name=users/*/linkedIdentities/*}\x12\x93\x01\n" +
@@ -3951,186 +5379,239 @@ func file_api_v1_user_service_proto_rawDescGZIP() []byte {
 	return file_api_v1_user_service_proto_rawDescData
 }
 
-var file_api_v1_user_service_proto_enumTypes = make([]protoimpl.EnumInfo, 5)
-var file_api_v1_user_service_proto_msgTypes = make([]protoimpl.MessageInfo, 55)
+var file_api_v1_user_service_proto_enumTypes = make([]protoimpl.EnumInfo, 7)
+var file_api_v1_user_service_proto_msgTypes = make([]protoimpl.MessageInfo, 71)
 var file_api_v1_user_service_proto_goTypes = []any{
-	(User_Role)(0),                              // 0: memos.api.v1.User.Role
-	(UserSetting_Key)(0),                        // 1: memos.api.v1.UserSetting.Key
-	(UserSetting_PackageSetting_Plan)(0),        // 2: memos.api.v1.UserSetting.PackageSetting.Plan
-	(UserNotification_Status)(0),                // 3: memos.api.v1.UserNotification.Status
-	(UserNotification_Type)(0),                  // 4: memos.api.v1.UserNotification.Type
-	(*User)(nil),                                // 5: memos.api.v1.User
-	(*ListUsersRequest)(nil),                    // 6: memos.api.v1.ListUsersRequest
-	(*ListUsersResponse)(nil),                   // 7: memos.api.v1.ListUsersResponse
-	(*BatchGetUsersRequest)(nil),                // 8: memos.api.v1.BatchGetUsersRequest
-	(*BatchGetUsersResponse)(nil),               // 9: memos.api.v1.BatchGetUsersResponse
-	(*GetUserRequest)(nil),                      // 10: memos.api.v1.GetUserRequest
-	(*CreateUserRequest)(nil),                   // 11: memos.api.v1.CreateUserRequest
-	(*CreateUserInviteRequest)(nil),             // 12: memos.api.v1.CreateUserInviteRequest
-	(*UserInvite)(nil),                          // 13: memos.api.v1.UserInvite
-	(*UpdateUserRequest)(nil),                   // 14: memos.api.v1.UpdateUserRequest
-	(*DeleteUserRequest)(nil),                   // 15: memos.api.v1.DeleteUserRequest
-	(*UserStats)(nil),                           // 16: memos.api.v1.UserStats
-	(*GetUserStatsRequest)(nil),                 // 17: memos.api.v1.GetUserStatsRequest
-	(*ListAllUserStatsRequest)(nil),             // 18: memos.api.v1.ListAllUserStatsRequest
-	(*ListAllUserStatsResponse)(nil),            // 19: memos.api.v1.ListAllUserStatsResponse
-	(*UserSetting)(nil),                         // 20: memos.api.v1.UserSetting
-	(*GetUserSettingRequest)(nil),               // 21: memos.api.v1.GetUserSettingRequest
-	(*UpdateUserSettingRequest)(nil),            // 22: memos.api.v1.UpdateUserSettingRequest
-	(*ListUserSettingsRequest)(nil),             // 23: memos.api.v1.ListUserSettingsRequest
-	(*ListUserSettingsResponse)(nil),            // 24: memos.api.v1.ListUserSettingsResponse
-	(*LinkedIdentity)(nil),                      // 25: memos.api.v1.LinkedIdentity
-	(*ListLinkedIdentitiesRequest)(nil),         // 26: memos.api.v1.ListLinkedIdentitiesRequest
-	(*ListLinkedIdentitiesResponse)(nil),        // 27: memos.api.v1.ListLinkedIdentitiesResponse
-	(*CreateLinkedIdentityRequest)(nil),         // 28: memos.api.v1.CreateLinkedIdentityRequest
-	(*GetLinkedIdentityRequest)(nil),            // 29: memos.api.v1.GetLinkedIdentityRequest
-	(*DeleteLinkedIdentityRequest)(nil),         // 30: memos.api.v1.DeleteLinkedIdentityRequest
-	(*PersonalAccessToken)(nil),                 // 31: memos.api.v1.PersonalAccessToken
-	(*ListPersonalAccessTokensRequest)(nil),     // 32: memos.api.v1.ListPersonalAccessTokensRequest
-	(*ListPersonalAccessTokensResponse)(nil),    // 33: memos.api.v1.ListPersonalAccessTokensResponse
-	(*CreatePersonalAccessTokenRequest)(nil),    // 34: memos.api.v1.CreatePersonalAccessTokenRequest
-	(*CreatePersonalAccessTokenResponse)(nil),   // 35: memos.api.v1.CreatePersonalAccessTokenResponse
-	(*DeletePersonalAccessTokenRequest)(nil),    // 36: memos.api.v1.DeletePersonalAccessTokenRequest
-	(*UserWebhook)(nil),                         // 37: memos.api.v1.UserWebhook
-	(*ListUserWebhooksRequest)(nil),             // 38: memos.api.v1.ListUserWebhooksRequest
-	(*ListUserWebhooksResponse)(nil),            // 39: memos.api.v1.ListUserWebhooksResponse
-	(*CreateUserWebhookRequest)(nil),            // 40: memos.api.v1.CreateUserWebhookRequest
-	(*UpdateUserWebhookRequest)(nil),            // 41: memos.api.v1.UpdateUserWebhookRequest
-	(*DeleteUserWebhookRequest)(nil),            // 42: memos.api.v1.DeleteUserWebhookRequest
-	(*GetUserWebhookSigningSecretRequest)(nil),  // 43: memos.api.v1.GetUserWebhookSigningSecretRequest
-	(*GetUserWebhookSigningSecretResponse)(nil), // 44: memos.api.v1.GetUserWebhookSigningSecretResponse
-	(*UserNotification)(nil),                    // 45: memos.api.v1.UserNotification
-	(*ListUserNotificationsRequest)(nil),        // 46: memos.api.v1.ListUserNotificationsRequest
-	(*ListUserNotificationsResponse)(nil),       // 47: memos.api.v1.ListUserNotificationsResponse
-	(*UpdateUserNotificationRequest)(nil),       // 48: memos.api.v1.UpdateUserNotificationRequest
-	(*DeleteUserNotificationRequest)(nil),       // 49: memos.api.v1.DeleteUserNotificationRequest
-	nil,                                         // 50: memos.api.v1.UserStats.TagCountEntry
-	(*UserStats_MemoTypeStats)(nil),             // 51: memos.api.v1.UserStats.MemoTypeStats
-	(*UserSetting_GeneralSetting)(nil),          // 52: memos.api.v1.UserSetting.GeneralSetting
-	(*UserSetting_TagMetadata)(nil),             // 53: memos.api.v1.UserSetting.TagMetadata
-	(*UserSetting_TagsSetting)(nil),             // 54: memos.api.v1.UserSetting.TagsSetting
-	(*UserSetting_WebhooksSetting)(nil),         // 55: memos.api.v1.UserSetting.WebhooksSetting
-	(*UserSetting_PackageSetting)(nil),          // 56: memos.api.v1.UserSetting.PackageSetting
-	nil,                                         // 57: memos.api.v1.UserSetting.TagsSetting.TagsEntry
-	(*UserNotification_MemoCommentPayload)(nil), // 58: memos.api.v1.UserNotification.MemoCommentPayload
-	(*UserNotification_MemoMentionPayload)(nil), // 59: memos.api.v1.UserNotification.MemoMentionPayload
-	(State)(0),                    // 60: memos.api.v1.State
-	(*timestamppb.Timestamp)(nil), // 61: google.protobuf.Timestamp
-	(*fieldmaskpb.FieldMask)(nil), // 62: google.protobuf.FieldMask
-	(*color.Color)(nil),           // 63: google.type.Color
-	(*emptypb.Empty)(nil),         // 64: google.protobuf.Empty
+	(User_Role)(0),                                     // 0: memos.api.v1.User.Role
+	(ImportMemosRequest_ConflictPolicy)(0),             // 1: memos.api.v1.ImportMemosRequest.ConflictPolicy
+	(UserSetting_Key)(0),                               // 2: memos.api.v1.UserSetting.Key
+	(UserSetting_PackageSetting_Plan)(0),               // 3: memos.api.v1.UserSetting.PackageSetting.Plan
+	(UserNotification_Status)(0),                       // 4: memos.api.v1.UserNotification.Status
+	(UserNotification_Type)(0),                         // 5: memos.api.v1.UserNotification.Type
+	(UserNotification_SpaceInvitationPayload_State)(0), // 6: memos.api.v1.UserNotification.SpaceInvitationPayload.State
+	(*User)(nil),                                       // 7: memos.api.v1.User
+	(*ListUsersRequest)(nil),                           // 8: memos.api.v1.ListUsersRequest
+	(*ListUsersResponse)(nil),                          // 9: memos.api.v1.ListUsersResponse
+	(*BatchGetUsersRequest)(nil),                       // 10: memos.api.v1.BatchGetUsersRequest
+	(*BatchGetUsersResponse)(nil),                      // 11: memos.api.v1.BatchGetUsersResponse
+	(*GetUserRequest)(nil),                             // 12: memos.api.v1.GetUserRequest
+	(*CreateUserRequest)(nil),                          // 13: memos.api.v1.CreateUserRequest
+	(*CreateUserInviteRequest)(nil),                    // 14: memos.api.v1.CreateUserInviteRequest
+	(*UserInvite)(nil),                                 // 15: memos.api.v1.UserInvite
+	(*UpdateUserRequest)(nil),                          // 16: memos.api.v1.UpdateUserRequest
+	(*DeleteUserRequest)(nil),                          // 17: memos.api.v1.DeleteUserRequest
+	(*UserStats)(nil),                                  // 18: memos.api.v1.UserStats
+	(*ExportMemosRequest)(nil),                         // 19: memos.api.v1.ExportMemosRequest
+	(*ImportMemosRequest)(nil),                         // 20: memos.api.v1.ImportMemosRequest
+	(*ImportMemosSpec)(nil),                            // 21: memos.api.v1.ImportMemosSpec
+	(*ImportMemosResponse)(nil),                        // 22: memos.api.v1.ImportMemosResponse
+	(*MemoImportIssue)(nil),                            // 23: memos.api.v1.MemoImportIssue
+	(*MemoImportPlan)(nil),                             // 24: memos.api.v1.MemoImportPlan
+	(*MemoImportReport)(nil),                           // 25: memos.api.v1.MemoImportReport
+	(*GetUserStatsRequest)(nil),                        // 26: memos.api.v1.GetUserStatsRequest
+	(*ListAllUserStatsRequest)(nil),                    // 27: memos.api.v1.ListAllUserStatsRequest
+	(*ListAllUserStatsResponse)(nil),                   // 28: memos.api.v1.ListAllUserStatsResponse
+	(*UserSetting)(nil),                                // 29: memos.api.v1.UserSetting
+	(*GetUserSettingRequest)(nil),                      // 30: memos.api.v1.GetUserSettingRequest
+	(*UpdateUserSettingRequest)(nil),                   // 31: memos.api.v1.UpdateUserSettingRequest
+	(*ListUserSettingsRequest)(nil),                    // 32: memos.api.v1.ListUserSettingsRequest
+	(*ListUserSettingsResponse)(nil),                   // 33: memos.api.v1.ListUserSettingsResponse
+	(*MemoView)(nil),                                   // 34: memos.api.v1.MemoView
+	(*ListMemoViewsRequest)(nil),                       // 35: memos.api.v1.ListMemoViewsRequest
+	(*ListMemoViewsResponse)(nil),                      // 36: memos.api.v1.ListMemoViewsResponse
+	(*GetMemoViewRequest)(nil),                         // 37: memos.api.v1.GetMemoViewRequest
+	(*CreateMemoViewRequest)(nil),                      // 38: memos.api.v1.CreateMemoViewRequest
+	(*UpdateMemoViewRequest)(nil),                      // 39: memos.api.v1.UpdateMemoViewRequest
+	(*DeleteMemoViewRequest)(nil),                      // 40: memos.api.v1.DeleteMemoViewRequest
+	(*LinkedIdentity)(nil),                             // 41: memos.api.v1.LinkedIdentity
+	(*ListLinkedIdentitiesRequest)(nil),                // 42: memos.api.v1.ListLinkedIdentitiesRequest
+	(*ListLinkedIdentitiesResponse)(nil),               // 43: memos.api.v1.ListLinkedIdentitiesResponse
+	(*CreateLinkedIdentityRequest)(nil),                // 44: memos.api.v1.CreateLinkedIdentityRequest
+	(*GetLinkedIdentityRequest)(nil),                   // 45: memos.api.v1.GetLinkedIdentityRequest
+	(*DeleteLinkedIdentityRequest)(nil),                // 46: memos.api.v1.DeleteLinkedIdentityRequest
+	(*PersonalAccessToken)(nil),                        // 47: memos.api.v1.PersonalAccessToken
+	(*ListPersonalAccessTokensRequest)(nil),            // 48: memos.api.v1.ListPersonalAccessTokensRequest
+	(*ListPersonalAccessTokensResponse)(nil),           // 49: memos.api.v1.ListPersonalAccessTokensResponse
+	(*CreatePersonalAccessTokenRequest)(nil),           // 50: memos.api.v1.CreatePersonalAccessTokenRequest
+	(*CreatePersonalAccessTokenResponse)(nil),          // 51: memos.api.v1.CreatePersonalAccessTokenResponse
+	(*DeletePersonalAccessTokenRequest)(nil),           // 52: memos.api.v1.DeletePersonalAccessTokenRequest
+	(*UserWebhook)(nil),                                // 53: memos.api.v1.UserWebhook
+	(*ListUserWebhooksRequest)(nil),                    // 54: memos.api.v1.ListUserWebhooksRequest
+	(*ListUserWebhooksResponse)(nil),                   // 55: memos.api.v1.ListUserWebhooksResponse
+	(*CreateUserWebhookRequest)(nil),                   // 56: memos.api.v1.CreateUserWebhookRequest
+	(*UpdateUserWebhookRequest)(nil),                   // 57: memos.api.v1.UpdateUserWebhookRequest
+	(*DeleteUserWebhookRequest)(nil),                   // 58: memos.api.v1.DeleteUserWebhookRequest
+	(*GetUserWebhookSigningSecretRequest)(nil),         // 59: memos.api.v1.GetUserWebhookSigningSecretRequest
+	(*GetUserWebhookSigningSecretResponse)(nil),        // 60: memos.api.v1.GetUserWebhookSigningSecretResponse
+	(*UserNotification)(nil),                           // 61: memos.api.v1.UserNotification
+	(*ListUserNotificationsRequest)(nil),               // 62: memos.api.v1.ListUserNotificationsRequest
+	(*ListUserNotificationsResponse)(nil),              // 63: memos.api.v1.ListUserNotificationsResponse
+	(*UpdateUserNotificationRequest)(nil),              // 64: memos.api.v1.UpdateUserNotificationRequest
+	(*DeleteUserNotificationRequest)(nil),              // 65: memos.api.v1.DeleteUserNotificationRequest
+	nil,                                                // 66: memos.api.v1.UserStats.TagCountEntry
+	(*UserStats_MemoTypeStats)(nil),                    // 67: memos.api.v1.UserStats.MemoTypeStats
+	(*UserSetting_GeneralSetting)(nil),                 // 68: memos.api.v1.UserSetting.GeneralSetting
+	(*UserSetting_TagMetadata)(nil),                    // 69: memos.api.v1.UserSetting.TagMetadata
+	(*UserSetting_TagsSetting)(nil),                    // 70: memos.api.v1.UserSetting.TagsSetting
+	(*UserSetting_WebhooksSetting)(nil),                // 71: memos.api.v1.UserSetting.WebhooksSetting
+	(*UserSetting_PackageSetting)(nil),                 // 72: memos.api.v1.UserSetting.PackageSetting
+	nil,                                                // 73: memos.api.v1.UserSetting.TagsSetting.TagsEntry
+	(*MemoView_Icon)(nil),                              // 74: memos.api.v1.MemoView.Icon
+	(*UserNotification_MemoCommentPayload)(nil),        // 75: memos.api.v1.UserNotification.MemoCommentPayload
+	(*UserNotification_MemoMentionPayload)(nil),        // 76: memos.api.v1.UserNotification.MemoMentionPayload
+	(*UserNotification_SpaceInvitationPayload)(nil),    // 77: memos.api.v1.UserNotification.SpaceInvitationPayload
+	(State)(0),                    // 78: memos.api.v1.State
+	(*timestamppb.Timestamp)(nil), // 79: google.protobuf.Timestamp
+	(*fieldmaskpb.FieldMask)(nil), // 80: google.protobuf.FieldMask
+	(*color.Color)(nil),           // 81: google.type.Color
+	(*Space)(nil),                 // 82: memos.api.v1.Space
+	(SpaceMember_Role)(0),         // 83: memos.api.v1.SpaceMember.Role
+	(*emptypb.Empty)(nil),         // 84: google.protobuf.Empty
+	(*httpbody.HttpBody)(nil),     // 85: google.api.HttpBody
 }
 var file_api_v1_user_service_proto_depIdxs = []int32{
-	0,  // 0: memos.api.v1.User.role:type_name -> memos.api.v1.User.Role
-	60, // 1: memos.api.v1.User.state:type_name -> memos.api.v1.State
-	61, // 2: memos.api.v1.User.create_time:type_name -> google.protobuf.Timestamp
-	61, // 3: memos.api.v1.User.update_time:type_name -> google.protobuf.Timestamp
-	5,  // 4: memos.api.v1.ListUsersResponse.users:type_name -> memos.api.v1.User
-	5,  // 5: memos.api.v1.BatchGetUsersResponse.users:type_name -> memos.api.v1.User
-	62, // 6: memos.api.v1.GetUserRequest.read_mask:type_name -> google.protobuf.FieldMask
-	5,  // 7: memos.api.v1.CreateUserRequest.user:type_name -> memos.api.v1.User
-	61, // 8: memos.api.v1.UserInvite.expire_time:type_name -> google.protobuf.Timestamp
-	5,  // 9: memos.api.v1.UpdateUserRequest.user:type_name -> memos.api.v1.User
-	62, // 10: memos.api.v1.UpdateUserRequest.update_mask:type_name -> google.protobuf.FieldMask
-	51, // 11: memos.api.v1.UserStats.memo_type_stats:type_name -> memos.api.v1.UserStats.MemoTypeStats
-	50, // 12: memos.api.v1.UserStats.tag_count:type_name -> memos.api.v1.UserStats.TagCountEntry
-	61, // 13: memos.api.v1.UserStats.memo_created_timestamps:type_name -> google.protobuf.Timestamp
-	61, // 14: memos.api.v1.UserStats.memo_updated_timestamps:type_name -> google.protobuf.Timestamp
-	60, // 15: memos.api.v1.ListAllUserStatsRequest.state:type_name -> memos.api.v1.State
-	16, // 16: memos.api.v1.ListAllUserStatsResponse.stats:type_name -> memos.api.v1.UserStats
-	52, // 17: memos.api.v1.UserSetting.general_setting:type_name -> memos.api.v1.UserSetting.GeneralSetting
-	55, // 18: memos.api.v1.UserSetting.webhooks_setting:type_name -> memos.api.v1.UserSetting.WebhooksSetting
-	54, // 19: memos.api.v1.UserSetting.tags_setting:type_name -> memos.api.v1.UserSetting.TagsSetting
-	56, // 20: memos.api.v1.UserSetting.package_setting:type_name -> memos.api.v1.UserSetting.PackageSetting
-	20, // 21: memos.api.v1.UpdateUserSettingRequest.setting:type_name -> memos.api.v1.UserSetting
-	62, // 22: memos.api.v1.UpdateUserSettingRequest.update_mask:type_name -> google.protobuf.FieldMask
-	20, // 23: memos.api.v1.ListUserSettingsResponse.settings:type_name -> memos.api.v1.UserSetting
-	25, // 24: memos.api.v1.ListLinkedIdentitiesResponse.linked_identities:type_name -> memos.api.v1.LinkedIdentity
-	61, // 25: memos.api.v1.PersonalAccessToken.created_at:type_name -> google.protobuf.Timestamp
-	61, // 26: memos.api.v1.PersonalAccessToken.expires_at:type_name -> google.protobuf.Timestamp
-	61, // 27: memos.api.v1.PersonalAccessToken.last_used_at:type_name -> google.protobuf.Timestamp
-	31, // 28: memos.api.v1.ListPersonalAccessTokensResponse.personal_access_tokens:type_name -> memos.api.v1.PersonalAccessToken
-	31, // 29: memos.api.v1.CreatePersonalAccessTokenResponse.personal_access_token:type_name -> memos.api.v1.PersonalAccessToken
-	61, // 30: memos.api.v1.UserWebhook.create_time:type_name -> google.protobuf.Timestamp
-	61, // 31: memos.api.v1.UserWebhook.update_time:type_name -> google.protobuf.Timestamp
-	37, // 32: memos.api.v1.ListUserWebhooksResponse.webhooks:type_name -> memos.api.v1.UserWebhook
-	37, // 33: memos.api.v1.CreateUserWebhookRequest.webhook:type_name -> memos.api.v1.UserWebhook
-	37, // 34: memos.api.v1.UpdateUserWebhookRequest.webhook:type_name -> memos.api.v1.UserWebhook
-	62, // 35: memos.api.v1.UpdateUserWebhookRequest.update_mask:type_name -> google.protobuf.FieldMask
-	5,  // 36: memos.api.v1.UserNotification.sender_user:type_name -> memos.api.v1.User
-	3,  // 37: memos.api.v1.UserNotification.status:type_name -> memos.api.v1.UserNotification.Status
-	61, // 38: memos.api.v1.UserNotification.create_time:type_name -> google.protobuf.Timestamp
-	4,  // 39: memos.api.v1.UserNotification.type:type_name -> memos.api.v1.UserNotification.Type
-	58, // 40: memos.api.v1.UserNotification.memo_comment:type_name -> memos.api.v1.UserNotification.MemoCommentPayload
-	59, // 41: memos.api.v1.UserNotification.memo_mention:type_name -> memos.api.v1.UserNotification.MemoMentionPayload
-	45, // 42: memos.api.v1.ListUserNotificationsResponse.notifications:type_name -> memos.api.v1.UserNotification
-	45, // 43: memos.api.v1.UpdateUserNotificationRequest.notification:type_name -> memos.api.v1.UserNotification
-	62, // 44: memos.api.v1.UpdateUserNotificationRequest.update_mask:type_name -> google.protobuf.FieldMask
-	63, // 45: memos.api.v1.UserSetting.TagMetadata.background_color:type_name -> google.type.Color
-	57, // 46: memos.api.v1.UserSetting.TagsSetting.tags:type_name -> memos.api.v1.UserSetting.TagsSetting.TagsEntry
-	37, // 47: memos.api.v1.UserSetting.WebhooksSetting.webhooks:type_name -> memos.api.v1.UserWebhook
-	2,  // 48: memos.api.v1.UserSetting.PackageSetting.plan:type_name -> memos.api.v1.UserSetting.PackageSetting.Plan
-	61, // 49: memos.api.v1.UserSetting.PackageSetting.expire_time:type_name -> google.protobuf.Timestamp
-	53, // 50: memos.api.v1.UserSetting.TagsSetting.TagsEntry.value:type_name -> memos.api.v1.UserSetting.TagMetadata
-	6,  // 51: memos.api.v1.UserService.ListUsers:input_type -> memos.api.v1.ListUsersRequest
-	8,  // 52: memos.api.v1.UserService.BatchGetUsers:input_type -> memos.api.v1.BatchGetUsersRequest
-	10, // 53: memos.api.v1.UserService.GetUser:input_type -> memos.api.v1.GetUserRequest
-	11, // 54: memos.api.v1.UserService.CreateUser:input_type -> memos.api.v1.CreateUserRequest
-	12, // 55: memos.api.v1.UserService.CreateUserInvite:input_type -> memos.api.v1.CreateUserInviteRequest
-	14, // 56: memos.api.v1.UserService.UpdateUser:input_type -> memos.api.v1.UpdateUserRequest
-	15, // 57: memos.api.v1.UserService.DeleteUser:input_type -> memos.api.v1.DeleteUserRequest
-	18, // 58: memos.api.v1.UserService.ListAllUserStats:input_type -> memos.api.v1.ListAllUserStatsRequest
-	17, // 59: memos.api.v1.UserService.GetUserStats:input_type -> memos.api.v1.GetUserStatsRequest
-	21, // 60: memos.api.v1.UserService.GetUserSetting:input_type -> memos.api.v1.GetUserSettingRequest
-	22, // 61: memos.api.v1.UserService.UpdateUserSetting:input_type -> memos.api.v1.UpdateUserSettingRequest
-	23, // 62: memos.api.v1.UserService.ListUserSettings:input_type -> memos.api.v1.ListUserSettingsRequest
-	26, // 63: memos.api.v1.UserService.ListLinkedIdentities:input_type -> memos.api.v1.ListLinkedIdentitiesRequest
-	28, // 64: memos.api.v1.UserService.CreateLinkedIdentity:input_type -> memos.api.v1.CreateLinkedIdentityRequest
-	29, // 65: memos.api.v1.UserService.GetLinkedIdentity:input_type -> memos.api.v1.GetLinkedIdentityRequest
-	30, // 66: memos.api.v1.UserService.DeleteLinkedIdentity:input_type -> memos.api.v1.DeleteLinkedIdentityRequest
-	32, // 67: memos.api.v1.UserService.ListPersonalAccessTokens:input_type -> memos.api.v1.ListPersonalAccessTokensRequest
-	34, // 68: memos.api.v1.UserService.CreatePersonalAccessToken:input_type -> memos.api.v1.CreatePersonalAccessTokenRequest
-	36, // 69: memos.api.v1.UserService.DeletePersonalAccessToken:input_type -> memos.api.v1.DeletePersonalAccessTokenRequest
-	38, // 70: memos.api.v1.UserService.ListUserWebhooks:input_type -> memos.api.v1.ListUserWebhooksRequest
-	40, // 71: memos.api.v1.UserService.CreateUserWebhook:input_type -> memos.api.v1.CreateUserWebhookRequest
-	41, // 72: memos.api.v1.UserService.UpdateUserWebhook:input_type -> memos.api.v1.UpdateUserWebhookRequest
-	42, // 73: memos.api.v1.UserService.DeleteUserWebhook:input_type -> memos.api.v1.DeleteUserWebhookRequest
-	43, // 74: memos.api.v1.UserService.GetUserWebhookSigningSecret:input_type -> memos.api.v1.GetUserWebhookSigningSecretRequest
-	46, // 75: memos.api.v1.UserService.ListUserNotifications:input_type -> memos.api.v1.ListUserNotificationsRequest
-	48, // 76: memos.api.v1.UserService.UpdateUserNotification:input_type -> memos.api.v1.UpdateUserNotificationRequest
-	49, // 77: memos.api.v1.UserService.DeleteUserNotification:input_type -> memos.api.v1.DeleteUserNotificationRequest
-	7,  // 78: memos.api.v1.UserService.ListUsers:output_type -> memos.api.v1.ListUsersResponse
-	9,  // 79: memos.api.v1.UserService.BatchGetUsers:output_type -> memos.api.v1.BatchGetUsersResponse
-	5,  // 80: memos.api.v1.UserService.GetUser:output_type -> memos.api.v1.User
-	5,  // 81: memos.api.v1.UserService.CreateUser:output_type -> memos.api.v1.User
-	13, // 82: memos.api.v1.UserService.CreateUserInvite:output_type -> memos.api.v1.UserInvite
-	5,  // 83: memos.api.v1.UserService.UpdateUser:output_type -> memos.api.v1.User
-	64, // 84: memos.api.v1.UserService.DeleteUser:output_type -> google.protobuf.Empty
-	19, // 85: memos.api.v1.UserService.ListAllUserStats:output_type -> memos.api.v1.ListAllUserStatsResponse
-	16, // 86: memos.api.v1.UserService.GetUserStats:output_type -> memos.api.v1.UserStats
-	20, // 87: memos.api.v1.UserService.GetUserSetting:output_type -> memos.api.v1.UserSetting
-	20, // 88: memos.api.v1.UserService.UpdateUserSetting:output_type -> memos.api.v1.UserSetting
-	24, // 89: memos.api.v1.UserService.ListUserSettings:output_type -> memos.api.v1.ListUserSettingsResponse
-	27, // 90: memos.api.v1.UserService.ListLinkedIdentities:output_type -> memos.api.v1.ListLinkedIdentitiesResponse
-	25, // 91: memos.api.v1.UserService.CreateLinkedIdentity:output_type -> memos.api.v1.LinkedIdentity
-	25, // 92: memos.api.v1.UserService.GetLinkedIdentity:output_type -> memos.api.v1.LinkedIdentity
-	64, // 93: memos.api.v1.UserService.DeleteLinkedIdentity:output_type -> google.protobuf.Empty
-	33, // 94: memos.api.v1.UserService.ListPersonalAccessTokens:output_type -> memos.api.v1.ListPersonalAccessTokensResponse
-	35, // 95: memos.api.v1.UserService.CreatePersonalAccessToken:output_type -> memos.api.v1.CreatePersonalAccessTokenResponse
-	64, // 96: memos.api.v1.UserService.DeletePersonalAccessToken:output_type -> google.protobuf.Empty
-	39, // 97: memos.api.v1.UserService.ListUserWebhooks:output_type -> memos.api.v1.ListUserWebhooksResponse
-	37, // 98: memos.api.v1.UserService.CreateUserWebhook:output_type -> memos.api.v1.UserWebhook
-	37, // 99: memos.api.v1.UserService.UpdateUserWebhook:output_type -> memos.api.v1.UserWebhook
-	64, // 100: memos.api.v1.UserService.DeleteUserWebhook:output_type -> google.protobuf.Empty
-	44, // 101: memos.api.v1.UserService.GetUserWebhookSigningSecret:output_type -> memos.api.v1.GetUserWebhookSigningSecretResponse
-	47, // 102: memos.api.v1.UserService.ListUserNotifications:output_type -> memos.api.v1.ListUserNotificationsResponse
-	45, // 103: memos.api.v1.UserService.UpdateUserNotification:output_type -> memos.api.v1.UserNotification
-	64, // 104: memos.api.v1.UserService.DeleteUserNotification:output_type -> google.protobuf.Empty
-	78, // [78:105] is the sub-list for method output_type
-	51, // [51:78] is the sub-list for method input_type
-	51, // [51:51] is the sub-list for extension type_name
-	51, // [51:51] is the sub-list for extension extendee
-	0,  // [0:51] is the sub-list for field type_name
+	0,   // 0: memos.api.v1.User.role:type_name -> memos.api.v1.User.Role
+	78,  // 1: memos.api.v1.User.state:type_name -> memos.api.v1.State
+	79,  // 2: memos.api.v1.User.create_time:type_name -> google.protobuf.Timestamp
+	79,  // 3: memos.api.v1.User.update_time:type_name -> google.protobuf.Timestamp
+	7,   // 4: memos.api.v1.ListUsersResponse.users:type_name -> memos.api.v1.User
+	7,   // 5: memos.api.v1.BatchGetUsersResponse.users:type_name -> memos.api.v1.User
+	80,  // 6: memos.api.v1.GetUserRequest.read_mask:type_name -> google.protobuf.FieldMask
+	7,   // 7: memos.api.v1.CreateUserRequest.user:type_name -> memos.api.v1.User
+	79,  // 8: memos.api.v1.UserInvite.expire_time:type_name -> google.protobuf.Timestamp
+	7,   // 9: memos.api.v1.UpdateUserRequest.user:type_name -> memos.api.v1.User
+	80,  // 10: memos.api.v1.UpdateUserRequest.update_mask:type_name -> google.protobuf.FieldMask
+	67,  // 11: memos.api.v1.UserStats.memo_type_stats:type_name -> memos.api.v1.UserStats.MemoTypeStats
+	66,  // 12: memos.api.v1.UserStats.tag_count:type_name -> memos.api.v1.UserStats.TagCountEntry
+	79,  // 13: memos.api.v1.UserStats.memo_created_timestamps:type_name -> google.protobuf.Timestamp
+	79,  // 14: memos.api.v1.UserStats.memo_updated_timestamps:type_name -> google.protobuf.Timestamp
+	21,  // 15: memos.api.v1.ImportMemosRequest.spec:type_name -> memos.api.v1.ImportMemosSpec
+	1,   // 16: memos.api.v1.ImportMemosRequest.conflict_policy:type_name -> memos.api.v1.ImportMemosRequest.ConflictPolicy
+	24,  // 17: memos.api.v1.ImportMemosResponse.plan:type_name -> memos.api.v1.MemoImportPlan
+	25,  // 18: memos.api.v1.ImportMemosResponse.report:type_name -> memos.api.v1.MemoImportReport
+	79,  // 19: memos.api.v1.MemoImportPlan.export_time:type_name -> google.protobuf.Timestamp
+	23,  // 20: memos.api.v1.MemoImportPlan.warnings:type_name -> memos.api.v1.MemoImportIssue
+	23,  // 21: memos.api.v1.MemoImportReport.warnings:type_name -> memos.api.v1.MemoImportIssue
+	23,  // 22: memos.api.v1.MemoImportReport.failures:type_name -> memos.api.v1.MemoImportIssue
+	78,  // 23: memos.api.v1.ListAllUserStatsRequest.state:type_name -> memos.api.v1.State
+	18,  // 24: memos.api.v1.ListAllUserStatsResponse.stats:type_name -> memos.api.v1.UserStats
+	68,  // 25: memos.api.v1.UserSetting.general_setting:type_name -> memos.api.v1.UserSetting.GeneralSetting
+	71,  // 26: memos.api.v1.UserSetting.webhooks_setting:type_name -> memos.api.v1.UserSetting.WebhooksSetting
+	70,  // 27: memos.api.v1.UserSetting.tags_setting:type_name -> memos.api.v1.UserSetting.TagsSetting
+	72,  // 28: memos.api.v1.UserSetting.package_setting:type_name -> memos.api.v1.UserSetting.PackageSetting
+	29,  // 29: memos.api.v1.UpdateUserSettingRequest.setting:type_name -> memos.api.v1.UserSetting
+	80,  // 30: memos.api.v1.UpdateUserSettingRequest.update_mask:type_name -> google.protobuf.FieldMask
+	29,  // 31: memos.api.v1.ListUserSettingsResponse.settings:type_name -> memos.api.v1.UserSetting
+	74,  // 32: memos.api.v1.MemoView.icon:type_name -> memos.api.v1.MemoView.Icon
+	34,  // 33: memos.api.v1.ListMemoViewsResponse.memo_views:type_name -> memos.api.v1.MemoView
+	34,  // 34: memos.api.v1.CreateMemoViewRequest.memo_view:type_name -> memos.api.v1.MemoView
+	34,  // 35: memos.api.v1.UpdateMemoViewRequest.memo_view:type_name -> memos.api.v1.MemoView
+	80,  // 36: memos.api.v1.UpdateMemoViewRequest.update_mask:type_name -> google.protobuf.FieldMask
+	41,  // 37: memos.api.v1.ListLinkedIdentitiesResponse.linked_identities:type_name -> memos.api.v1.LinkedIdentity
+	79,  // 38: memos.api.v1.PersonalAccessToken.created_at:type_name -> google.protobuf.Timestamp
+	79,  // 39: memos.api.v1.PersonalAccessToken.expires_at:type_name -> google.protobuf.Timestamp
+	79,  // 40: memos.api.v1.PersonalAccessToken.last_used_at:type_name -> google.protobuf.Timestamp
+	47,  // 41: memos.api.v1.ListPersonalAccessTokensResponse.personal_access_tokens:type_name -> memos.api.v1.PersonalAccessToken
+	47,  // 42: memos.api.v1.CreatePersonalAccessTokenResponse.personal_access_token:type_name -> memos.api.v1.PersonalAccessToken
+	79,  // 43: memos.api.v1.UserWebhook.create_time:type_name -> google.protobuf.Timestamp
+	79,  // 44: memos.api.v1.UserWebhook.update_time:type_name -> google.protobuf.Timestamp
+	53,  // 45: memos.api.v1.ListUserWebhooksResponse.webhooks:type_name -> memos.api.v1.UserWebhook
+	53,  // 46: memos.api.v1.CreateUserWebhookRequest.webhook:type_name -> memos.api.v1.UserWebhook
+	53,  // 47: memos.api.v1.UpdateUserWebhookRequest.webhook:type_name -> memos.api.v1.UserWebhook
+	80,  // 48: memos.api.v1.UpdateUserWebhookRequest.update_mask:type_name -> google.protobuf.FieldMask
+	7,   // 49: memos.api.v1.UserNotification.sender_user:type_name -> memos.api.v1.User
+	4,   // 50: memos.api.v1.UserNotification.status:type_name -> memos.api.v1.UserNotification.Status
+	79,  // 51: memos.api.v1.UserNotification.create_time:type_name -> google.protobuf.Timestamp
+	5,   // 52: memos.api.v1.UserNotification.type:type_name -> memos.api.v1.UserNotification.Type
+	75,  // 53: memos.api.v1.UserNotification.memo_comment:type_name -> memos.api.v1.UserNotification.MemoCommentPayload
+	76,  // 54: memos.api.v1.UserNotification.memo_mention:type_name -> memos.api.v1.UserNotification.MemoMentionPayload
+	77,  // 55: memos.api.v1.UserNotification.space_invitation:type_name -> memos.api.v1.UserNotification.SpaceInvitationPayload
+	61,  // 56: memos.api.v1.ListUserNotificationsResponse.notifications:type_name -> memos.api.v1.UserNotification
+	61,  // 57: memos.api.v1.UpdateUserNotificationRequest.notification:type_name -> memos.api.v1.UserNotification
+	80,  // 58: memos.api.v1.UpdateUserNotificationRequest.update_mask:type_name -> google.protobuf.FieldMask
+	81,  // 59: memos.api.v1.UserSetting.TagMetadata.background_color:type_name -> google.type.Color
+	73,  // 60: memos.api.v1.UserSetting.TagsSetting.tags:type_name -> memos.api.v1.UserSetting.TagsSetting.TagsEntry
+	53,  // 61: memos.api.v1.UserSetting.WebhooksSetting.webhooks:type_name -> memos.api.v1.UserWebhook
+	3,   // 62: memos.api.v1.UserSetting.PackageSetting.plan:type_name -> memos.api.v1.UserSetting.PackageSetting.Plan
+	79,  // 63: memos.api.v1.UserSetting.PackageSetting.expire_time:type_name -> google.protobuf.Timestamp
+	3,   // 64: memos.api.v1.UserSetting.PackageSetting.requested_plan:type_name -> memos.api.v1.UserSetting.PackageSetting.Plan
+	69,  // 65: memos.api.v1.UserSetting.TagsSetting.TagsEntry.value:type_name -> memos.api.v1.UserSetting.TagMetadata
+	82,  // 66: memos.api.v1.UserNotification.SpaceInvitationPayload.space:type_name -> memos.api.v1.Space
+	83,  // 67: memos.api.v1.UserNotification.SpaceInvitationPayload.role:type_name -> memos.api.v1.SpaceMember.Role
+	6,   // 68: memos.api.v1.UserNotification.SpaceInvitationPayload.state:type_name -> memos.api.v1.UserNotification.SpaceInvitationPayload.State
+	8,   // 69: memos.api.v1.UserService.ListUsers:input_type -> memos.api.v1.ListUsersRequest
+	10,  // 70: memos.api.v1.UserService.BatchGetUsers:input_type -> memos.api.v1.BatchGetUsersRequest
+	12,  // 71: memos.api.v1.UserService.GetUser:input_type -> memos.api.v1.GetUserRequest
+	13,  // 72: memos.api.v1.UserService.CreateUser:input_type -> memos.api.v1.CreateUserRequest
+	14,  // 73: memos.api.v1.UserService.CreateUserInvite:input_type -> memos.api.v1.CreateUserInviteRequest
+	16,  // 74: memos.api.v1.UserService.UpdateUser:input_type -> memos.api.v1.UpdateUserRequest
+	17,  // 75: memos.api.v1.UserService.DeleteUser:input_type -> memos.api.v1.DeleteUserRequest
+	27,  // 76: memos.api.v1.UserService.ListAllUserStats:input_type -> memos.api.v1.ListAllUserStatsRequest
+	26,  // 77: memos.api.v1.UserService.GetUserStats:input_type -> memos.api.v1.GetUserStatsRequest
+	19,  // 78: memos.api.v1.UserService.ExportMemos:input_type -> memos.api.v1.ExportMemosRequest
+	20,  // 79: memos.api.v1.UserService.ImportMemos:input_type -> memos.api.v1.ImportMemosRequest
+	30,  // 80: memos.api.v1.UserService.GetUserSetting:input_type -> memos.api.v1.GetUserSettingRequest
+	31,  // 81: memos.api.v1.UserService.UpdateUserSetting:input_type -> memos.api.v1.UpdateUserSettingRequest
+	32,  // 82: memos.api.v1.UserService.ListUserSettings:input_type -> memos.api.v1.ListUserSettingsRequest
+	35,  // 83: memos.api.v1.UserService.ListMemoViews:input_type -> memos.api.v1.ListMemoViewsRequest
+	37,  // 84: memos.api.v1.UserService.GetMemoView:input_type -> memos.api.v1.GetMemoViewRequest
+	38,  // 85: memos.api.v1.UserService.CreateMemoView:input_type -> memos.api.v1.CreateMemoViewRequest
+	39,  // 86: memos.api.v1.UserService.UpdateMemoView:input_type -> memos.api.v1.UpdateMemoViewRequest
+	40,  // 87: memos.api.v1.UserService.DeleteMemoView:input_type -> memos.api.v1.DeleteMemoViewRequest
+	42,  // 88: memos.api.v1.UserService.ListLinkedIdentities:input_type -> memos.api.v1.ListLinkedIdentitiesRequest
+	44,  // 89: memos.api.v1.UserService.CreateLinkedIdentity:input_type -> memos.api.v1.CreateLinkedIdentityRequest
+	45,  // 90: memos.api.v1.UserService.GetLinkedIdentity:input_type -> memos.api.v1.GetLinkedIdentityRequest
+	46,  // 91: memos.api.v1.UserService.DeleteLinkedIdentity:input_type -> memos.api.v1.DeleteLinkedIdentityRequest
+	48,  // 92: memos.api.v1.UserService.ListPersonalAccessTokens:input_type -> memos.api.v1.ListPersonalAccessTokensRequest
+	50,  // 93: memos.api.v1.UserService.CreatePersonalAccessToken:input_type -> memos.api.v1.CreatePersonalAccessTokenRequest
+	52,  // 94: memos.api.v1.UserService.DeletePersonalAccessToken:input_type -> memos.api.v1.DeletePersonalAccessTokenRequest
+	54,  // 95: memos.api.v1.UserService.ListUserWebhooks:input_type -> memos.api.v1.ListUserWebhooksRequest
+	56,  // 96: memos.api.v1.UserService.CreateUserWebhook:input_type -> memos.api.v1.CreateUserWebhookRequest
+	57,  // 97: memos.api.v1.UserService.UpdateUserWebhook:input_type -> memos.api.v1.UpdateUserWebhookRequest
+	58,  // 98: memos.api.v1.UserService.DeleteUserWebhook:input_type -> memos.api.v1.DeleteUserWebhookRequest
+	59,  // 99: memos.api.v1.UserService.GetUserWebhookSigningSecret:input_type -> memos.api.v1.GetUserWebhookSigningSecretRequest
+	62,  // 100: memos.api.v1.UserService.ListUserNotifications:input_type -> memos.api.v1.ListUserNotificationsRequest
+	64,  // 101: memos.api.v1.UserService.UpdateUserNotification:input_type -> memos.api.v1.UpdateUserNotificationRequest
+	65,  // 102: memos.api.v1.UserService.DeleteUserNotification:input_type -> memos.api.v1.DeleteUserNotificationRequest
+	9,   // 103: memos.api.v1.UserService.ListUsers:output_type -> memos.api.v1.ListUsersResponse
+	11,  // 104: memos.api.v1.UserService.BatchGetUsers:output_type -> memos.api.v1.BatchGetUsersResponse
+	7,   // 105: memos.api.v1.UserService.GetUser:output_type -> memos.api.v1.User
+	7,   // 106: memos.api.v1.UserService.CreateUser:output_type -> memos.api.v1.User
+	15,  // 107: memos.api.v1.UserService.CreateUserInvite:output_type -> memos.api.v1.UserInvite
+	7,   // 108: memos.api.v1.UserService.UpdateUser:output_type -> memos.api.v1.User
+	84,  // 109: memos.api.v1.UserService.DeleteUser:output_type -> google.protobuf.Empty
+	28,  // 110: memos.api.v1.UserService.ListAllUserStats:output_type -> memos.api.v1.ListAllUserStatsResponse
+	18,  // 111: memos.api.v1.UserService.GetUserStats:output_type -> memos.api.v1.UserStats
+	85,  // 112: memos.api.v1.UserService.ExportMemos:output_type -> google.api.HttpBody
+	22,  // 113: memos.api.v1.UserService.ImportMemos:output_type -> memos.api.v1.ImportMemosResponse
+	29,  // 114: memos.api.v1.UserService.GetUserSetting:output_type -> memos.api.v1.UserSetting
+	29,  // 115: memos.api.v1.UserService.UpdateUserSetting:output_type -> memos.api.v1.UserSetting
+	33,  // 116: memos.api.v1.UserService.ListUserSettings:output_type -> memos.api.v1.ListUserSettingsResponse
+	36,  // 117: memos.api.v1.UserService.ListMemoViews:output_type -> memos.api.v1.ListMemoViewsResponse
+	34,  // 118: memos.api.v1.UserService.GetMemoView:output_type -> memos.api.v1.MemoView
+	34,  // 119: memos.api.v1.UserService.CreateMemoView:output_type -> memos.api.v1.MemoView
+	34,  // 120: memos.api.v1.UserService.UpdateMemoView:output_type -> memos.api.v1.MemoView
+	84,  // 121: memos.api.v1.UserService.DeleteMemoView:output_type -> google.protobuf.Empty
+	43,  // 122: memos.api.v1.UserService.ListLinkedIdentities:output_type -> memos.api.v1.ListLinkedIdentitiesResponse
+	41,  // 123: memos.api.v1.UserService.CreateLinkedIdentity:output_type -> memos.api.v1.LinkedIdentity
+	41,  // 124: memos.api.v1.UserService.GetLinkedIdentity:output_type -> memos.api.v1.LinkedIdentity
+	84,  // 125: memos.api.v1.UserService.DeleteLinkedIdentity:output_type -> google.protobuf.Empty
+	49,  // 126: memos.api.v1.UserService.ListPersonalAccessTokens:output_type -> memos.api.v1.ListPersonalAccessTokensResponse
+	51,  // 127: memos.api.v1.UserService.CreatePersonalAccessToken:output_type -> memos.api.v1.CreatePersonalAccessTokenResponse
+	84,  // 128: memos.api.v1.UserService.DeletePersonalAccessToken:output_type -> google.protobuf.Empty
+	55,  // 129: memos.api.v1.UserService.ListUserWebhooks:output_type -> memos.api.v1.ListUserWebhooksResponse
+	53,  // 130: memos.api.v1.UserService.CreateUserWebhook:output_type -> memos.api.v1.UserWebhook
+	53,  // 131: memos.api.v1.UserService.UpdateUserWebhook:output_type -> memos.api.v1.UserWebhook
+	84,  // 132: memos.api.v1.UserService.DeleteUserWebhook:output_type -> google.protobuf.Empty
+	60,  // 133: memos.api.v1.UserService.GetUserWebhookSigningSecret:output_type -> memos.api.v1.GetUserWebhookSigningSecretResponse
+	63,  // 134: memos.api.v1.UserService.ListUserNotifications:output_type -> memos.api.v1.ListUserNotificationsResponse
+	61,  // 135: memos.api.v1.UserService.UpdateUserNotification:output_type -> memos.api.v1.UserNotification
+	84,  // 136: memos.api.v1.UserService.DeleteUserNotification:output_type -> google.protobuf.Empty
+	103, // [103:137] is the sub-list for method output_type
+	69,  // [69:103] is the sub-list for method input_type
+	69,  // [69:69] is the sub-list for extension type_name
+	69,  // [69:69] is the sub-list for extension extendee
+	0,   // [0:69] is the sub-list for field type_name
 }
 
 func init() { file_api_v1_user_service_proto_init() }
@@ -4139,23 +5620,38 @@ func file_api_v1_user_service_proto_init() {
 		return
 	}
 	file_api_v1_common_proto_init()
+	file_api_v1_space_service_proto_init()
+	file_api_v1_user_service_proto_msgTypes[11].OneofWrappers = []any{}
+	file_api_v1_user_service_proto_msgTypes[13].OneofWrappers = []any{
+		(*ImportMemosRequest_Spec)(nil),
+		(*ImportMemosRequest_UploadId)(nil),
+	}
 	file_api_v1_user_service_proto_msgTypes[15].OneofWrappers = []any{
+		(*ImportMemosResponse_Plan)(nil),
+		(*ImportMemosResponse_Report)(nil),
+	}
+	file_api_v1_user_service_proto_msgTypes[22].OneofWrappers = []any{
 		(*UserSetting_GeneralSetting_)(nil),
 		(*UserSetting_WebhooksSetting_)(nil),
 		(*UserSetting_TagsSetting_)(nil),
 		(*UserSetting_PackageSetting_)(nil),
 	}
-	file_api_v1_user_service_proto_msgTypes[40].OneofWrappers = []any{
+	file_api_v1_user_service_proto_msgTypes[54].OneofWrappers = []any{
 		(*UserNotification_MemoComment)(nil),
 		(*UserNotification_MemoMention)(nil),
+		(*UserNotification_SpaceInvitation)(nil),
+	}
+	file_api_v1_user_service_proto_msgTypes[67].OneofWrappers = []any{
+		(*MemoView_Icon_Emoji)(nil),
+		(*MemoView_Icon_Lucide)(nil),
 	}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_api_v1_user_service_proto_rawDesc), len(file_api_v1_user_service_proto_rawDesc)),
-			NumEnums:      5,
-			NumMessages:   55,
+			NumEnums:      7,
+			NumMessages:   71,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

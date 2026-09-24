@@ -1,4 +1,13 @@
-import { Heading1Icon, Heading2Icon, Heading3Icon, type LucideIcon, Minimize2Icon, MoreHorizontalIcon, TypeIcon } from "lucide-react";
+import {
+  Heading1Icon,
+  Heading2Icon,
+  Heading3Icon,
+  type LucideIcon,
+  Minimize2Icon,
+  MoreHorizontalIcon,
+  TypeIcon,
+  XIcon,
+} from "lucide-react";
 import { type ComponentPropsWithoutRef, forwardRef, type MouseEventHandler, type RefObject, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
@@ -16,8 +25,12 @@ import type { EditorController } from "../types";
 
 interface FormattingToolbarProps {
   controllerRef: RefObject<EditorController | null>;
-  /** Called by the exit button; when omitted (normal-mode toolbar) the button is hidden. */
-  onExit?: () => void;
+  /**
+   * Trailing dismiss button for the frame the editor sits in: "minimize" collapses
+   * focus mode back into the page, "close" dismisses a host-owned frame. Omitted on
+   * the inline normal-mode toolbar, which has no frame to leave.
+   */
+  exit?: { action: "minimize" | "close"; onExit: () => void };
   /** Extra classes for the host to frame the toolbar row. */
   className?: string;
 }
@@ -36,17 +49,6 @@ interface ToolbarButton {
   onClick: () => void;
 }
 
-// Button styling: quiet ghost controls that sit directly on the editor surface
-// (no filled track or border — that container read as a heavy slab). The active
-// verb is the only filled element, so the toolbar recedes and the current state
-// carries the weight. Kept as raw buttons (not the Button kit) because the idle
-// hover + active treatment don't map to a single kit variant, and per policy a
-// custom look is raw HTML rather than className overrides on the kit.
-const SEGMENT_BASE =
-  "inline-flex items-center justify-center h-7 min-w-7 px-1.5 rounded-md text-sm transition-colors outline-none touch-manipulation focus-visible:ring-2 focus-visible:ring-ring";
-const SEGMENT_IDLE = "text-muted-foreground hover:text-foreground hover:bg-foreground/5";
-const SEGMENT_ACTIVE = "bg-accent text-accent-foreground";
-
 // Command buttons must not take focus on mousedown — that blurs the editor and
 // drops the selection the command targets. The click still fires and applies the
 // format to the live selection.
@@ -58,9 +60,10 @@ const preventFocusSteal: MouseEventHandler<HTMLButtonElement> = (event) => event
  * (formatting/commands.ts), so adding a verb there surfaces it here automatically.
  * Groups are separated by thin vertical dividers. Responsive: below
  * COMPACT_TOOLBAR_WIDTH the block controls fold into a "more" menu while marks
- * stay inline. In focus mode an exit button is pushed to the far edge.
+ * stay inline. When the editor sits in a frame, the button that dismisses it is
+ * pushed to the far edge.
  */
-export function FormattingToolbar({ controllerRef, onExit, className }: FormattingToolbarProps) {
+export function FormattingToolbar({ controllerRef, exit, className }: FormattingToolbarProps) {
   const t = useTranslate();
   const rootRef = useRef<HTMLDivElement>(null);
   const width = useElementWidth(rootRef);
@@ -87,6 +90,8 @@ export function FormattingToolbar({ controllerRef, onExit, className }: Formatti
   // Type glyph for paragraph, else the matching Hn glyph. Deeper levels (H4–H6)
   // aren't toolbar-addressable and report as null, i.e. the Type glyph.
   const HeadingGlyph = active.headingLevel === null ? TypeIcon : HEADING_LEVEL_ICONS[active.headingLevel];
+  const ExitIcon = exit?.action === "close" ? XIcon : Minimize2Icon;
+  const exitLabel = exit && t(exit.action === "close" ? "common.close" : "editor.exit-focus-mode");
   const markButtons = MARK_COMMANDS.map(toButton);
   const blockButtons = BLOCK_COMMANDS.map(toButton);
 
@@ -99,7 +104,7 @@ export function FormattingToolbar({ controllerRef, onExit, className }: Formatti
     >
       <DropdownMenu>
         <DropdownMenuTrigger render={<SegmentButton Icon={HeadingGlyph} label={t("editor.format.heading")} />} />
-        <DropdownMenuContent align="start" finalFocus={returnFocusToEditor}>
+        <DropdownMenuContent align="start" size="sm" finalFocus={returnFocusToEditor}>
           {HEADING_COMMANDS.map((command) => (
             <DropdownMenuItem key={command.id} onClick={() => run(command.id)}>
               {t(command.labelKey)}
@@ -119,7 +124,7 @@ export function FormattingToolbar({ controllerRef, onExit, className }: Formatti
       {compact ? (
         <DropdownMenu>
           <DropdownMenuTrigger render={<SegmentButton Icon={MoreHorizontalIcon} label={t("editor.format.more")} />} />
-          <DropdownMenuContent align="start" finalFocus={returnFocusToEditor}>
+          <DropdownMenuContent align="start" size="sm" finalFocus={returnFocusToEditor}>
             {blockButtons.map((button) => (
               <DropdownMenuItem key={button.label} onClick={button.onClick}>
                 {button.label}
@@ -131,11 +136,11 @@ export function FormattingToolbar({ controllerRef, onExit, className }: Formatti
         blockButtons.map((button) => <SegmentButton key={button.label} {...button} onMouseDown={preventFocusSteal} />)
       )}
 
-      {onExit && (
+      {exit && (
         <>
           <div className="flex-1" />
-          <Button variant="ghost" size="icon" aria-label={t("editor.exit-focus-mode")} title={t("editor.exit-focus-mode")} onClick={onExit}>
-            <Minimize2Icon className="w-4 h-4" />
+          <Button variant="quiet" size="icon-compact" aria-label={exitLabel} title={exitLabel} onClick={exit.onExit}>
+            <ExitIcon className="size-4" strokeWidth={1.8} />
           </Button>
         </>
       )}
@@ -145,7 +150,7 @@ export function FormattingToolbar({ controllerRef, onExit, className }: Formatti
 
 // Thin vertical rule between command groups (heading · marks · blocks).
 function Divider() {
-  return <span aria-hidden="true" className="w-px h-5 bg-border mx-1.5 shrink-0" />;
+  return <span aria-hidden="true" className="mx-1 h-4 w-px shrink-0 bg-border/70" />;
 }
 
 interface SegmentButtonProps extends ComponentPropsWithoutRef<"button"> {
@@ -155,20 +160,13 @@ interface SegmentButtonProps extends ComponentPropsWithoutRef<"button"> {
   active?: boolean;
 }
 
-// The one segment element, shared by command toggles and dropdown triggers.
-// Forwards ref + rest props so it also works as a Base UI `render` trigger.
-// (which injects its own onClick/aria attributes).
-const SegmentButton = forwardRef<HTMLButtonElement, SegmentButtonProps>(({ Icon, label, active, className, ...rest }, ref) => (
-  <button
-    ref={ref}
-    type="button"
-    aria-label={label}
-    aria-pressed={active}
-    title={label}
-    className={cn(SEGMENT_BASE, active ? SEGMENT_ACTIVE : SEGMENT_IDLE, className)}
-    {...rest}
-  >
-    {Icon && <Icon className="w-4 h-4" />}
-  </button>
+// The one segment element, shared by command toggles and dropdown triggers: the kit's
+// quiet 28px square, so the toolbar container stays transparent and only the verb that
+// is on carries the accent fill. Forwards ref + rest props so it also works as a Base UI
+// `render` trigger (which injects its own onClick/aria attributes).
+const SegmentButton = forwardRef<HTMLButtonElement, SegmentButtonProps>(({ Icon, label, active, ...rest }, ref) => (
+  <Button ref={ref} variant="quiet" size="icon-compact" aria-label={label} aria-pressed={active} title={label} {...rest}>
+    {Icon && <Icon className="size-4" strokeWidth={1.8} />}
+  </Button>
 ));
 SegmentButton.displayName = "SegmentButton";

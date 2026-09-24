@@ -1,40 +1,60 @@
 import type { Element } from "hast";
-import "katex/dist/katex.min.css";
+import { type ComponentProps, memo, type ReactNode, Suspense } from "react";
 import type { Components } from "react-markdown";
 import ReactMarkdown from "react-markdown";
-import rehypeKatex from "rehype-katex";
-import rehypeRaw from "rehype-raw";
-import rehypeSanitize from "rehype-sanitize";
-import remarkBreaks from "remark-breaks";
-import remarkGfm from "remark-gfm";
-import remarkMath from "remark-math";
+import { buildRehypePlugins, buildRemarkPlugins } from "@/components/MemoContent/pipeline";
 import { isMentionElement, isTagElement, isTaskListItemElement } from "@/types/markdown";
-import { rehypeHeadingId } from "@/utils/rehype-plugins/rehype-heading-id";
-import { remarkDisableSetext } from "@/utils/remark-plugins/remark-disable-setext";
-import { remarkMention } from "@/utils/remark-plugins/remark-mention";
-import { remarkPreserveType } from "@/utils/remark-plugins/remark-preserve-type";
-import { remarkSplitMixedTaskLists } from "@/utils/remark-plugins/remark-split-mixed-task-lists";
-import { remarkTag } from "@/utils/remark-plugins/remark-tag";
+import type { Attachment } from "@/types/proto/api/v1/attachment_service_pb";
+import { lazyWithReload } from "@/utils/lazy";
+import { resolveManagedAttachmentImageSource } from "@/utils/managed-attachment";
 import { CodeBlock } from "./CodeBlock";
-import { SANITIZE_SCHEMA } from "./constants";
+import { memoUrlTransform } from "./constants";
 import { MarkdownRenderContext, rootMarkdownRenderContext } from "./MarkdownRenderContext";
 import { Mention } from "./Mention";
-import { AnchorLink, Blockquote, Heading, HorizontalRule, Image, InlineCode, Link, List, ListItem, Paragraph } from "./markdown";
+import {
+  AnchorLink,
+  Blockquote,
+  Details,
+  Heading,
+  HorizontalRule,
+  Image,
+  InlineCode,
+  Link,
+  List,
+  ListItem,
+  Paragraph,
+  Summary,
+} from "./markdown";
+import { hasMathSyntax } from "./math";
 import { Table, TableBody, TableCell, TableHead, TableHeaderCell, TableRow } from "./Table";
 import { Tag } from "./Tag";
 import { TaskListItem } from "./TaskListItem";
 import { TrustedIframe } from "./TrustedIframe";
 
-interface MemoMarkdownRendererProps {
+export interface MemoMarkdownRendererProps {
   content: string;
+  attachments?: Attachment[];
   resolvedMentionUsernames: Set<string>;
   /** Resource name of the memo (e.g. `memos/abc123`), used to target footnote links at the detail page. */
   memoName?: string;
+  /** Collection page that opened the memo detail. */
+  parentPage?: string;
   /** Whether the memo is rendered as a collapsed feed card. */
   compact?: boolean;
 }
 
-function getMentionUsername(node: Element, children?: React.ReactNode): string {
+type RemarkPlugins = NonNullable<ComponentProps<typeof ReactMarkdown>["remarkPlugins"]>;
+type RehypePlugins = NonNullable<ComponentProps<typeof ReactMarkdown>["rehypePlugins"]>;
+
+interface MemoMarkdownRendererCoreProps extends MemoMarkdownRendererProps {
+  /** Math plugins injected by MathMarkdownRenderer; the remark ones must run before remarkGfm. */
+  mathRemarkPlugins?: RemarkPlugins;
+  mathRehypePlugins?: RehypePlugins;
+}
+
+const MathMarkdownRenderer = lazyWithReload(() => import("./MathMarkdownRenderer"));
+
+function getMentionUsername(node: Element, children?: ReactNode): string {
   const dataMention = node.properties?.["data-mention"];
   if (typeof dataMention === "string" && dataMention !== "") {
     return dataMention;
@@ -47,13 +67,22 @@ function getMentionUsername(node: Element, children?: React.ReactNode): string {
 
   const text = Array.isArray(children) ? children.join("") : children;
   if (typeof text === "string" && text.startsWith("@")) {
-    return text.slice(1).toLowerCase();
+    return text.slice(1);
   }
 
   return "";
 }
 
-export const MemoMarkdownRenderer = ({ content, resolvedMentionUsernames, memoName, compact }: MemoMarkdownRendererProps) => {
+export const MemoMarkdownRendererCore = ({
+  content,
+  attachments = [],
+  resolvedMentionUsernames,
+  memoName,
+  parentPage,
+  compact,
+  mathRemarkPlugins = [],
+  mathRehypePlugins = [],
+}: MemoMarkdownRendererCoreProps) => {
   const markdownComponents: Components = {
     input: ({ node, ...inputProps }) => {
       if (node && isTaskListItemElement(node)) {
@@ -103,6 +132,8 @@ export const MemoMarkdownRenderer = ({ content, resolvedMentionUsernames, memoNa
     ),
     p: ({ children, ...props }) => <Paragraph {...props}>{children}</Paragraph>,
     blockquote: ({ children, ...props }) => <Blockquote {...props}>{children}</Blockquote>,
+    details: Details,
+    summary: Summary,
     hr: (props) => <HorizontalRule {...props} />,
     ul: ({ children, ...props }) => <List {...props}>{children}</List>,
     ol: ({ children, ...props }) => (
@@ -116,7 +147,7 @@ export const MemoMarkdownRenderer = ({ content, resolvedMentionUsernames, memoNa
       // than opening a new tab; everything else is treated as an external link.
       if (typeof href === "string" && href.startsWith("#")) {
         return (
-          <AnchorLink href={href} memoName={memoName} compact={compact} {...props}>
+          <AnchorLink href={href} memoName={memoName} parentPage={parentPage} compact={compact} {...props}>
             {children}
           </AnchorLink>
         );
@@ -129,7 +160,7 @@ export const MemoMarkdownRenderer = ({ content, resolvedMentionUsernames, memoNa
     },
     code: ({ children, ...props }) => <InlineCode {...props}>{children}</InlineCode>,
     iframe: TrustedIframe,
-    img: (props) => <Image {...props} />,
+    img: ({ src, ...props }) => <Image {...props} src={resolveManagedAttachmentImageSource(src, attachments)} />,
     pre: CodeBlock,
     table: ({ children, ...props }) => <Table {...props}>{children}</Table>,
     thead: ({ children, ...props }) => <TableHead {...props}>{children}</TableHead>,
@@ -142,22 +173,9 @@ export const MemoMarkdownRenderer = ({ content, resolvedMentionUsernames, memoNa
   return (
     <MarkdownRenderContext.Provider value={rootMarkdownRenderContext}>
       <ReactMarkdown
-        remarkPlugins={[
-          remarkDisableSetext,
-          remarkMath,
-          remarkGfm,
-          remarkSplitMixedTaskLists,
-          remarkBreaks,
-          remarkMention,
-          remarkTag,
-          remarkPreserveType,
-        ]}
-        rehypePlugins={[
-          rehypeRaw,
-          [rehypeSanitize, SANITIZE_SCHEMA],
-          rehypeHeadingId,
-          [rehypeKatex, { throwOnError: false, strict: false }],
-        ]}
+        remarkPlugins={buildRemarkPlugins(mathRemarkPlugins)}
+        rehypePlugins={buildRehypePlugins(mathRehypePlugins)}
+        urlTransform={memoUrlTransform}
         components={markdownComponents}
       >
         {content}
@@ -165,3 +183,32 @@ export const MemoMarkdownRenderer = ({ content, resolvedMentionUsernames, memoNa
     </MarkdownRenderContext.Provider>
   );
 };
+
+const MemoMarkdownRendererComponent = (props: MemoMarkdownRendererProps) => {
+  if (!hasMathSyntax(props.content)) {
+    return <MemoMarkdownRendererCore {...props} />;
+  }
+
+  return (
+    <Suspense fallback={<MemoMarkdownRendererCore {...props} />}>
+      <MathMarkdownRenderer {...props} />
+    </Suspense>
+  );
+};
+
+const haveEqualResolvedMentions = (left: Set<string>, right: Set<string>) => {
+  if (left === right) return true;
+  if (left.size !== right.size) return false;
+  return Array.from(left).every((username) => right.has(username));
+};
+
+export const MemoMarkdownRenderer = memo(
+  MemoMarkdownRendererComponent,
+  (previous, next) =>
+    previous.content === next.content &&
+    previous.attachments === next.attachments &&
+    previous.memoName === next.memoName &&
+    previous.parentPage === next.parentPage &&
+    previous.compact === next.compact &&
+    haveEqualResolvedMentions(previous.resolvedMentionUsernames, next.resolvedMentionUsernames),
+);

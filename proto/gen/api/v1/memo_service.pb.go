@@ -34,8 +34,11 @@ const (
 	Visibility_PRIVATE Visibility = 1
 	// PROTECTED: signed-in users of the instance can read the memo.
 	Visibility_PROTECTED Visibility = 2
-	// PUBLIC: anyone, including anonymous visitors, can read the memo.
+	// PUBLIC: signed-in users can read the memo; anonymous visitors can read it
+	// when instance policy permits.
 	Visibility_PUBLIC Visibility = 3
+	// SPACE: active members of the memo's space can read it.
+	Visibility_SPACE Visibility = 4
 )
 
 // Enum value maps for Visibility.
@@ -45,12 +48,14 @@ var (
 		1: "PRIVATE",
 		2: "PROTECTED",
 		3: "PUBLIC",
+		4: "SPACE",
 	}
 	Visibility_value = map[string]int32{
 		"VISIBILITY_UNSPECIFIED": 0,
 		"PRIVATE":                1,
 		"PROTECTED":              2,
 		"PUBLIC":                 3,
+		"SPACE":                  4,
 	}
 )
 
@@ -131,6 +136,7 @@ func (MemoRelation_Type) EnumDescriptor() ([]byte, []int) {
 	return file_api_v1_memo_service_proto_rawDescGZIP(), []int{12, 0}
 }
 
+// Reaction is a reaction attached to a memo.
 type Reaction struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
 	// The resource name of the reaction.
@@ -139,10 +145,6 @@ type Reaction struct {
 	// The resource name of the creator.
 	// Format: users/{user}
 	Creator string `protobuf:"bytes,2,opt,name=creator,proto3" json:"creator,omitempty"`
-	// The resource name of the content.
-	// For memo reactions, this should be the memo's resource name.
-	// Format: memos/{memo}
-	ContentId string `protobuf:"bytes,3,opt,name=content_id,json=contentId,proto3" json:"content_id,omitempty"`
 	// Required. The type of reaction (e.g., "👍", "❤️", "😄").
 	ReactionType string `protobuf:"bytes,4,opt,name=reaction_type,json=reactionType,proto3" json:"reaction_type,omitempty"`
 	// Output only. The creation timestamp.
@@ -195,13 +197,6 @@ func (x *Reaction) GetCreator() string {
 	return ""
 }
 
-func (x *Reaction) GetContentId() string {
-	if x != nil {
-		return x.ContentId
-	}
-	return ""
-}
-
 func (x *Reaction) GetReactionType() string {
 	if x != nil {
 		return x.ReactionType
@@ -219,7 +214,7 @@ func (x *Reaction) GetCreateTime() *timestamppb.Timestamp {
 type Memo struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
 	// The resource name of the memo.
-	// Format: memos/{memo}, memo is the user defined id or uuid.
+	// Format: memos/{memo}, where memo is the user-defined UID.
 	Name string `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
 	// The state of the memo.
 	State State `protobuf:"varint,2,opt,name=state,proto3,enum=memos.api.v1.State" json:"state,omitempty"`
@@ -235,8 +230,9 @@ type Memo struct {
 	// Required. The content of the memo in Markdown format.
 	Content string `protobuf:"bytes,7,opt,name=content,proto3" json:"content,omitempty"`
 	// The visibility of the memo.
-	// One of PRIVATE (creator only), PROTECTED (signed-in users), or
-	// PUBLIC (anyone). Defaults to PRIVATE on creation when unspecified.
+	// One of PRIVATE (creator only), PROTECTED (signed-in users), PUBLIC
+	// (anonymous-eligible), or SPACE (active space members). Defaults to
+	// PRIVATE on creation when unspecified.
 	Visibility Visibility `protobuf:"varint,9,opt,name=visibility,proto3,enum=memos.api.v1.Visibility" json:"visibility,omitempty"`
 	// Output only. The tags extracted from the content.
 	Tags []string `protobuf:"bytes,10,rep,name=tags,proto3" json:"tags,omitempty"`
@@ -250,13 +246,18 @@ type Memo struct {
 	Reactions []*Reaction `protobuf:"bytes,14,rep,name=reactions,proto3" json:"reactions,omitempty"`
 	// Output only. The computed properties of the memo.
 	Property *Memo_Property `protobuf:"bytes,15,opt,name=property,proto3" json:"property,omitempty"`
-	// Output only. The name of the parent memo.
+	// Output only. The context memo of this COMMENT relation, if any.
+	// Its identity is returned even when the caller cannot read the parent.
+	// Fetch the parent independently; this field does not grant read access.
 	// Format: memos/{memo}
 	Parent *string `protobuf:"bytes,16,opt,name=parent,proto3,oneof" json:"parent,omitempty"`
 	// Output only. The snippet of the memo content. Plain text only.
 	Snippet string `protobuf:"bytes,17,opt,name=snippet,proto3" json:"snippet,omitempty"`
 	// Optional. The location of the memo.
-	Location      *Location `protobuf:"bytes,18,opt,name=location,proto3,oneof" json:"location,omitempty"`
+	Location *Location `protobuf:"bytes,18,opt,name=location,proto3,oneof" json:"location,omitempty"`
+	// Optional. The space in which this memo is placed. Format: spaces/{space}.
+	// Every memo, including a comment, owns its placement independently.
+	Space         *string `protobuf:"bytes,19,opt,name=space,proto3,oneof" json:"space,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -403,6 +404,13 @@ func (x *Memo) GetLocation() *Location {
 	return nil
 }
 
+func (x *Memo) GetSpace() string {
+	if x != nil && x.Space != nil {
+		return *x.Space
+	}
+	return ""
+}
+
 type Location struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
 	// A placeholder text for the location.
@@ -472,6 +480,7 @@ type CreateMemoRequest struct {
 	Memo *Memo `protobuf:"bytes,1,opt,name=memo,proto3" json:"memo,omitempty"`
 	// Optional. The memo ID to use for this memo.
 	// If empty, a unique ID will be generated.
+	// Format: ^[a-zA-Z0-9]([a-zA-Z0-9-]{0,34}[a-zA-Z0-9])?$
 	MemoId        string `protobuf:"bytes,2,opt,name=memo_id,json=memoId,proto3" json:"memo_id,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
@@ -547,15 +556,19 @@ type ListMemosRequest struct {
 	//
 	//	content (string), creator (string, e.g. "users/1"),
 	//	created_ts / updated_ts (timestamp), pinned (bool),
-	//	visibility (string: PRIVATE | PROTECTED | PUBLIC),
+	//	visibility (string: PRIVATE | PROTECTED | PUBLIC | SPACE),
+	//	space (string resource name, or null when the memo has no space;
+	//	  supports == and comparisons against null, e.g. space != null),
 	//	tags (list<string>; match with `"work" in tags`, not `tag == "work"`),
-	//	has_task_list / has_link / has_code / has_incomplete_tasks (bool).
+	//	has_task_list / has_link / has_code / has_incomplete_tasks (bool),
+	//	has_location (bool; true when the memo has a location attached).
 	//
 	// Note: the time fields here are created_ts / updated_ts, which differ from
 	// the create_time / update_time names used by order_by.
 	// Examples:
 	//
 	//	pinned == true && visibility == "PUBLIC"
+	//	space == "spaces/team" or space == null
 	//	tags.exists(t, t == "urgent")
 	//	content.contains("roadmap") && created_ts > now - duration("168h")
 	Filter string `protobuf:"bytes,5,opt,name=filter,proto3" json:"filter,omitempty"`
@@ -1088,7 +1101,7 @@ type SetMemoRelationsRequest struct {
 	// Required. The resource name of the memo.
 	// Format: memos/{memo}
 	Name string `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
-	// Required. The relations to set for the memo.
+	// Required. The REFERENCE relations to set for the memo. COMMENT is invalid.
 	Relations     []*MemoRelation `protobuf:"bytes,2,rep,name=relations,proto3" json:"relations,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
@@ -1924,28 +1937,28 @@ func (x *DeleteMemoShareRequest) GetName() string {
 	return ""
 }
 
-type GetMemoByShareRequest struct {
+type GetSharedMemoRequest struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
-	// Required. The share token extracted from the share URL (/s/{share_id}).
-	ShareId       string `protobuf:"bytes,1,opt,name=share_id,json=shareId,proto3" json:"share_id,omitempty"`
+	// Required. The opaque bearer token extracted from the share URL.
+	ShareToken    string `protobuf:"bytes,1,opt,name=share_token,json=shareToken,proto3" json:"share_token,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
-func (x *GetMemoByShareRequest) Reset() {
-	*x = GetMemoByShareRequest{}
+func (x *GetSharedMemoRequest) Reset() {
+	*x = GetSharedMemoRequest{}
 	mi := &file_api_v1_memo_service_proto_msgTypes[28]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
 
-func (x *GetMemoByShareRequest) String() string {
+func (x *GetSharedMemoRequest) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*GetMemoByShareRequest) ProtoMessage() {}
+func (*GetSharedMemoRequest) ProtoMessage() {}
 
-func (x *GetMemoByShareRequest) ProtoReflect() protoreflect.Message {
+func (x *GetSharedMemoRequest) ProtoReflect() protoreflect.Message {
 	mi := &file_api_v1_memo_service_proto_msgTypes[28]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -1957,14 +1970,14 @@ func (x *GetMemoByShareRequest) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use GetMemoByShareRequest.ProtoReflect.Descriptor instead.
-func (*GetMemoByShareRequest) Descriptor() ([]byte, []int) {
+// Deprecated: Use GetSharedMemoRequest.ProtoReflect.Descriptor instead.
+func (*GetSharedMemoRequest) Descriptor() ([]byte, []int) {
 	return file_api_v1_memo_service_proto_rawDescGZIP(), []int{28}
 }
 
-func (x *GetMemoByShareRequest) GetShareId() string {
+func (x *GetSharedMemoRequest) GetShareToken() string {
 	if x != nil {
-		return x.ShareId
+		return x.ShareToken
 	}
 	return ""
 }
@@ -2314,18 +2327,16 @@ var File_api_v1_memo_service_proto protoreflect.FileDescriptor
 
 const file_api_v1_memo_service_proto_rawDesc = "" +
 	"\n" +
-	"\x19api/v1/memo_service.proto\x12\fmemos.api.v1\x1a\x1fapi/v1/attachment_service.proto\x1a\x13api/v1/common.proto\x1a\x1cgoogle/api/annotations.proto\x1a\x17google/api/client.proto\x1a\x1fgoogle/api/field_behavior.proto\x1a\x19google/api/resource.proto\x1a\x1bgoogle/protobuf/empty.proto\x1a google/protobuf/field_mask.proto\x1a\x1fgoogle/protobuf/timestamp.proto\"\xdb\x02\n" +
+	"\x19api/v1/memo_service.proto\x12\fmemos.api.v1\x1a\x1fapi/v1/attachment_service.proto\x1a\x13api/v1/common.proto\x1a\x1cgoogle/api/annotations.proto\x1a\x17google/api/client.proto\x1a\x1fgoogle/api/field_behavior.proto\x1a\x19google/api/resource.proto\x1a\x1bgoogle/protobuf/empty.proto\x1a google/protobuf/field_mask.proto\x1a\x1fgoogle/protobuf/timestamp.proto\"\xb3\x02\n" +
 	"\bReaction\x12\x1a\n" +
 	"\x04name\x18\x01 \x01(\tB\x06\xe0A\x03\xe0A\bR\x04name\x123\n" +
 	"\acreator\x18\x02 \x01(\tB\x19\xe0A\x03\xfaA\x13\n" +
-	"\x11memos.api.v1/UserR\acreator\x128\n" +
-	"\n" +
-	"content_id\x18\x03 \x01(\tB\x19\xe0A\x02\xfaA\x13\n" +
-	"\x11memos.api.v1/MemoR\tcontentId\x12(\n" +
+	"\x11memos.api.v1/UserR\acreator\x12(\n" +
 	"\rreaction_type\x18\x04 \x01(\tB\x03\xe0A\x02R\freactionType\x12@\n" +
 	"\vcreate_time\x18\x05 \x01(\v2\x1a.google.protobuf.TimestampB\x03\xe0A\x03R\n" +
 	"createTime:X\xeaAU\n" +
-	"\x15memos.api.v1/Reaction\x12!memos/{memo}/reactions/{reaction}\x1a\x04name*\treactions2\breaction\"\xbe\b\n" +
+	"\x15memos.api.v1/Reaction\x12!memos/{memo}/reactions/{reaction}\x1a\x04name*\treactions2\breactionJ\x04\b\x03\x10\x04R\n" +
+	"content_id\"\xff\b\n" +
 	"\x04Memo\x12\x17\n" +
 	"\x04name\x18\x01 \x01(\tB\x03\xe0A\bR\x04name\x12.\n" +
 	"\x05state\x18\x02 \x01(\x0e2\x13.memos.api.v1.StateB\x03\xe0A\x02R\x05state\x123\n" +
@@ -2349,7 +2360,9 @@ const file_api_v1_memo_service_proto_rawDesc = "" +
 	"\x06parent\x18\x10 \x01(\tB\x19\xe0A\x03\xfaA\x13\n" +
 	"\x11memos.api.v1/MemoH\x00R\x06parent\x88\x01\x01\x12\x1d\n" +
 	"\asnippet\x18\x11 \x01(\tB\x03\xe0A\x03R\asnippet\x12<\n" +
-	"\blocation\x18\x12 \x01(\v2\x16.memos.api.v1.LocationB\x03\xe0A\x01H\x01R\blocation\x88\x01\x01\x1a\xac\x01\n" +
+	"\blocation\x18\x12 \x01(\v2\x16.memos.api.v1.LocationB\x03\xe0A\x01H\x01R\blocation\x88\x01\x01\x125\n" +
+	"\x05space\x18\x13 \x01(\tB\x1a\xe0A\x01\xfaA\x14\n" +
+	"\x12memos.api.v1/SpaceH\x02R\x05space\x88\x01\x01\x1a\xac\x01\n" +
 	"\bProperty\x12\x19\n" +
 	"\bhas_link\x18\x01 \x01(\bR\ahasLink\x12\"\n" +
 	"\rhas_task_list\x18\x02 \x01(\bR\vhasTaskList\x12\x19\n" +
@@ -2358,14 +2371,15 @@ const file_api_v1_memo_service_proto_rawDesc = "" +
 	"\x05title\x18\x05 \x01(\tR\x05title:7\xeaA4\n" +
 	"\x11memos.api.v1/Memo\x12\fmemos/{memo}\x1a\x04name*\x05memos2\x04memoB\t\n" +
 	"\a_parentB\v\n" +
-	"\t_locationJ\x04\b\x06\x10\aR\fdisplay_time\"u\n" +
+	"\t_locationB\b\n" +
+	"\x06_spaceJ\x04\b\x06\x10\aR\fdisplay_time\"u\n" +
 	"\bLocation\x12%\n" +
 	"\vplaceholder\x18\x01 \x01(\tB\x03\xe0A\x01R\vplaceholder\x12\x1f\n" +
 	"\blatitude\x18\x02 \x01(\x01B\x03\xe0A\x01R\blatitude\x12!\n" +
 	"\tlongitude\x18\x03 \x01(\x01B\x03\xe0A\x01R\tlongitude\"^\n" +
 	"\x11CreateMemoRequest\x12+\n" +
 	"\x04memo\x18\x01 \x01(\v2\x12.memos.api.v1.MemoB\x03\xe0A\x02R\x04memo\x12\x1c\n" +
-	"\amemo_id\x18\x02 \x01(\tB\x03\xe0A\x01R\x06memoId\"\xed\x01\n" +
+	"\amemo_id\x18\x02 \x01(\tB\x03\xe0A\x01R\x06memoId\"\x8c\x02\n" +
 	"\x10ListMemosRequest\x12 \n" +
 	"\tpage_size\x18\x01 \x01(\x05B\x03\xe0A\x01R\bpageSize\x12\"\n" +
 	"\n" +
@@ -2373,7 +2387,8 @@ const file_api_v1_memo_service_proto_rawDesc = "" +
 	"\x05state\x18\x03 \x01(\x0e2\x13.memos.api.v1.StateB\x03\xe0A\x01R\x05state\x12\x1e\n" +
 	"\border_by\x18\x04 \x01(\tB\x03\xe0A\x01R\aorderBy\x12\x1b\n" +
 	"\x06filter\x18\x05 \x01(\tB\x03\xe0A\x01R\x06filter\x12&\n" +
-	"\fshow_deleted\x18\x06 \x01(\bB\x03\xe0A\x01R\vshowDeleted\"e\n" +
+	"\fshow_deleted\x18\x06 \x01(\bB\x03\xe0A\x01R\vshowDeletedJ\x04\b\a\x10\bJ\x04\b\b\x10\tR\x05spaceR\n" +
+	"unassigned\"e\n" +
 	"\x11ListMemosResponse\x12(\n" +
 	"\x05memos\x18\x01 \x03(\v2\x12.memos.api.v1.MemoR\x05memos\x12&\n" +
 	"\x0fnext_page_token\x18\x02 \x01(\tR\rnextPageToken\"?\n" +
@@ -2479,9 +2494,10 @@ const file_api_v1_memo_service_proto_rawDesc = "" +
 	"memoShares\"L\n" +
 	"\x16DeleteMemoShareRequest\x122\n" +
 	"\x04name\x18\x01 \x01(\tB\x1e\xe0A\x02\xfaA\x18\n" +
-	"\x16memos.api.v1/MemoShareR\x04name\"7\n" +
-	"\x15GetMemoByShareRequest\x12\x1e\n" +
-	"\bshare_id\x18\x01 \x01(\tB\x03\xe0A\x02R\ashareId\"/\n" +
+	"\x16memos.api.v1/MemoShareR\x04name\"<\n" +
+	"\x14GetSharedMemoRequest\x12$\n" +
+	"\vshare_token\x18\x01 \x01(\tB\x03\xe0A\x02R\n" +
+	"shareToken\"/\n" +
 	"\x16GetLinkMetadataRequest\x12\x15\n" +
 	"\x03url\x18\x01 \x01(\tB\x03\xe0A\x02R\x03url\"6\n" +
 	"\x1bBatchGetLinkMetadataRequest\x12\x17\n" +
@@ -2492,14 +2508,15 @@ const file_api_v1_memo_service_proto_rawDesc = "" +
 	"\x03url\x18\x01 \x01(\tR\x03url\x12\x14\n" +
 	"\x05title\x18\x02 \x01(\tR\x05title\x12 \n" +
 	"\vdescription\x18\x03 \x01(\tR\vdescription\x12\x14\n" +
-	"\x05image\x18\x04 \x01(\tR\x05image*P\n" +
+	"\x05image\x18\x04 \x01(\tR\x05image*[\n" +
 	"\n" +
 	"Visibility\x12\x1a\n" +
 	"\x16VISIBILITY_UNSPECIFIED\x10\x00\x12\v\n" +
 	"\aPRIVATE\x10\x01\x12\r\n" +
 	"\tPROTECTED\x10\x02\x12\n" +
 	"\n" +
-	"\x06PUBLIC\x10\x032\x8b\x15\n" +
+	"\x06PUBLIC\x10\x03\x12\t\n" +
+	"\x05SPACE\x10\x042\x91\x15\n" +
 	"\vMemoService\x12e\n" +
 	"\n" +
 	"CreateMemo\x12\x1f.memos.api.v1.CreateMemoRequest\x1a\x12.memos.api.v1.Memo\"\"\xdaA\x04memo\x82\xd3\xe4\x93\x02\x15:\x04memo\"\r/api/v1/memos\x12f\n" +
@@ -2521,8 +2538,8 @@ const file_api_v1_memo_service_proto_rawDesc = "" +
 	"\x0fCreateMemoShare\x12$.memos.api.v1.CreateMemoShareRequest\x1a\x17.memos.api.v1.MemoShare\"G\xdaA\x11parent,memo_share\x82\xd3\xe4\x93\x02-:\n" +
 	"memo_share\"\x1f/api/v1/{parent=memos/*}/shares\x12\x8d\x01\n" +
 	"\x0eListMemoShares\x12#.memos.api.v1.ListMemoSharesRequest\x1a$.memos.api.v1.ListMemoSharesResponse\"0\xdaA\x06parent\x82\xd3\xe4\x93\x02!\x12\x1f/api/v1/{parent=memos/*}/shares\x12\x7f\n" +
-	"\x0fDeleteMemoShare\x12$.memos.api.v1.DeleteMemoShareRequest\x1a\x16.google.protobuf.Empty\".\xdaA\x04name\x82\xd3\xe4\x93\x02!*\x1f/api/v1/{name=memos/*/shares/*}\x12l\n" +
-	"\x0eGetMemoByShare\x12#.memos.api.v1.GetMemoByShareRequest\x1a\x12.memos.api.v1.Memo\"!\x82\xd3\xe4\x93\x02\x1b\x12\x19/api/v1/shares/{share_id}\x12y\n" +
+	"\x0fDeleteMemoShare\x12$.memos.api.v1.DeleteMemoShareRequest\x1a\x16.google.protobuf.Empty\".\xdaA\x04name\x82\xd3\xe4\x93\x02!*\x1f/api/v1/{name=memos/*/shares/*}\x12r\n" +
+	"\rGetSharedMemo\x12\".memos.api.v1.GetSharedMemoRequest\x1a\x12.memos.api.v1.Memo\")\x82\xd3\xe4\x93\x02#\x12!/api/v1/shares/{share_token}/memo\x12y\n" +
 	"\x0fGetLinkMetadata\x12$.memos.api.v1.GetLinkMetadataRequest\x1a\x1a.memos.api.v1.LinkMetadata\"$\x82\xd3\xe4\x93\x02\x1e\x12\x1c/api/v1/memos/-/linkMetadata\x12\x9f\x01\n" +
 	"\x14BatchGetLinkMetadata\x12).memos.api.v1.BatchGetLinkMetadataRequest\x1a*.memos.api.v1.BatchGetLinkMetadataResponse\"0\x82\xd3\xe4\x93\x02*:\x01*\"%/api/v1/memos/-/linkMetadata:batchGetB\xa8\x01\n" +
 	"\x10com.memos.api.v1B\x10MemoServiceProtoP\x01Z0github.com/usememos/memos/proto/gen/api/v1;apiv1\xa2\x02\x03MAX\xaa\x02\fMemos.Api.V1\xca\x02\fMemos\\Api\\V1\xe2\x02\x18Memos\\Api\\V1\\GPBMetadata\xea\x02\x0eMemos::Api::V1b\x06proto3"
@@ -2572,7 +2589,7 @@ var file_api_v1_memo_service_proto_goTypes = []any{
 	(*ListMemoSharesRequest)(nil),        // 27: memos.api.v1.ListMemoSharesRequest
 	(*ListMemoSharesResponse)(nil),       // 28: memos.api.v1.ListMemoSharesResponse
 	(*DeleteMemoShareRequest)(nil),       // 29: memos.api.v1.DeleteMemoShareRequest
-	(*GetMemoByShareRequest)(nil),        // 30: memos.api.v1.GetMemoByShareRequest
+	(*GetSharedMemoRequest)(nil),         // 30: memos.api.v1.GetSharedMemoRequest
 	(*GetLinkMetadataRequest)(nil),       // 31: memos.api.v1.GetLinkMetadataRequest
 	(*BatchGetLinkMetadataRequest)(nil),  // 32: memos.api.v1.BatchGetLinkMetadataRequest
 	(*BatchGetLinkMetadataResponse)(nil), // 33: memos.api.v1.BatchGetLinkMetadataResponse
@@ -2634,7 +2651,7 @@ var file_api_v1_memo_service_proto_depIdxs = []int32{
 	26, // 45: memos.api.v1.MemoService.CreateMemoShare:input_type -> memos.api.v1.CreateMemoShareRequest
 	27, // 46: memos.api.v1.MemoService.ListMemoShares:input_type -> memos.api.v1.ListMemoSharesRequest
 	29, // 47: memos.api.v1.MemoService.DeleteMemoShare:input_type -> memos.api.v1.DeleteMemoShareRequest
-	30, // 48: memos.api.v1.MemoService.GetMemoByShare:input_type -> memos.api.v1.GetMemoByShareRequest
+	30, // 48: memos.api.v1.MemoService.GetSharedMemo:input_type -> memos.api.v1.GetSharedMemoRequest
 	31, // 49: memos.api.v1.MemoService.GetLinkMetadata:input_type -> memos.api.v1.GetLinkMetadataRequest
 	32, // 50: memos.api.v1.MemoService.BatchGetLinkMetadata:input_type -> memos.api.v1.BatchGetLinkMetadataRequest
 	3,  // 51: memos.api.v1.MemoService.CreateMemo:output_type -> memos.api.v1.Memo
@@ -2654,7 +2671,7 @@ var file_api_v1_memo_service_proto_depIdxs = []int32{
 	25, // 65: memos.api.v1.MemoService.CreateMemoShare:output_type -> memos.api.v1.MemoShare
 	28, // 66: memos.api.v1.MemoService.ListMemoShares:output_type -> memos.api.v1.ListMemoSharesResponse
 	41, // 67: memos.api.v1.MemoService.DeleteMemoShare:output_type -> google.protobuf.Empty
-	3,  // 68: memos.api.v1.MemoService.GetMemoByShare:output_type -> memos.api.v1.Memo
+	3,  // 68: memos.api.v1.MemoService.GetSharedMemo:output_type -> memos.api.v1.Memo
 	34, // 69: memos.api.v1.MemoService.GetLinkMetadata:output_type -> memos.api.v1.LinkMetadata
 	33, // 70: memos.api.v1.MemoService.BatchGetLinkMetadata:output_type -> memos.api.v1.BatchGetLinkMetadataResponse
 	51, // [51:71] is the sub-list for method output_type

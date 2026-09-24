@@ -2,6 +2,7 @@ package postgres
 
 import (
 	"context"
+	"database/sql"
 	"fmt"
 	"strings"
 
@@ -11,23 +12,23 @@ import (
 )
 
 func (d *DB) CreateUser(ctx context.Context, create *store.User) (*store.User, error) {
-	fields := []string{"username", "role", "email", "nickname", "password_hash", "avatar_url"}
-	args := []any{create.Username, create.Role, create.Email, create.Nickname, create.PasswordHash, create.AvatarURL}
-	stmt := "INSERT INTO \"user\" (" + strings.Join(fields, ", ") + ") VALUES (" + placeholders(len(args)) + ") RETURNING id, description, created_ts, updated_ts, row_status"
-	if err := d.db.QueryRowContext(ctx, stmt, args...).Scan(
-		&create.ID,
-		&create.Description,
-		&create.CreatedTs,
-		&create.UpdatedTs,
-		&create.RowStatus,
-	); err != nil {
+	if err := insertUser(ctx, d.db, create); err != nil {
 		return nil, err
 	}
-
 	return create, nil
 }
 
 func (d *DB) UpdateUser(ctx context.Context, update *store.UpdateUser) (*store.User, error) {
+	tx, err := d.db.BeginTx(ctx, nil)
+	if err != nil {
+		return nil, err
+	}
+	defer func() { _ = tx.Rollback() }()
+	if update.RowStatus != nil && *update.RowStatus == store.Archived {
+		if err := validatePostgresUserArchive(ctx, tx, update.ID); err != nil {
+			return nil, err
+		}
+	}
 	set, args := []string{}, []any{}
 	if v := update.UpdatedTs; v != nil {
 		set, args = append(set, "updated_ts = "+placeholder(len(args)+1)), append(args, *v)
@@ -39,7 +40,7 @@ func (d *DB) UpdateUser(ctx context.Context, update *store.UpdateUser) (*store.U
 		set, args = append(set, "username = "+placeholder(len(args)+1)), append(args, *v)
 	}
 	if v := update.Email; v != nil {
-		set, args = append(set, "email = "+placeholder(len(args)+1)), append(args, *v)
+		set, args = append(set, "email = "+placeholder(len(args)+1)), append(args, nullableEmail(*v))
 	}
 	if v := update.Nickname; v != nil {
 		set, args = append(set, "nickname = "+placeholder(len(args)+1)), append(args, *v)
@@ -65,11 +66,12 @@ func (d *DB) UpdateUser(ctx context.Context, update *store.UpdateUser) (*store.U
 	`
 	args = append(args, update.ID)
 	user := &store.User{}
-	if err := d.db.QueryRowContext(ctx, query, args...).Scan(
+	var email sql.NullString
+	if err := tx.QueryRowContext(ctx, query, args...).Scan(
 		&user.ID,
 		&user.Username,
 		&user.Role,
-		&user.Email,
+		&email,
 		&user.Nickname,
 		&user.PasswordHash,
 		&user.AvatarURL,
@@ -80,8 +82,40 @@ func (d *DB) UpdateUser(ctx context.Context, update *store.UpdateUser) (*store.U
 	); err != nil {
 		return nil, err
 	}
-
+	user.Email = email.String
+	if err := tx.Commit(); err != nil {
+		return nil, err
+	}
 	return user, nil
+}
+
+func validatePostgresUserArchive(ctx context.Context, tx *sql.Tx, userID int32) error {
+	var isLastActiveAdmin bool
+	if err := tx.QueryRowContext(ctx, `SELECT EXISTS (
+		SELECT 1
+		FROM "user" target_user
+		JOIN space_member target ON target.user_id = target_user.id
+			AND target.status = 'ACTIVE' AND target.role = 'ADMIN'
+		JOIN space ON space.id = target.space_id
+		WHERE target_user.id = $1
+			AND target_user.row_status = 'NORMAL'
+			AND NOT EXISTS (
+				SELECT 1
+				FROM space_member other
+				JOIN "user" other_user ON other_user.id = other.user_id
+				WHERE other.space_id = target.space_id
+					AND other.user_id <> target.user_id
+					AND other.status = 'ACTIVE'
+					AND other.role = 'ADMIN'
+					AND other_user.row_status = 'NORMAL'
+			)
+	)`, userID).Scan(&isLastActiveAdmin); err != nil {
+		return err
+	}
+	if isLastActiveAdmin {
+		return store.ErrLastSpaceAdmin
+	}
+	return nil
 }
 
 func (d *DB) ListUsers(ctx context.Context, find *store.FindUser) ([]*store.User, error) {
@@ -169,11 +203,12 @@ func (d *DB) ListUsers(ctx context.Context, find *store.FindUser) ([]*store.User
 	list := make([]*store.User, 0)
 	for rows.Next() {
 		var user store.User
+		var email sql.NullString
 		if err := rows.Scan(
 			&user.ID,
 			&user.Username,
 			&user.Role,
-			&user.Email,
+			&email,
 			&user.Nickname,
 			&user.PasswordHash,
 			&user.AvatarURL,
@@ -184,6 +219,7 @@ func (d *DB) ListUsers(ctx context.Context, find *store.FindUser) ([]*store.User
 		); err != nil {
 			return nil, err
 		}
+		user.Email = email.String
 		list = append(list, &user)
 	}
 
@@ -192,4 +228,14 @@ func (d *DB) ListUsers(ctx context.Context, find *store.FindUser) ([]*store.User
 	}
 
 	return list, nil
+}
+
+// nullableEmail maps the store's "no address" value to SQL NULL. The email
+// column is nullable so the unique index ignores users without an address;
+// an empty string must never reach the table.
+func nullableEmail(email string) any {
+	if email == "" {
+		return nil
+	}
+	return email
 }
