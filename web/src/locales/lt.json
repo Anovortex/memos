@@ -1042,11 +1042,11 @@
       "title": "Billing",
       "description": "What members see when they ask for Teams. Billing is manual for now: they pay the way you describe here and report it; you confirm from Members. A payment provider can replace the pay step later.",
       "price": "Teams price",
-      "price-hint": "Free text, e.g. 500 BDT / month.",
+      "price-hint": "Free text in dollars, e.g. $5 / month.",
       "period": "Billing period (days)",
       "period-hint": "The plan dialog pre-fills the expiry with it.",
       "instructions": "Payment instructions",
-      "instructions-hint": "Bank or mobile-money details, and the reference members should include."
+      "instructions-hint": "Where to send the dollars (PayPal, Wise, bank) and the reference members should include."
     }
   },
   "space": {

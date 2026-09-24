@@ -26,9 +26,9 @@ describe("<BillingSection>", () => {
 
     const saveButton = screen.getByRole("button", { name: "common.save" });
     expect(saveButton).toBeDisabled();
-    fireEvent.change(screen.getByLabelText("setting.billing.price"), { target: { value: "500 BDT / month" } });
+    fireEvent.change(screen.getByLabelText("setting.billing.price"), { target: { value: "$5 / month" } });
     fireEvent.change(screen.getByLabelText("setting.billing.period"), { target: { value: "31" } });
-    fireEvent.change(screen.getByLabelText("setting.billing.instructions"), { target: { value: "bKash 0170" } });
+    fireEvent.change(screen.getByLabelText("setting.billing.instructions"), { target: { value: "PayPal pay@example.com" } });
     fireEvent.click(saveButton);
 
     await waitFor(() => expect(mocks.save).toHaveBeenCalledTimes(1));
@@ -36,8 +36,8 @@ describe("<BillingSection>", () => {
     expect(key).toBe(8);
     expect(setting.name).toBe("instance/settings/BILLING");
     expect(setting.value.case).toBe("billingSetting");
-    expect(setting.value.value.teamsPrice).toBe("500 BDT / month");
+    expect(setting.value.value.teamsPrice).toBe("$5 / month");
     expect(setting.value.value.periodDays).toBe(31);
-    expect(setting.value.value.paymentInstructions).toBe("bKash 0170");
+    expect(setting.value.value.paymentInstructions).toBe("PayPal pay@example.com");
   });
 });

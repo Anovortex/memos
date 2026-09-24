@@ -10,7 +10,7 @@ const mocks = vi.hoisted(() => ({
   update: vi.fn(),
   refetchSettings: vi.fn(),
   fetchSetting: vi.fn(),
-  billing: { teamsPrice: "500 BDT / month", paymentInstructions: "bKash 0170 0000000, reference: your username", periodDays: 30 },
+  billing: { teamsPrice: "$5 / month", paymentInstructions: "PayPal pay@example.com, reference: your username", periodDays: 30 },
   toastSuccess: vi.fn(),
   toastError: vi.fn(),
 }));
@@ -53,7 +53,7 @@ describe("<PlanSection>", () => {
     render(<PlanSection />);
 
     expect(mocks.fetchSetting).toHaveBeenCalled();
-    expect(screen.getByText("setting.plan.price:500 BDT / month")).toBeInTheDocument();
+    expect(screen.getByText("setting.plan.price:$5 / month")).toBeInTheDocument();
     fireEvent.click(screen.getByRole("button", { name: "setting.plan.request:setting.member.plan-teams" }));
 
     await waitFor(() => expect(mocks.update).toHaveBeenCalledTimes(1));
@@ -68,7 +68,7 @@ describe("<PlanSection>", () => {
 
     render(<PlanSection />);
 
-    expect(screen.getByText(/bKash 0170 0000000/)).toBeInTheDocument();
+    expect(screen.getByText(/PayPal pay@example.com/)).toBeInTheDocument();
     fireEvent.change(screen.getByLabelText("setting.plan.reference"), { target: { value: " TXN-42 " } });
     fireEvent.click(screen.getByRole("button", { name: "setting.plan.paid" }));
 

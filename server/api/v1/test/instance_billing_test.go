@@ -51,16 +51,16 @@ func TestInstanceBillingSetting(t *testing.T) {
 
 	t.Run("the operator sets price, instructions and period, and members see them", func(t *testing.T) {
 		_, err := ts.Service.UpdateInstanceSetting(adminCtx, update(&v1pb.InstanceSetting_BillingSetting{
-			TeamsPrice:          "500 BDT / month",
-			PaymentInstructions: "bKash 01700000000, reference: your username",
+			TeamsPrice:          "$5 / month",
+			PaymentInstructions: "PayPal pay@example.com, reference: your username",
 			PeriodDays:          31,
 		}))
 		require.NoError(t, err)
 
 		setting, err := ts.Service.GetInstanceSetting(memberCtx, &v1pb.GetInstanceSettingRequest{Name: name})
 		require.NoError(t, err)
-		require.Equal(t, "500 BDT / month", setting.GetBillingSetting().TeamsPrice)
-		require.Contains(t, setting.GetBillingSetting().PaymentInstructions, "bKash")
+		require.Equal(t, "$5 / month", setting.GetBillingSetting().TeamsPrice)
+		require.Contains(t, setting.GetBillingSetting().PaymentInstructions, "PayPal")
 		require.Equal(t, int32(31), setting.GetBillingSetting().PeriodDays)
 	})
 
